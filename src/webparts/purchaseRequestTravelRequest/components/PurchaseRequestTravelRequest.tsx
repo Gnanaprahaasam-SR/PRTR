@@ -10,6 +10,7 @@ import TravelRequestForm from './TravelRequest/TravelRequestFrom';
 import PRUpdate from './PurchaseRequest/PRUpdate';
 import TravelRequestTable from './TravelRequest/TravelRequestTable';
 import TRUpdate from './TravelRequest/TRUpdate';
+import Reports from './Report/Report';
 // import { escape } from '@microsoft/sp-lodash-subset';
 
 export default class PurchaseRequestTravelRequest extends React.Component<IPurchaseRequestTravelRequestProps> {
@@ -30,7 +31,7 @@ export default class PurchaseRequestTravelRequest extends React.Component<IPurch
         <HashRouter>
           <Header userDisplayName={userDisplayName} context={context} />
           <Routes>
-            <Route path="/" element={<Home context={context} />} />
+            <Route path="/" element={<Home context={context} userId={userId} userName={userDisplayName}/>} />
             <Route path="/purchaseRequest/:PRId?" element={<PRForm userId={userId} userName={userDisplayName} context={context} />} />
             <Route path="/purchaseRequestTable/:table" element={<PurchaseRequestTable userId={userId} userName={userDisplayName} context={context} />} />
             <Route path='/purchaseRequestUpdate/:PRId' element={<PRUpdate userId={userId} userName={userDisplayName} context={context} />} />
@@ -38,6 +39,7 @@ export default class PurchaseRequestTravelRequest extends React.Component<IPurch
             <Route path='/travelRequest/:TRId?' element={<TravelRequestForm userId={userId} userName={userDisplayName} context={context} />} />
             <Route path='/travelRequestTable/:table' element={<TravelRequestTable userId={userId} userName={userDisplayName} context={context} />} />
             <Route path='/travelRequestUpdate/:TRId' element={<TRUpdate userId={userId} userName={userDisplayName} context={context} />} />
+            <Route path='/report/:table' element={<Reports context={context} />} />
           </Routes>
         </HashRouter>
 

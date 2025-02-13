@@ -1,67 +1,77 @@
 import React, { FC, useEffect, useState } from 'react';
 import Style from '../PurchaseRequestTravelRequest.module.scss';
-import { IconButton } from '@fluentui/react/lib/Button';
-import { FaClock, FaRegClipboard, FaSort, FaSortDown, FaSortUp } from "react-icons/fa6";
-import { MdCardTravel, MdOutlineCancel } from "react-icons/md";
+import { FaSort, FaSortDown, FaSortUp } from "react-icons/fa6";
+import { MdOutlineCancel } from "react-icons/md";
 import { FiArrowLeftCircle, FiArrowRightCircle } from "react-icons/fi";
 import { BsFileEarmarkSpreadsheetFill } from "react-icons/bs";
-import { HiPlusCircle } from "react-icons/hi";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
-import { Link, useParams } from 'react-router-dom';
-import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
-import { FaCheckCircle } from 'react-icons/fa';
-import { RiDraftLine } from "react-icons/ri";
-import styles from '../PurchaseRequestTravelRequest.module.scss';
+import styles from "./Report.module.scss";
 import { PurchaseRequestTravelRequestService } from '../../Service/PurchaseRequestTravelRequest';
-import { ITravelRequestProps } from './ITravelRequestProps';
-import { TbCancel } from 'react-icons/tb';
+import { WebPartContext } from '@microsoft/sp-webpart-base';
+import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
 
 const columnsData: { label: string, field: string }[] = [
     { label: 'S.No', field: 'serialNumber' },
     { label: 'Action', field: 'Action' },
-    { label: 'TR Number', field: 'TRNumber' },
+    { label: 'PR Number', field: 'PRNumber' },
     { label: 'Status', field: 'Status' },
-    { label: 'Requester', field: 'Requester' },
-    { label: 'Department', field: 'Department' },
+    { label: 'Requestor Name', field: 'Requester' },
+    { label: "Department", field: 'Department' },
     { label: 'Requested Date', field: 'RequestedDate' },
+    { label: 'Purchase Details', field: 'PurchaseDetails' },
+    { label: 'Category', field: 'Category' },
+    { label: 'Total Cost', field: 'TotalCost' },
+    { label: 'Recurring Cost', field: 'RecurringCost' },
+    { label: 'Purchase Type', field: 'PurchaseType' },
+    { label: 'Use case', field: 'UseCase' },
+    { label: 'AR Required', field: 'ARRequired' },
+    { label: 'Business Justification', field: 'BusinessJustification' },
 ];
 
-export interface ITRTableDataProps {
-    TRNumber: string; // Changed from number to string
+export interface IPRTableDataProps {
+    PRNumber: string; // Changed from number to string
     Status: string;
     Requester: string;
     RequesterId: number;
     Department: string;
     DepartmentId: number;
     RequestedDate: string;
-    Where: string;
-    When: string;
-    TotalCostEstimate: number;
+    PurchaseDetails: string;
+    ItemServiceDescription: string;
+    Category: string;
+    TotalCost: number;
+    RecurringCost: number;
+    PurchaseType: string;
+    UseCase: string;
+    ARRequired: string;
     BusinessJustification: string;
 }
 
-const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
-    const { table } = useParams();
-    const [dataList, setDataList] = useState<ITRTableDataProps[]>([]);
-    const [filters, setFilters] = useState<Partial<ITRTableDataProps>>({});
-    const [sortConfig, setSortConfig] = useState<{ key: keyof ITRTableDataProps; direction: 'ascending' | 'descending'; dataType: string } | null>(null);
+interface IPurchaseRequestFormProps {
+    context: WebPartContext;
+}
+
+const PRReport: FC<IPurchaseRequestFormProps> = (props) => {
+    const [dataList, setDataList] = useState<IPRTableDataProps[]>([]);
+    const [filters, setFilters] = useState<Partial<IPRTableDataProps>>({});
+    const [sortConfig, setSortConfig] = useState<{ key: keyof IPRTableDataProps; direction: 'ascending' | 'descending'; dataType: string } | null>(null);
     const [isFilterApplied, setIsFilterApplied] = useState<string>('');
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
-    const [loading, setLoading] = useState<boolean>(false);
     const [globalFilter, setGlobalFilter] = useState<string>('');
     const [selectedColumn, setSelectedColumn] = useState('');
+    const [loading, setLoading] = useState<boolean>(false);
 
     const handleGlobalFilterChange = (value: string) => {
         setGlobalFilter(value);
     };
 
-    const handleFilterChange = (field: keyof ITRTableDataProps, value: string) => {
+    const handleFilterChange = (field: keyof IPRTableDataProps, value: string) => {
         setFilters((prevFilters) => ({ ...prevFilters, [field]: value }));
     };
 
-    const handleSort = (field: keyof ITRTableDataProps) => {
+    const handleSort = (field: keyof IPRTableDataProps) => {
         let direction: 'ascending' | 'descending' = 'ascending';
         if (sortConfig && sortConfig.key === field && sortConfig.direction === 'ascending') {
             direction = 'descending';
@@ -97,13 +107,13 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
         if (!globalFilter) return true;
 
         if (selectedColumn) {
-            return data[selectedColumn as keyof ITRTableDataProps]
+            return data[selectedColumn as keyof IPRTableDataProps]
                 ?.toString()
                 .toLowerCase()
                 .includes(globalFilter.toLowerCase());
         } else {
             return Object.keys(data).some((key) =>
-                data[key as keyof ITRTableDataProps]
+                data[key as keyof IPRTableDataProps]
                     ?.toString()
                     .toLowerCase()
                     .includes(globalFilter.toLowerCase())
@@ -111,8 +121,8 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
         }
     });
 
-    const filterableFields: Array<keyof ITRTableDataProps> = [
-        "TRNumber", "Status", "Requester", "Department", "RequestedDate"
+    const filterableFields: Array<keyof IPRTableDataProps> = [
+        "PRNumber", "Status", "Requester", "Department", "RequestedDate"
     ];
 
     const handlePageChange = (newPage: number): void => {
@@ -137,7 +147,7 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
 
     const handleExport = (): void => {
         const dataToExport = filteredData.map(data => ({
-            "TR Number": data.TRNumber,
+            "PR Number": data.PRNumber,
             "Status": data.Status,
             "Requester": data.Requester,
             "Department": data.Department,
@@ -146,10 +156,10 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
         }));
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'TravelRequestDetails');
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'ProductRequestDetails');
         const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
         const data = new Blob([excelBuffer], { type: EXCEL_TYPE });
-        saveAs(data, `${table === 'TR' ? `PRTR_TravelRequests_${new Date().getTime()}${EXCEL_EXTENSION}` : `PRTR_Drafts_${new Date().getTime()}${EXCEL_EXTENSION}`}`);
+        saveAs(data, `PRTR_PurchaseRequestReport_${new Date().getTime()}${EXCEL_EXTENSION}`);
     };
 
     const formatDate = (dateString: string): string => {
@@ -160,28 +170,31 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
         return `${day}-${month}-${year}`;
     };
 
-    const fetchPurchaseRequestData = async (status: string, userId: number): Promise<void> => {
-        console.log(status, userId);
-        setLoading(true);
+    const fetchPurchaseRequestData = async (status: string,): Promise<void> => {
         const service = new PurchaseRequestTravelRequestService(props.context);
+        setLoading(true);
         try {
-            const data = await service.getTravelRequestDetails(userId, status, null);
-            const TRDetails = data.TRDetails;
-            const TRData: ITRTableDataProps[] = TRDetails.map((item: any) => ({
-                TRNumber: item.Id,
+            const data = await service.getPurchaseRequestDetails(null, status, null);
+            const PRDetail = data.PRDetails;
+            const PRData: IPRTableDataProps[] = PRDetail.map((item) => ({
+                PRNumber: item.Id,
+                Status: item.Status,
                 Requester: item.Requester?.Title,
                 RequesterId: item.Requester?.Id,
                 Department: item.Department?.Department,
                 DepartmentId: item.Department?.Id,
-                RequestedDate: formatDate(item?.RequestedDate),
-                Where: item.Where ?? "",
-                When: item.When ? formatDate(item.When) : "",
-                TotalCostEstimate: item.TotalCostEstimate ?? 0,
-                BusinessJustification: item.BusinessJustification ?? "",
-                Status: item.Status ?? "",
+                RequestedDate: formatDate(item.RequestedDate),
+                PurchaseDetails: item.PurchaseDetails,
+                ItemServiceDescription: item.ItemServiceDescription,
+                Category: item.Category,
+                TotalCost: item.TotalCost,
+                RecurringCost: item.RecurringCost,
+                PurchaseType: item.PurchaseType,
+                UseCase: item.UseCase,
+                ARRequired: item.ARRequired ? "Yes" : "No",
+                BusinessJustification: item.BusinessJustification,
             }));
-            console.log(TRData)
-            setDataList(TRData);
+            setDataList(PRData);
         } catch (error) {
             console.error('Error fetching PR data:', error);
         } finally {
@@ -190,70 +203,29 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
     };
 
     useEffect(() => {
+        fetchPurchaseRequestData("All");
+    }, []);
 
-        if (table === 'TR') {
-            fetchPurchaseRequestData("All", props.userId);
-            handlePageChange(1);
-        } else if (table === 'MyDraft') {
-            fetchPurchaseRequestData("Draft", props.userId);
-            handlePageChange(1);
-        }
-    }, [table]);
 
-    const tabs = [
-        {
-            key: 'TR',
-            label: "Travel Request",
-            icon: <MdCardTravel size={18} />,
-            link: '/travelRequestTable/TR',
-        },
-        {
-            key: 'MyDraft',
-            label: "Draft(s)",
-            icon: <RiDraftLine size={18} />,
-            link: '/travelRequestTable/MyDraft',
-        }
-    ];
 
     return (
-        <section className='bg-white rounded-5'>
+        <div className='bg-white rounded-5'>
             {loading && <LoadingSpinner />}
-            <div className='d-flex flex-wrap align-items-center justify-content-between'>
-                <div className={Style['tabs-container']}>
-                    {tabs.map((tab, index) => (
-                        <div key={tab.key} className={`${Style.tabBg} ${table === tab.key ? Style.active : index > 0 && table === tabs[index - 1].key
-                            ? Style.rightActive  // Apply 'rightActive' for the tab to the right
-                            : index < tabs.length - 1 && table === tabs[index + 1].key
-                                ? Style.leftActive  // Apply 'leftActive' for the tab to the left
-                                : ''
-                            }`}>
-                            <div className={`${Style.tabSecondaryBg} ${table === tab.key ? Style.active : ''}`}>
-                                <Link to={tab.link} className={table === tab.key ? `${Style.tab} ${Style.active}` : `${Style.tab}`}>
-                                    <div className={Style['tab-icon']}>{tab.icon}</div>
-                                    <div className={Style['tab-label']}>
-                                        <span className={Style['main-label']}>{tab.label}</span>
-                                    </div>
-                                </Link>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
             <div className='d-flex flex-wrap align-items-center justify-content-between mt-3 px-2'>
                 <div>
-                    <div className={`${Style.tableTitle}`}>Travel Requests<div style={{ fontSize: "10px" }}>Total Count: {dataList.length}</div></div>
+                    <div className={`${Style.tableTitle}`}>Purchase Requests<div style={{ fontSize: "10px" }}>Total Count: {dataList.length}</div></div>
                 </div>
                 <div className='d-flex justify-content-end gap-2'>
-                    <div className={`${styles.searchInput}`}>
+                    <div className={`${Style.searchInput}`}>
                         <select
                             value={selectedColumn}
                             onChange={(e) => setSelectedColumn(e.target.value)}
-                            className={`${styles.selectColumn}`}
+                            className={`${Style.selectColumn}`}
                         >
                             <option value="">All Columns</option>
-                            <option value="TRNumber">TR Number</option>
+                            <option value="PRNumber">PR Number</option>
                             <option value="Status">Status</option>
-                            <option value="Requester">Requester</option>
+                            <option value="Requester">Requestor Name</option>
                             <option value="Department">Department</option>
                             <option value="RequestedDate">Requested Date</option>
                         </select>
@@ -262,15 +234,9 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                             placeholder="Search..."
                             value={globalFilter}
                             onChange={(e) => handleGlobalFilterChange(e.target.value)}
-                            className={`${styles.columnInput}`}
+                            className={`${Style.columnInput}`}
                         />
                     </div>
-                    <Link to="/travelRequest" className='text-decoration-none'>
-                        <button className={`${Style.primaryButton}`}>
-                            <HiPlusCircle size={20} />
-                            Add TR
-                        </button>
-                    </Link>
                     <button className={`${Style.secondaryButton} text-nowrap`} onClick={handleExport}>
                         <BsFileEarmarkSpreadsheetFill size={15} />
                         Export to Excel
@@ -278,33 +244,32 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                 </div>
             </div>
             <div className='p-3'>
-                <div className={`${Style.tableResponsive}`}>
-                    <table className={`${Style.customTable}`}>
+                <div className={`${styles.tableResponsive} `}>
+                    <table className={`${styles.customTable}`}>
                         <thead>
                             <tr>
                                 <th className='p-2'>S.No</th>
-                                <th className='p-2' style={{ minWidth: "80px", maxWidth: "80px", }}>Action</th>
                                 {columnsData.slice(2).map((column, index) => (
-                                    <th key={index} className='p-2' style={{ minWidth: "80px", maxWidth: "150px", textWrap:"wrap",}}>
-                                        <span className={`text-nowrap mb-1 d-block ${styles['table-header']}`}>
+                                    <th key={index} className={`p-2 ${column.label === "Status" && 'ps-3'}`} style={{ minWidth: "80px", maxWidth: "150px", textWrap: "wrap", }}>
+                                        <span className={`text-nowrap mb-1 d-block ${Style['table-header']}`}>
                                             {column.label}
                                             {sortConfig?.key === column.field && sortConfig.direction === 'ascending' ? (
-                                                <FaSortDown onClick={() => handleSort(column.field as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                                <FaSortDown onClick={() => handleSort(column.field as keyof IPRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
                                             ) : (
                                                 sortConfig?.key === column.field && sortConfig.direction === 'descending' ? (
-                                                    <FaSortUp onClick={() => handleSort(column.field as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                                    <FaSortUp onClick={() => handleSort(column.field as keyof IPRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
                                                 ) : (
-                                                    <FaSort className={styles['sort-icon']} onClick={() => handleSort(column.field as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                                    <FaSort className={Style['sort-icon']} onClick={() => handleSort(column.field as keyof IPRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
                                                 )
                                             )}
                                         </span>
-                                        {isFilterApplied === column.field && filterableFields.includes(column.field as keyof ITRTableDataProps) && (
+                                        {isFilterApplied === column.field && filterableFields.includes(column.field as keyof IPRTableDataProps) && (
                                             <div>
                                                 <input
                                                     type="text"
                                                     placeholder={`Search ${column.label}`}
-                                                    value={filters[column.field as keyof ITRTableDataProps] || ''}
-                                                    onChange={(e) => handleFilterChange(column.field as keyof ITRTableDataProps, e.target.value)}
+                                                    value={filters[column.field as keyof IPRTableDataProps] || ''}
+                                                    onChange={(e) => handleFilterChange(column.field as keyof IPRTableDataProps, e.target.value)}
                                                     className={`d-inline-block px-1 ${Style.searchInput}`}
                                                 />
                                                 <MdOutlineCancel onClick={() => { setIsFilterApplied(''); setFilters({}) }} style={{ cursor: 'pointer', marginLeft: '5px' }} size={18} />
@@ -318,34 +283,8 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                             {paginatedData.map((data, index) => (
                                 <tr key={index}>
                                     <td>{(currentPage - 1) * pageSize + index + 1}</td>
-                                    <td>
-                                        {table === "TR" ? (
-                                            data.Status === "Approved" || data.Status === "In Progress" ? (
-                                                <Link to={`/travelRequestUpdate/${data.TRNumber}`}>
-                                                    <IconButton iconProps={{ iconName: "View" }} title="View" className={Style.iconButton} />
-                                                </Link>
-                                            ) : (
-                                                <>
-                                                    {data.RequesterId !== props.userId && data.Status === "Rejected" ?
-                                                        <Link to={`/travelRequestUpdate/${data.TRNumber}`}>
-                                                            <IconButton iconProps={{ iconName: "View" }} title="View" className={Style.iconButton} />
-                                                        </Link>
-                                                        :
-                                                        <Link to={`/travelRequest/${data.TRNumber}`}>
-                                                            <IconButton iconProps={{ iconName: "Edit" }} title="Edit" className={Style.iconButton} />
-                                                        </Link>
-                                                    }
-                                                </>
-                                            )
-                                        ) : (
-                                            <Link to={`/travelRequest/${data.TRNumber}`}>
-                                                <IconButton iconProps={{ iconName: "Edit" }} title="Edit" className={Style.iconButton} />
-                                            </Link>
-                                        )}
-                                    </td>
-
-                                    <td className={`ps-4`}>{data.TRNumber}</td>
-                                    <td>
+                                    <td className={`text-center`}>{data.PRNumber}</td>
+                                    <td >
                                         <span className={
                                             data.Status === "Approved" ? Style.approved :
                                                 data.Status === "Rejected" ? Style.rejected :
@@ -353,22 +292,26 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                                                         data.Status === "In Progress" ? Style.pending :
                                                             ""
                                         }>
-                                            {data.Status === "Approved" && <FaCheckCircle size={14} />}
-                                            {data.Status === "Rejected" && <TbCancel size={15} />}
-                                            {data.Status === "Draft" && <FaRegClipboard size={14} />}
-                                            {data.Status === "In Progress" && <FaClock size={14} />}
                                             {data.Status}
                                         </span>
                                     </td>
                                     <td >{data.Requester}</td>
-                                    <td>{data.Department}</td>
-                                    <td>{data.RequestedDate}</td>
+                                    <td >{data.Department}</td>
+                                    <td >{data.RequestedDate}</td>
+                                    <td >{data.PurchaseDetails}</td>
+                                    <td >{data.Category}</td>
+                                    <td >{data.TotalCost}</td>
+                                    <td >{data.RecurringCost}</td>
+                                    <td >{data.PurchaseType}</td>
+                                    <td >{data.UseCase}</td>
+                                    <td >{data.ARRequired}</td>
+                                    <td style={{ minWidth: "200px", textWrap: "wrap" }}>{data.BusinessJustification}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
-                <div className="d-flex justify-content-between align-items-center my-3 p-3 ">
+                <div className="d-flex justify-content-between align-items-center mt-3 p-3">
                     <div className="d-flex flex-row align-items-center">
                         <label htmlFor="pageSizeSelect" className='text-nowrap'>Rows Per Page &nbsp;</label>
                         <select id="pageSizeSelect" value={pageSize} onChange={handlePageSizeChange} className={`${Style.inputStyle} text-nowrap`}>
@@ -391,8 +334,8 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
     );
 };
 
-export default TravelRequestTable;
+export default PRReport;

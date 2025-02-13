@@ -22,7 +22,7 @@ import { FiShoppingCart } from 'react-icons/fi';
 
 
 
-interface IPurchaseRequestDataProps {
+export interface IPurchaseRequestDataProps {
     id: number | null;
     requester: string;
     requesterId: number | undefined;
@@ -128,6 +128,58 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
     const handleBackClick = (): void => {
         navigate("/purchaseRequestTable/PR");
     };
+
+    const fetchDepartment = async (): Promise<void> => {
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        const ActiveStatus = true;
+        try {
+
+            const data = await service.getPRTRDepartment(ActiveStatus);
+            const Department = data.map((item, index) => ({
+                id: item.ID,
+                label: item.Department,
+                value: item.Department,
+            }));
+            setDepartmentData(Department);
+        } catch (error) {
+            console.error('Error fetching Departments:', error);
+        }
+    };
+
+    const getApprover = async (): Promise<void> => {
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        setLoading(true);
+        try {
+
+            const data = await service.getPRTRApprovers();
+            const approver = data.map((item) => ({
+                Id: item.ID,
+                Approver: item.Approver?.Title,
+                ApproverId: item.Approver?.Id,
+                Role: item.Role,
+                Hierarchy: item.Hierarchy,
+                Status: "Pending",
+                Comments: "",
+                ApprovedDate: ''
+            }));
+            if (!PRId && !currentPRId) {
+                setApprovers(approver);
+            }
+            if (formData.status === "Draft") {
+                setApprovers(approver);
+            }
+            setInitialApprove(approver);
+        } catch (error) {
+            console.error('Error fetching Approvers:', error);
+        }
+        setLoading(false);
+    }
+
+    useEffect(() => {
+        getApprover();
+        fetchDepartment();
+    }, []);
+
     const fetchPurchaseRequestDetails = async (purchaseRequestId: number): Promise<void> => {
         const service = new PurchaseRequestTravelRequestService(props.context);
 
@@ -168,7 +220,6 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
         }
     };
 
-
     const fetchExistingApproverlist = async (purchaseRequestId: number): Promise<void> => {
         const service = new PurchaseRequestTravelRequestService(props.context);
         try {
@@ -190,77 +241,16 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
         }
     };
 
-
     useEffect(() => {
-        if (currentPRId && PRId) {
+        if (currentPRId && formData.status === "Draft") {
             fetchPurchaseRequestDetails(currentPRId);
+            getApprover();
         }
-    }, [PRId]);
-
-    useEffect(() => {
-        if (currentPRId && formData.status !== "Draft") {
+        else if (currentPRId) {
+            fetchPurchaseRequestDetails(currentPRId);
             fetchExistingApproverlist(currentPRId);
         }
-        if (currentPRId && formData.department) {
-            getApprover(formData?.department);
-        }
-    }, [PRId, formData.status, formData.department]);
-
-
-
-    const fetchDepartment = async (): Promise<void> => {
-        const service = new PurchaseRequestTravelRequestService(props.context);
-        const ActiveStatus = true;
-        try {
-
-            const data = await service.getPRTRDepartment(ActiveStatus);
-            const Department = data.map((item, index) => ({
-                id: item.ID,
-                label: item.Department,
-                value: item.Department,
-            }));
-            setDepartmentData(Department);
-        } catch (error) {
-            console.error('Error fetching Departments:', error);
-        }
-    };
-
-
-    const getApprover = async (department: string): Promise<void> => {
-        const service = new PurchaseRequestTravelRequestService(props.context);
-        setLoading(true);
-        try {
-
-            const data = await service.getPRTRApprovers(department);
-            const approver = data.map((item) => ({
-                Id: item.ID,
-                Approver: item.Approver?.Title,
-                ApproverId: item.Approver?.Id,
-                Role: item.Role,
-                Hierarchy: item.Hierarchy,
-                Status: "Pending",
-                Comments: "",
-                ApprovedDate: ''
-            }));
-            setApprovers(approver);
-            setInitialApprove(approver);
-        } catch (error) {
-            console.error('Error fetching Approvers:', error);
-        }
-        setLoading(false);
-    }
-
-    useEffect(() => {
-        fetchDepartment();
-    }, []);
-
-    useEffect(() => {
-        if (formData?.departmentId && formData?.department && !PRId) {
-            getApprover(formData?.department);
-        }
-    }, [formData.departmentId]);
-
-
+    }, [PRId, formData.status]);
 
 
     const peoplePickerContext: IPeoplePickerContext = {
@@ -418,14 +408,14 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
     const handleConfirmFormSubmit = (formStatus: string): void => {
         console.log("Current Form Data:", formData); // Debugging line
 
-        if (formStatus === "In Progress") {
-            if (!formData.requester || !formData.department || !formData.requestedDate) {
-                setIsDialogOpen(true);
-                setDialogMessage("Please fill all mandatory fields!");
-                setDialogTitle("Form Validation");
-                return;
-            }
-        }
+        // if (formStatus === "In Progress") {
+        //     if (!formData.requester || !formData.department || !formData.requestedDate) {
+        //         setIsDialogOpen(true);
+        //         setDialogMessage("Please fill all mandatory fields!");
+        //         setDialogTitle("Form Validation");
+        //         return;
+        //     }
+        // }
 
         // Ensure state update is reflected
         setFormData(prev => ({
@@ -461,10 +451,6 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
     }
 
 
-
-
-
-
     return (
         <div className=' p-3 bg-light  rounded-3'>
             {loading && <LoadingSpinner />}
@@ -474,7 +460,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                     <div className={Style.tableTitle}>
                         <FiShoppingCart size={20} className='mx-1' /> Purchase Request Form
                     </div>
-                    <div className=''>(<span className='text-danger'>*</span> Please fill in all mandatory fields below)</div>
+                    {/* <div className=''>(<span className='text-danger'>*</span> Please fill in all mandatory fields below)</div> */}
                 </div>
 
                 <div className='d-flex flex-wrap gap-2'>
@@ -492,7 +478,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
 
             <div className="row gx-5">
                 <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                    <label className='form-label text-nowrap'>Requester<span className='text-danger'>*</span></label>
+                    <label className='form-label text-nowrap'>Requestor Name</label>
                     <div className="w-100">
                         <PeoplePicker
                             context={peoplePickerContext}
@@ -519,7 +505,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                 </div>
                 {/* Department */}
                 <div className='mb-2 col-12 col-md-4 col-sm-6'>
-                    <label className='form-label'>Department<span className='text-danger'>*</span></label>
+                    <label className='form-label'>Department</label>
                     <Select
                         {...props}
                         isClearable={true}
@@ -538,7 +524,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                 </div>
                 {/* Requested Date */}
                 <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                    <label className='form-label text-nowrap'>Requested Date<span className='text-danger'>*</span></label>
+                    <label className='form-label text-nowrap'>Requested Date</label>
                     <input
                         type="date"
                         className={`${Style.inputStyle}`}
@@ -592,7 +578,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
 
                 {/* useCase */}
                 <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                    <label className='form-label text-nowrap'>UseCase </label>
+                    <label className='form-label text-nowrap'>Use case </label>
                     <Select
                         {...props}
                         isClearable={true}
@@ -612,7 +598,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
 
                 {/* PurchaseType */}
                 <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                    <label className='form-label text-nowrap'>PurchaseType </label>
+                    <label className='form-label text-nowrap'>Purchase Type </label>
                     <Select
                         {...props}
                         isClearable={true}
@@ -644,7 +630,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
 
                 {/* Item/Service Description */}
                 <div className='mb-2 col-12 col-md-6 '>
-                    <label className='form-label'>Item/Service Description</label>
+                    <label className='form-label'>Item / Service Description</label>
                     <textarea
                         rows={3}
                         className={`${Style.inputStyle}`}
@@ -672,60 +658,59 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                         <label className="form-check-label">AR Required</label>
                     </div>
                 </div>
-                {formData?.department && formData?.departmentId && (
-                    <>
-                        <hr />
-                        <div>
-                            <h6>Approvals:</h6>
-                            {approvers.map((approver, index) => (
-                                <div key={approver.Id} className='mb-4 border rounded-4 mb-2 p-3 px-2'>
-                                    <div className='d-flex flex-wrap align-items-center justify-content-between mb-2'>
-                                        <div>
-                                            <div className='d-flex row flex-nowrap align-items-center gap-3'>
-                                                <div className='col'>
-                                                    <FaUser size={35} />
-                                                </div>
-                                                <div className='col'>
-                                                    <div className='d-flex flex-column'>
-                                                        <span className='text-nowrap'>{approver.Approver}</span>
-                                                        <span className='fw-bold text-nowrap'>{approver.Role}</span>
-                                                    </div>
+
+                <>
+                    <hr />
+                    <div>
+                        <h6>Approvals:</h6>
+                        {approvers.map((approver, index) => (
+                            <div key={approver.Id} className='mb-4 border rounded-4 mb-2 p-3 px-2'>
+                                <div className='d-flex flex-wrap align-items-center justify-content-between mb-2'>
+                                    <div>
+                                        <div className='d-flex row flex-nowrap align-items-center gap-3'>
+                                            <div className='col'>
+                                                <FaUser size={35} />
+                                            </div>
+                                            <div className='col'>
+                                                <div className='d-flex flex-column'>
+                                                    <span className='text-nowrap'>{approver.Approver}</span>
+                                                    <span className='fw-bold text-nowrap'>{approver.Role}</span>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className='col-12 col-sm-6 col-md-3'>
-                                            <span>
-                                                {approver.Status === "Pending" ? <FaClock size={18} className='me-1' style={{ color: "#FF8008" }} /> : approver.Status === "Approved" ? <FaRegCircleCheck size={18} className='text-success me-1' />
-                                                    : <TbCancel size={20} className='text-danger me-1' />
-                                                }
-                                                <b className={
-                                                    approver.Status === "Pending" ? ""
-                                                        : approver.Status === "Approved" ? "text-success"
-                                                            : "text-danger"
-                                                }
-                                                    style={{ color: approver?.Status === "Pending" ? "#FF8008" : "" }}
-                                                >
-                                                    {approver.Status}
-                                                </b>
-                                            </span>
-
-                                        </div>
                                     </div>
+                                    <div className='col-12 col-sm-6 col-md-3'>
+                                        <span>
+                                            {approver.Status === "Pending" ? <FaClock size={18} className='me-1' style={{ color: "#FF8008" }} /> : approver.Status === "Approved" ? <FaRegCircleCheck size={18} className='text-success me-1' />
+                                                : <TbCancel size={20} className='text-danger me-1' />
+                                            }
+                                            <b className={
+                                                approver.Status === "Pending" ? ""
+                                                    : approver.Status === "Approved" ? "text-success"
+                                                        : "text-danger"
+                                            }
+                                                style={{ color: approver?.Status === "Pending" ? "#FF8008" : "" }}
+                                            >
+                                                {approver.Status}
+                                            </b>
+                                        </span>
 
-                                    {(approver.Status === "Approved" || approver.Status === "Rejected") && (
-                                        <div className='d-flex flex-wrap align-items-center justify-content-between row px-2'>
-                                            <div className='col-12 col-md-9 text-wrap'><b>Comments:</b> {approver.Comments}</div>
-                                            <div className='col-12 col-md-3'>{approver.ApprovedDate}</div>
-                                        </div>
-                                    )}
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-                    </>
-                )}
+
+                                {(approver.Status === "Approved" || approver.Status === "Rejected") && (
+                                    <div className='d-flex flex-wrap align-items-center justify-content-between row px-2'>
+                                        <div className='col-12 col-md-9 text-wrap'><b>Comments:</b> {approver.Comments}</div>
+                                        <div className='col-12 col-md-3'>{approver.ApprovedDate}</div>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </>
 
             </div>
-           
+
 
             {/* confirm form submit */}
             <Dialog
@@ -733,7 +718,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                 onDismiss={() => setConfirmSubmit(false)}
                 dialogContentProps={{
                     type: DialogType.normal,
-                    subText: "Are you sure? You want to Submit the PRForm",
+                    subText: "Are you sure, You want to submit the PR?",
                 }}
 
             >
@@ -749,7 +734,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                 onDismiss={() => setConfirmDraft(false)}
                 dialogContentProps={{
                     type: DialogType.normal,
-                    subText: "Are you sure you want to save the form as a draft?",
+                    subText: "Are you sure you want to save the form as a Draft?",
                 }}
 
             >

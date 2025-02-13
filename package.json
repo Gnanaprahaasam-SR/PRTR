@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@fluentui/react": "^8.106.4",
+    "@fluentui/react-charting": "^5.23.54",
     "@microsoft/sp-component-base": "1.20.0",
     "@microsoft/sp-core-library": "1.20.0",
     "@microsoft/sp-lodash-subset": "1.20.0",

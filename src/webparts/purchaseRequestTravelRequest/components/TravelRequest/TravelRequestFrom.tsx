@@ -86,6 +86,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
     const [approvers, setApprovers] = useState<IApproversProps[]>([]);
     const [initialApprove, setInitialApprove] = useState<IApproversProps[]>([]);
     const [confirmSubmit, setConfirmSubmit] = useState<boolean>(false);
+    const [confirmDraft, setConfirmDraft] = useState<boolean>(false);
     const [departmentData, setDepartmentData] = useState<IDepartmentProps[]>([]);
 
     const [loading, setLoading] = useState<boolean>(false);
@@ -103,6 +104,56 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
         navigate("/travelRequestTable/TR"); // Navigate to the previous page
     };
 
+    const fetchDepartment = async (): Promise<void> => {
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        try {
+            const data = await service.getPRTRDepartment(true);
+            const Department = data.map((item: any) => ({
+                id: item.ID,
+                label: item.Department,
+                value: item.Department,
+            }));
+            setDepartmentData(Department);
+        } catch (error) {
+            console.log('Error fetching departments:', error);
+        }
+    };
+
+
+    const fetchApproverlist = async (): Promise<void> => {
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        setLoading(true);
+        try {
+            const data = await service.getPRTRApprovers();
+            const Approvers = data.map((item: any) => ({
+                Id: item.ID,
+                Approver: item.Approver?.Title,
+                ApproverId: item.Approver?.Id,
+                Role: item.Role,
+                Status: "Pending",
+                Hierarchy: item.Hierarchy,
+                Comments: "",
+                ApprovedDate: "",
+            }));
+            if (!TRId && !currentTRId) {
+                setApprovers(Approvers);
+            }
+            if (formData.Status === "Draft") {
+                setApprovers(Approvers);
+            }
+            setInitialApprove(Approvers);
+
+        } catch (error) {
+            console.error('Error fetching departments:', error);
+        }
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        fetchDepartment();
+        fetchApproverlist();
+
+    }, []);
 
 
     const fetchTravelRequestDetails = async (travelRequestId: number): Promise<void> => {
@@ -168,68 +219,18 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
 
 
     useEffect(() => {
-        if (currentTRId) {
+        if (currentTRId && formData.Status === "Draft") {
             fetchTravelRequestDetails(currentTRId);
+            fetchApproverlist();
         }
-    }, [TRId]);
-
-    useEffect(() => {
-        if (currentTRId && formData.Status !== "Draft") {
+        else if (currentTRId) {
+            fetchTravelRequestDetails(currentTRId);
             fetchExistingApproverlist(currentTRId);
         }
-        if (currentTRId && formData.Department) {
-            fetchApproverlist(formData.Department);
-        }
-    }, [TRId, formData.Status, formData.Department]);
+    }, [TRId, formData.Status]);
 
 
-    const fetchDepartment = async (): Promise<void> => {
-        const service = new PurchaseRequestTravelRequestService(props.context);
-        try {
-            const data = await service.getPRTRDepartment(true);
-            const Department = data.map((item: any) => ({
-                id: item.ID,
-                label: item.Department,
-                value: item.Department,
-            }));
-            setDepartmentData(Department);
-        } catch (error) {
-            console.log('Error fetching departments:', error);
-        }
-    };
 
-    useEffect(() => {
-        fetchDepartment();
-    }, []);
-
-    const fetchApproverlist = async (department: string): Promise<void> => {
-        const service = new PurchaseRequestTravelRequestService(props.context);
-        setLoading(true);
-        try {
-            const data = await service.getPRTRApprovers(department);
-            const Approvers = data.map((item: any) => ({
-                Id: item.ID,
-                Approver: item.Approver?.Title,
-                ApproverId: item.Approver?.Id,
-                Role: item.Role,
-                Status: "Pending",
-                Hierarchy: item.Hierarchy,
-                Comments: "",
-                ApprovedDate: "",
-            }));
-            setApprovers(Approvers);
-            setInitialApprove(Approvers);
-            setLoading(false);
-        } catch (error) {
-            console.error('Error fetching departments:', error);
-        }
-    };
-
-    useEffect(() => {
-        if (formData?.Department && !currentTRId) {
-            fetchApproverlist(formData?.Department);
-        }
-    }, [formData.Department]);
 
 
     const handleFormDataChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
@@ -291,9 +292,6 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
     };
 
 
-
-
-
     const handleFormSubmit = async (): Promise<any> => {
         setConfirmSubmit(false);
         setLoading(true);
@@ -335,8 +333,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
 
     }
 
-
-    const handleSaveasDraft = async (): Promise<any> => {
+    const handleSaveAsDraft = async (): Promise<any> => {
         setConfirmSubmit(false);
         setLoading(true);
         console.log(formData, approvers)
@@ -379,14 +376,14 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
 
     const handleConfirmFormSubmit = (formStatus: string,): void => {
 
-        if (formStatus === "In Progress") {
-            if (!formData.Department || !formData.RequestedDate || !formData.Requester) {
-                setIsDialogOpen(true);
-                setDialogMessage('Please fill all mandatory field!');
-                setDialogTitle('Form Validation');
-                return;
-            }
-        }
+        // if (formStatus === "In Progress") {
+        //     if (!formData.Department || !formData.RequestedDate || !formData.Requester) {
+        //         setIsDialogOpen(true);
+        //         setDialogMessage('Please fill all mandatory field!');
+        //         setDialogTitle('Form Validation');
+        //         return;
+        //     }
+        // }
         setFormData(prev => ({
             ...prev,
             Status: formStatus
@@ -394,7 +391,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
 
         setConfirmSubmit(true);
         setDialogTitle("Form Submission");
-        setDialogMessage("Are you sure you want to submit the form?");
+        setDialogMessage("Are you sure, You want to submit the TR?");
     }
 
     return (
@@ -406,12 +403,12 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                     <div className={Style.tableTitle}>
                         <MdFlightTakeoff size={22} className='mx-1' /> Travel Request Form
                     </div>
-                    <div className=''>(<span className='text-danger'>*</span> Please fill in all mandatory fields below)</div>
+                    {/* <div className=''>(<span className='text-danger'>*</span> Please fill in all mandatory fields below)</div> */}
                 </div>
 
                 <div className='d-flex flex-wrap gap-2'>
                     <button className={`${Style.primaryButton} text-wrap`} onClick={() => handleConfirmFormSubmit("In Progress")}><RiArrowUpCircleFill size={20} /> Submit</button>
-                    <button className={`${Style.ternaryButton} text-wrap`} onClick={handleSaveasDraft}><BsHourglassSplit size={18} /> Save as Draft</button>
+                    <button className={`${Style.ternaryButton} text-wrap`} onClick={() => setConfirmDraft(true)}><BsHourglassSplit size={18} /> Save as Draft</button>
                     <button className={`${Style.closeButton} text-wrap`} onClick={handleReset}><GrPowerReset size={19} /> Reset Form</button>
                     <button className={Style.closeButton} onClick={handleBackClick} ><BsBoxArrowLeft size={15} /> Back</button>
                 </div>
@@ -420,7 +417,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
             <div className=" mb-3 p-3">
                 <div className="row d-flex "  >
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                        <label className='form-label text-nowrap'>Requester<span className='text-danger'>*</span></label>
+                        <label className='form-label text-nowrap'>Requestor Name</label>
                         <div className="w-100">
                             <PeoplePicker
                                 context={peoplePickerContext}
@@ -445,7 +442,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                     </div>
 
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                        <label className='form-label text-nowrap'>Department <span className='text-danger'>*</span></label>
+                        <label className='form-label text-nowrap'>Department </label>
                         <Select
                             {...props}
                             className="react-select__menu-list"
@@ -472,7 +469,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
 
                     {/* Requested Date */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                        <label className='form-label text-nowrap'>Requested Date <span className='text-danger'>*</span></label>
+                        <label className='form-label text-nowrap'>Requested Date </label>
                         <input
                             type="date"
                             className={`${Style.inputStyle}`}
@@ -547,57 +544,57 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                     </div>
                 </div>
 
-                {formData?.Department && formData?.DepartmentId && (
-                    <>
-                        <hr />
-                        <div>
-                            <h6>Approvals:</h6>
-                            {approvers.map((approver, index) => (
-                                <div key={approver.Id} className='mb-4 border rounded-4 mb-2 p-3 px-2'>
-                                    <div className='d-flex flex-wrap align-items-center justify-content-between mb-2'>
-                                        <div>
-                                            <div className='d-flex row flex-nowrap align-items-center gap-3'>
-                                                <div className='col'>
-                                                    <FaUser size={35} />
-                                                </div>
-                                                <div className='col'>
-                                                    <div className='d-flex flex-column'>
-                                                        <span className='text-nowrap'>{approver.Approver}</span>
-                                                        <span className='fw-bold text-nowrap'>{approver.Role}</span>
-                                                    </div>
+
+                <>
+                    <hr />
+                    <div>
+                        <h6>Approvals:</h6>
+                        {approvers.map((approver, index) => (
+                            <div key={approver.Id} className='mb-4 border rounded-4 mb-2 p-3 px-2'>
+                                <div className='d-flex flex-wrap align-items-center justify-content-between mb-2'>
+                                    <div>
+                                        <div className='d-flex row flex-nowrap align-items-center gap-3'>
+                                            <div className='col'>
+                                                <FaUser size={35} />
+                                            </div>
+                                            <div className='col'>
+                                                <div className='d-flex flex-column'>
+                                                    <span className='text-nowrap'>{approver.Approver}</span>
+                                                    <span className='fw-bold text-nowrap'>{approver.Role}</span>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className='col-12 col-sm-6 col-md-3'>
-                                            <span>
-                                                {approver.Status === "Pending" ? <FaClock size={18} className='me-1' style={{ color: "#FF8008" }} /> : approver.Status === "Approved" ? <FaRegCircleCheck size={18} className='text-success me-1' />
-                                                    : <TbCancel size={20} className='text-danger me-1' />
-                                                }
-                                                <b className={
-                                                    approver.Status === "Pending" ? ""
-                                                        : approver.Status === "Approved" ? "text-success"
-                                                            : "text-danger"
-                                                }
-                                                    style={{ color: approver?.Status === "Pending" ? "#FF8008" : "" }}
-                                                >
-                                                    {approver.Status}
-                                                </b>
-                                            </span>
-
-                                        </div>
                                     </div>
+                                    <div className='col-12 col-sm-6 col-md-3'>
+                                        <span>
+                                            {approver.Status === "Pending" ? <FaClock size={18} className='me-1' style={{ color: "#FF8008" }} /> : approver.Status === "Approved" ? <FaRegCircleCheck size={18} className='text-success me-1' />
+                                                : <TbCancel size={20} className='text-danger me-1' />
+                                            }
+                                            <b className={
+                                                approver.Status === "Pending" ? ""
+                                                    : approver.Status === "Approved" ? "text-success"
+                                                        : "text-danger"
+                                            }
+                                                style={{ color: approver?.Status === "Pending" ? "#FF8008" : "" }}
+                                            >
+                                                {approver.Status}
+                                            </b>
+                                        </span>
 
-                                    {(approver.Status === "Approved" || approver.Status === "Rejected") && (
-                                        <div className='d-flex flex-wrap align-items-center justify-content-between row px-2'>
-                                            <div className='col-12 col-md-9 text-wrap'><b>Comments:</b> {approver.Comments}</div>
-                                            <div className='col-12 col-md-3'>{approver.ApprovedDate}</div>
-                                        </div>
-                                    )}
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-                    </>
-                )}
+
+                                {(approver.Status === "Approved" || approver.Status === "Rejected") && (
+                                    <div className='d-flex flex-wrap align-items-center justify-content-between row px-2'>
+                                        <div className='col-12 col-md-9 text-wrap'><b>Comments:</b> {approver.Comments}</div>
+                                        <div className='col-12 col-md-3'>{approver.ApprovedDate}</div>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </>
+
             </div>
 
             <Dialog
@@ -632,6 +629,22 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                     <button className={`${Style.closeButton} px-3`} onClick={() => { closeDialog(); setConfirmSubmit(false); }} > Cancel </button>
                 </div>
             </Dialog >
+
+            {/* confirm Draft */}
+            <Dialog
+                hidden={!confirmDraft}
+                onDismiss={() => setConfirmDraft(false)}
+                dialogContentProps={{
+                    type: DialogType.normal,
+                    subText: "Are you sure you want to save the form as a Draft?",
+                }}
+
+            >
+                <div className=" d-flex gap-2 flex-nowrap align-items-center justify-content-end">
+                    <button className={`${Style.secondaryButton} px-3`} onClick={handleSaveAsDraft} > Confirm</button>
+                    <button className={`${Style.closeButton} px-3`} onClick={() => setConfirmDraft(false)} > Cancel </button>
+                </div>
+            </Dialog>
 
         </div >
 

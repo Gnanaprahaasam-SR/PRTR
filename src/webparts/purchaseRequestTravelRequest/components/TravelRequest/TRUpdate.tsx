@@ -171,9 +171,6 @@ const TRUpdate: FC<ITravelRequestProps> = (props) => {
         }
     }, [currentTRId]);
 
-
-
-
     const handleApprovals = (status: string, id: number,): void => {
         setApprovalStatus(status);
         const selectedApprover = approvers.find((approver) => approver.Id === id);
@@ -294,62 +291,60 @@ const TRUpdate: FC<ITravelRequestProps> = (props) => {
                     </div>
                 </div>
 
-                {formData?.Department && formData?.DepartmentId && (
-                    <>
-                        <hr />
-                        <div>
-                            <h6>Approvals:</h6>
-                            {approvers.map((approver, index) => (
-                                <div key={approver.Id} className='mb-4 border rounded-4 mb-2 p-3 px-2'>
-                                    <div className='d-flex flex-wrap align-items-center justify-content-between mb-2'>
-                                        <div>
-                                            <div className='d-flex row flex-nowrap align-items-center gap-3'>
-                                                <div className='col'>
-                                                    <FaUser size={35} />
-                                                </div>
-                                                <div className='col'>
-                                                    <div className='d-flex flex-column'>
-                                                        <span className='text-nowrap'>{approver.Approver}</span>
-                                                        <span className='fw-bold text-nowrap'>{approver.Role}</span>
-                                                    </div>
+                <>
+                    <hr />
+                    <div>
+                        <h6>Approvals:</h6>
+                        {approvers.map((approver, index) => (
+                            <div key={approver.Id} className='mb-4 border rounded-4 mb-2 p-3 px-2'>
+                                <div className='d-flex flex-wrap align-items-center justify-content-between mb-2'>
+                                    <div>
+                                        <div className='d-flex row flex-nowrap align-items-center gap-3'>
+                                            <div className='col'>
+                                                <FaUser size={35} />
+                                            </div>
+                                            <div className='col'>
+                                                <div className='d-flex flex-column'>
+                                                    <span className='text-nowrap'>{approver.Approver}</span>
+                                                    <span className='fw-bold text-nowrap'>{approver.Role}</span>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className='col-12 col-sm-6 col-md-3'>
-                                            {approver.ApproverId === props.userId && approver.Hierarchy === minHierarchy ? (
-                                                <div className='d-flex justify-content-evenly align-items-center'>
-                                                    <button className={`${Style.secondaryButton} px-3 `} onClick={() => handleApprovals("Approved", approver.Id)}> Approve</button>
-                                                    <button className={`${Style.rejecteButton} px-3 `} onClick={() => handleApprovals("Rejected", approver.Id)}>Reject</button>
-                                                </div>
-                                            ) : (
-                                                <span>
-                                                    {approver.Status === "Pending" ? <FaClock size={18} className=' me-1' style={{ color: "#FF8008" }} /> : approver.Status === "Approved" ? <FaRegCircleCheck size={18} className='text-success me-1' />
-                                                        : <TbCancel className='text-danger me-1' size={20} />}
-                                                    <b className={
-                                                        approver.Status === "Pending" ? ""
-                                                            : approver.Status === "Approved" ? "text-success"
-                                                                : "text-danger"
-                                                    }
-                                                        style={{ color: approver?.Status === "Pending" ? "#FF8008" : "" }}
-                                                    >
-                                                        {approver.Status}
-                                                    </b>
-                                                </span>
-                                            )}
-                                        </div>
                                     </div>
-
-                                    {(approver.Status === "Approved" || approver.Status === "Rejected") && (
-                                        <div className='d-flex flex-wrap align-items-center justify-content-between row px-2'>
-                                            <div className='col-12 col-md-9 text-wrap'><b>Comments:</b> {approver.Comments}</div>
-                                            <div className='col-12 col-md-3'>{approver.ApprovedDate}</div>
-                                        </div>
-                                    )}
+                                    <div className='col-12 col-sm-6 col-md-3'>
+                                        {approver.ApproverId === props.userId && approver.Hierarchy === minHierarchy ? (
+                                            <div className='d-flex justify-content-evenly align-items-center'>
+                                                <button className={`${Style.secondaryButton} px-3 `} onClick={() => handleApprovals("Approved", approver.Id)}> Approve</button>
+                                                <button className={`${Style.rejecteButton} px-3 `} onClick={() => handleApprovals("Rejected", approver.Id)}>Reject</button>
+                                            </div>
+                                        ) : (
+                                            <span>
+                                                {approver.Status === "Pending" ? <FaClock size={18} className=' me-1' style={{ color: "#FF8008" }} /> : approver.Status === "Approved" ? <FaRegCircleCheck size={18} className='text-success me-1' />
+                                                    : <TbCancel className='text-danger me-1' size={20} />}
+                                                <b className={
+                                                    approver.Status === "Pending" ? ""
+                                                        : approver.Status === "Approved" ? "text-success"
+                                                            : "text-danger"
+                                                }
+                                                    style={{ color: approver?.Status === "Pending" ? "#FF8008" : "" }}
+                                                >
+                                                    {approver.Status}
+                                                </b>
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-                    </>
-                )}
+
+                                {(approver.Status === "Approved" || approver.Status === "Rejected") && (
+                                    <div className='d-flex flex-wrap align-items-center justify-content-between row px-2'>
+                                        <div className='col-12 col-md-9 text-wrap'><b>Comments:</b> {approver.Comments}</div>
+                                        <div className='col-12 col-md-3'>{approver.ApprovedDate}</div>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </>
             </div>
 
             <Dialog
@@ -367,25 +362,6 @@ const TRUpdate: FC<ITravelRequestProps> = (props) => {
                 }}
             >
                 <div className='p-3'>
-                    {/* <div className='form-group mb-2'>
-                        <label className={Style.label}>Status:</label>
-                        <select
-                            name="status"
-                            id="status"
-                            className={`${Style.inputStyle}`}
-                            disabled
-                            value={updateApprovalData?.Status || "Pending"}
-                            onChange={(e) =>
-                                setUpdateApprovalData((prev) =>
-                                    prev ? { ...prev, status: e.target.value } : null
-                                )
-                            }
-                        >
-                            <option value="Pending">Pending</option>
-                            <option value="Approved">Approved</option>
-                            <option value="Rejected">Rejected</option>
-                        </select>
-                    </div> */}
 
                     <div className="form-group mb-2">
                         <label className={Style.label}>Approver Comment</label>

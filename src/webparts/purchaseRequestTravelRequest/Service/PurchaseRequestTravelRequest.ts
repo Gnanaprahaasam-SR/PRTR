@@ -128,7 +128,7 @@ export class PurchaseRequestTravelRequestService {
     }
 
 
-    public async updatePRTRDepartment(id:number ,department: any): Promise<any[]> {
+    public async updatePRTRDepartment(id: number, department: any): Promise<any[]> {
         try {
             const sp = getSP(this.context);
             const list = sp?.web?.lists?.getByTitle("PRTRDepartments");
@@ -150,7 +150,7 @@ export class PurchaseRequestTravelRequestService {
     }
 
 
-    public async getPRTRPurchaseRequest(status: string, userId: number): Promise<any[]> {
+    public async getPRTRPurchaseRequest(): Promise<any> {
         try {
             const sp = getSP(this.context);
             const list = sp?.web?.lists?.getByTitle("PRTRPurchaseRequestDetails");
@@ -159,17 +159,7 @@ export class PurchaseRequestTravelRequestService {
                 throw new Error("List 'PRTRPurchaseRequestDetails' not found.");
             }
 
-            let filterCondition = "";
-
-            if (status !== "All") {
-                if (status === "Draft") {
-                    filterCondition = `(Status eq '${status}' and Requester/Id eq ${userId})`;
-                } else {
-                    filterCondition = `(Status eq '${status}')`;
-                }
-            } else {
-                filterCondition = "(Status ne 'Draft' and Status ne 'draft')";
-            }
+            let filterCondition = "(Status ne 'Draft')";
 
             const purchaseRequest = await list.items
                 .select(
@@ -194,17 +184,78 @@ export class PurchaseRequestTravelRequestService {
                 )
                 .expand("Requester", "Department")
                 .filter(filterCondition)
-                .top(2000)();
+                .top(5000)();
+
+            // Count status occurrences
+            const statusCounts = {
+                total: purchaseRequest.length,
+                inProgress: purchaseRequest.filter(item => item.Status === "In Progress").length,
+                approved: purchaseRequest.filter(item => item.Status === "Approved").length,
+                rejected: purchaseRequest.filter(item => item.Status === "Rejected").length,
+            };
 
             console.log("Fetched PurchaseRequest items:", purchaseRequest);
-            return purchaseRequest;
+            console.log("Status Counts:", statusCounts);
+
+            return { ...statusCounts };
         } catch (error) {
             console.error("Error retrieving PRTR Purchase Request:", error);
             throw error;
         }
     }
 
-    public async getPRTRApprovers(Department: string): Promise<any[]> {
+    public async getPRTRTravelRequest(): Promise<any> {
+        try {
+            const sp = getSP(this.context);
+            const list = sp?.web?.lists?.getByTitle("PRTRTravelRequestDetails");
+
+            if (!list) {
+                throw new Error("List 'PRTRTravelRequestDetails' not found.");
+            }
+
+            let filterCondition = "(Status ne 'Draft')";
+
+            const TravelRequest = await list.items
+                .select(
+                    "ID",
+                    "Requester/Id",
+                    "Requester/Title",
+                    "Requester/EMail",
+                    "Department/Department",
+                    "Department/ID",
+                    "RequestedDate",
+                    "When",
+                    "Where",
+                    "TotalCostEstimate",
+                    "StratigicProjectRelated",
+                    "EmergencyRelated",
+                    "BusinessJustification",
+                    "Status",
+                    "Created"
+                )
+                .expand("Requester", "Department")
+                .filter(filterCondition)
+                .top(5000)();
+
+            // Count status occurrences
+            const statusCounts = {
+                total: TravelRequest.length,
+                inProgress: TravelRequest.filter(item => item.Status === "In Progress").length,
+                approved: TravelRequest.filter(item => item.Status === "Approved").length,
+                rejected: TravelRequest.filter(item => item.Status === "Rejected").length,
+            };
+
+            console.log("Fetched PurchaseRequest items:", TravelRequest);
+            console.log("Status Counts:", statusCounts);
+
+            return { ...statusCounts };
+        } catch (error) {
+            console.error("Error retrieving PRTR Travel Request:", error);
+            throw error;
+        }
+    }
+
+    public async getPRTRApprovers(): Promise<any[]> {
         try {
             const sp = getSP(this.context);
             const list = sp?.web?.lists?.getByTitle("PRTRApprover");
@@ -215,11 +266,11 @@ export class PurchaseRequestTravelRequestService {
 
             // Query to select fields and filter by Department
             const query = list.items
-                .select("ID", "Approver/Id", "Approver/Title", "Approver/EMail", "Role", "Department/Department", "Hierarchy")
-                .expand("Approver", "Department") // Explicitly expand the lookup field
-                .filter(`Department/Department eq '${Department}'`).orderBy("Hierarchy", true);
+                .select("ID", "Approver/Id", "Approver/Title", "Approver/EMail", "Role", "Hierarchy")
+                .expand("Approver")
+                .orderBy("Hierarchy", true);
             const approversData = await query();
-            console.log("Fetched Approvers for Department:", Department, approversData);
+            console.log("Fetched Approvers:", approversData);
             return approversData;
 
         } catch (error) {

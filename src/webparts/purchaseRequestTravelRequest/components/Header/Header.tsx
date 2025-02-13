@@ -10,7 +10,7 @@ import { TbReportAnalytics } from "react-icons/tb";
 import { BiSolidPurchaseTag } from "react-icons/bi";
 import { BiSolidHome } from "react-icons/bi";
 import { MdCardTravel } from "react-icons/md";
-import { FaDatabase } from "react-icons/fa6";
+// import { FaDatabase } from "react-icons/fa6";
 import { PurchaseRequestTravelRequestService } from '../../Service/PurchaseRequestTravelRequest';
 
 export interface DocumentState {
@@ -128,13 +128,13 @@ const Header: FC<IHeaderProps> = (props) => {
 
           <Link
             className={`${styles.navbarItem} ${location.pathname.startsWith('/report') ? styles.active : ''}`}
-            to="/report/status"
+            to="/report/PR"
           >
             <div className={styles.navicon}><TbReportAnalytics size={18} /></div>
             <div className={styles.navtext}>Reports</div>
           </Link>
 
-          <Link
+          {/* <Link
             className={`${styles.navbarItem} ${location.pathname.startsWith('/masterData') ? styles.active : ''}`}
             to="/masterData/vendor"
           >
@@ -142,7 +142,7 @@ const Header: FC<IHeaderProps> = (props) => {
             <div className={styles.navicon}><FaDatabase size={15} /></div>
 
             <div className={styles.navtext}>Master Data</div>
-          </Link>
+          </Link> */}
 
 
           {/* <CustomDropdown
