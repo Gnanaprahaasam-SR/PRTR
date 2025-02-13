@@ -1,0 +1,44 @@
+{
+  "extends": "./node_modules/@microsoft/rush-stack-compiler-4.7/includes/tsconfig-web.json",
+  "compilerOptions": {
+    "target": "ES2019",
+    "paths": {
+      "@microsoft/sp-http-msgraph": [
+        "./node_modules/@microsoft/sp-http-msgraph"
+      ],
+      "@microsoft/sp-http-base": [
+        "./node_modules/@microsoft/sp-http-base"
+      ]
+    },
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "jsx": "react",
+    "declaration": true,
+    "sourceMap": true,
+    "experimentalDecorators": true,
+    "skipLibCheck": true,
+    "outDir": "lib",
+    "inlineSources": false,
+    "noImplicitAny": true,
+
+    "typeRoots": [
+      "./node_modules/@types",
+      "./node_modules/@microsoft"
+    ],
+    "types": [
+      "webpack-env"
+    ],
+    "lib": [
+     "ES2019",
+      "DOM"
+    ]
+  },
+  "include": [
+    "src",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/webparts/purchaseRequestTravelRequest/components/PurchaseRequestTravelRequest"
+  ]
+}

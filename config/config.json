@@ -1,0 +1,19 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "purchase-request-travel-request-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/purchaseRequestTravelRequest/PurchaseRequestTravelRequestWebPart.js",
+          "manifest": "./src/webparts/purchaseRequestTravelRequest/PurchaseRequestTravelRequestWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "PurchaseRequestTravelRequestWebPartStrings": "lib/webparts/purchaseRequestTravelRequest/loc/{locale}.js",
+    "ControlStrings": "node_modules/@pnp/spfx-controls-react/lib/loc/{locale}.js"
+  }
+}
