@@ -3,10 +3,10 @@ import { Link, useParams } from 'react-router-dom'
 import styles from '../PurchaseRequestTravelRequest.module.scss'
 import { IReportsProps } from './IReportsProps';
 
-import { MdOutlineCategory } from 'react-icons/md'
-import { AiOutlinePieChart } from 'react-icons/ai'
+import { MdCardTravel } from 'react-icons/md'
 import PRReport from './PRReport';
 import TRReport from './TRReport';
+import { BiPurchaseTagAlt } from 'react-icons/bi';
 
 const Reports: React.FC<IReportsProps> = (props) => {
     const { table } = useParams();
@@ -16,14 +16,14 @@ const Reports: React.FC<IReportsProps> = (props) => {
         {
             key: 'PR',
             label: 'PR Report',
-            icon: <MdOutlineCategory size={18} />,
+            icon: <BiPurchaseTagAlt size={18} />,
             component: <PRReport context={props.context} />,
         },
         {
-          key: 'TR',
-          label: 'TR Report',
-          icon: <AiOutlinePieChart size={18} />,
-          component: <TRReport context={props.context} />,
+            key: 'TR',
+            label: 'TR Report',
+            icon: <MdCardTravel size={18} />,
+            component: <TRReport context={props.context} />,
         },
 
     ];

@@ -1,8 +1,7 @@
 // import React, { useState, useEffect, useMemo } from 'react';
 // import { GroupedVerticalBarChart, IGroupedVerticalBarChartProps } from '@fluentui/react-charting';
 // import { IBarChartProps } from './IBarChartProps';
-// // import { PurchaseRequestTravelRequestService } from '../../Service/PurchaseRequestTravelRequest';    
-// // import { ITableDataProps } from '../PurchaseOrderTable/PurchaseOrder';
+// import { PurchaseRequestTravelRequestService } from '../../Service/PurchaseRequestTravelRequest';
 
 // interface ICustomChartData {
 //     month: string;
@@ -11,13 +10,46 @@
 //     pending: number;
 // }
 
+// export interface ITRTableDataProps {
+//     TRNumber: string; // Changed from number to string
+//     Status: string;
+//     Requester: string;
+//     RequesterId: number;
+//     Department: string;
+//     DepartmentId: number;
+//     RequestedDate: string;
+//     Where: string;
+//     When: string;
+//     TotalCostEstimate: number;
+//     BusinessJustification: string;
+// }
+
+// export interface IPRTableDataProps {
+//     PRNumber: string;
+//     Status: string;
+//     Requester: string;
+//     RequesterId: number;
+//     Department: string;
+//     DepartmentId: number;
+//     RequestedDate: string;
+//     PurchaseDetails: string;
+//     ItemServiceDescription: string;
+//     Category: string;
+//     TotalCost: number;
+//     RecurringCost: number;
+//     PurchaseType: string;
+//     UseCase: string;
+// }
+
 // interface IDeliveryStatusData {
 //     status: string;
 //     count: number;
 // }
 
 // const BarChartData: React.FC<IBarChartProps> = (props) => {
-//     const [dataList, setDataList] = useState<ITableDataProps[]>([]);
+//     const [dataList, setDataList] = useState<ITRTableDataProps[]>([]);
+//     const [purchaseRequestData, setPurchaseRequestData] = useState<IPRTableDataProps[]>([]);
+//     const [travelRequestData, setTravelRequestData] = useState<ITRTableDataProps[]>([]);
 //     const [chartData, setChartData] = useState<ICustomChartData[]>([]);
 //     const [deliveryStatusData, setDeliveryStatusData] = useState<IDeliveryStatusData[]>([]);
 //     const [error, setError] = useState<string | null>(null);
@@ -32,26 +64,27 @@
 //     };
 
 //     const fetchPOData = async (status: string, userId: number): Promise<void> => {
-//         const service = new POandAssetManagementService(props.context);
+//         const service = new PurchaseRequestTravelRequestService(props.context);
 //         try {
-//             const data = await service.getPOIMPurchaseOrder(status, userId);
-//             const formattedData = data.map((item) => ({
-//                 POId: item.ID,
-//                 PONumber: item.PONumber,
+//             const data = await service.getPurchaseRequestDetails(props.userId, "All", null);
+//             const PRDetail = data.PRDetails
+//             const PRData: IPRTableDataProps[] = PRDetail.map((item) => ({
+//                 PRNumber: item.Id,
 //                 Status: item.Status,
-//                 VendorName: item.VendorName?.Name || '',
-//                 VendorCode: item.VendorName?.Code || '',
-//                 RequesterName: item.RequesterName?.Title || '',
-//                 Division: item.Division?.Name || '',
-//                 Department: item.Department?.Name || '',
-//                 ManagerName: item.ManagerName?.Title || '',
-//                 RequestedDate: item.RequestedDate,
-//                 Mode: item.Mode || '',
-//                 QuoteNumber: item.QuoteNumber || '',
-//                 DeliveryStatus: item.DeliveryStatus || '',
-//                 CurrencyType: item.CurrencyType || '',
+//                 Requester: item.Requester?.Title,
+//                 RequesterId: item.Requester?.Id,
+//                 Department: item.Department?.Department,
+//                 DepartmentId: item.Department?.Id,
+//                 RequestedDate: formatDate(item.RequestedDate),
+//                 PurchaseDetails: item.PurchaseDetails,
+//                 ItemServiceDescription: item.ItemServiceDescription,
+//                 Category: item.Category,
+//                 TotalCost: item.TotalCost,
+//                 RecurringCost: item.RecurringCost,
+//                 PurchaseType: item.PurchaseType,
+//                 UseCase: item.UseCase,
 //             }));
-//             setDataList(formattedData);
+//             setPurchaseRequestData(PRData);
 
 //             // console.log(formattedData);
 //         } catch (error) {
@@ -63,6 +96,82 @@
 //     useEffect(() => {
 //         fetchPOData('All', props.userId);
 //     }, [props.userId]);
+
+
+//     const data = [
+//         {
+//             name: 'January',
+//             series: [
+//                 {
+//                     key: 'PR',
+//                     data: 66,
+//                     xAxisCalloutData: 'Jan PR',
+//                     color: ,
+//                     legend: 'MetaData1',
+//                 },
+//                 {
+//                     key: 'series2',
+//                     data: 13,
+//                     xAxisCalloutData: 'Q2 2000',
+//                     color: getColorFromToken(DataVizPalette.color6),
+//                     legend: 'MetaData2',
+//                 },
+//             ],
+//         },
+//         {
+//             name: '2010',
+//             series: [
+//                 {
+//                     key: 'series1',
+//                     data: 14,
+//                     xAxisCalloutData: 'Q1 2010',
+//                     color: getColorFromToken(DataVizPalette.color5),
+//                     legend: 'MetaData1',
+//                 },
+//                 {
+//                     key: 'series2',
+//                     data: 90,
+//                     xAxisCalloutData: 'Q2 2010',
+//                     color: getColorFromToken(DataVizPalette.color6),
+//                     legend: 'MetaData2',
+//                 },
+//                 {
+//                     key: 'series3',
+//                     data: 33,
+//                     xAxisCalloutData: 'Q3 2010',
+//                     color: getColorFromToken(DataVizPalette.color7),
+//                     legend: 'MetaData3',
+//                 },
+//             ],
+//         },
+//         {
+//             name: '2020',
+//             series: [
+//                 {
+//                     key: 'series1',
+//                     data: 54,
+//                     xAxisCalloutData: 'Q1 2020',
+//                     color: getColorFromToken(DataVizPalette.color5),
+//                     legend: 'MetaData1',
+//                 },
+//                 {
+//                     key: 'series2',
+//                     data: 72,
+//                     xAxisCalloutData: 'Q2 2020',
+//                     color: getColorFromToken(DataVizPalette.color6),
+//                     legend: 'MetaData2',
+//                 },
+//                 {
+//                     key: 'series3',
+//                     data: 18,
+//                     xAxisCalloutData: 'Q3 2020',
+//                     color: getColorFromToken(DataVizPalette.color7),
+//                     legend: 'MetaData3',
+//                 },
+//             ],
+//         },
+//     ];
+
 
 //     useEffect(() => {
 //         if (dataList.length === 0) return;

@@ -16,13 +16,13 @@ const columnsData: { label: string, field: string }[] = [
     { label: 'Action', field: 'Action' },
     { label: 'TR Number', field: 'TRNumber' },
     { label: 'Status', field: 'Status' },
-    { label: 'Requester', field: 'Requester' },
+    { label: 'Requestor Name', field: 'Requester' },
     { label: 'Department', field: 'Department' },
     { label: 'Requested Date', field: 'RequestedDate' },
     { label: 'Where', field: 'Where' },
     { label: 'When', field: 'When' },
     { label: 'Total Cost Estimate', field: 'TotalCostEstimate' },
-    { label: 'Strategic Project Related', field: 'StrategicProjectRelated' },
+    { label: 'Stratigic Project Related', field: 'StratigicProjectRelated' },
     { label: 'Emergency Related', field: 'EmergencyRelated' },
     { label: 'Business Justification', field: 'BusinessJustification' },
 ];
@@ -116,7 +116,7 @@ const TRReport: FC<ITravelRequestProps> = (props) => {
     });
 
     const filterableFields: Array<keyof ITRTableDataProps> = [
-        "TRNumber", "Status", "Requester", "Department",
+        "TRNumber", "Status", "Requester", "Department", "RequestedDate"
     ];
 
     const handlePageChange = (newPage: number): void => {
@@ -141,12 +141,17 @@ const TRReport: FC<ITravelRequestProps> = (props) => {
 
     const handleExport = (): void => {
         const dataToExport = filteredData.map(data => ({
-            "TR Number": data.TRNumber,
-            "Status": data.Status,
-            "Requester": data.Requester,
-            "Department": data.Department,
-            "Requested Date": data.RequestedDate,
-
+            "TR Number": data.TRNumber ?? "",
+            "Status": data.Status ?? "",
+            "Requestor Name": data.Requester ?? "",
+            "Department": data.Department ?? "",
+            "Requested Date": data.RequestedDate ?? "",
+            "Where": data.Where ?? "",
+            "When": data.When ?? "",
+            "Total Cost Estimate": data.TotalCostEstimate ?? "",
+            "Stratigic Project Related": data.StratigicProjectRelated ?? "",
+            "Emergency Related": data.EmergencyRelated ?? "",
+            "Business Justification": data.BusinessJustification ?? ""
         }));
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
         const workbook = XLSX.utils.book_new();
@@ -221,6 +226,7 @@ const TRReport: FC<ITravelRequestProps> = (props) => {
                             <option value="Status">Status</option>
                             <option value="Requester">Requestor Name</option>
                             <option value="Department">Department</option>
+                            <option value="RequestedDate">Requested Date</option>
                         </select>
                         <input
                             type="search"
@@ -243,7 +249,7 @@ const TRReport: FC<ITravelRequestProps> = (props) => {
                             <tr>
                                 <th className='p-2'>S.No</th>
                                 {columnsData.slice(2).map((column, index) => (
-                                    <th key={index} className={`p-2 ${column.label === "Status" && 'ps-3'}`} style={{ minWidth: "80px", maxWidth: "150px", textWrap: "wrap", }}>
+                                    <th key={index} className={`p-2 ${column.label === "Status" && 'ps-3'}`} style={{ minWidth: "80px", textWrap: "wrap", }}>
                                         <span className={`text-nowrap mb-1 d-block ${Style['table-header']}`}>
                                             {column.label}
                                             {sortConfig?.key === column.field && sortConfig.direction === 'ascending' ? (
@@ -276,7 +282,7 @@ const TRReport: FC<ITravelRequestProps> = (props) => {
                             {paginatedData.map((data, index) => (
                                 <tr key={index}>
                                     <td>{(currentPage - 1) * pageSize + index + 1}</td>
-                                    <td className={`ps-4`}>{data.TRNumber}</td>
+                                    <td className={`ps-5`}>{data.TRNumber}</td>
                                     <td>
                                         <span className={
                                             data.Status === "Approved" ? Style.approved :
@@ -294,9 +300,9 @@ const TRReport: FC<ITravelRequestProps> = (props) => {
                                     <td>{data.Where}</td>
                                     <td>{data.When}</td>
                                     <td>{data.TotalCostEstimate}</td>
-                                    <td>{data.StratigicProjectRelated}</td>
-                                    <td>{data.EmergencyRelated}</td>
-                                    <td>{data.BusinessJustification}</td>
+                                    <td className={`text-center`}>{data.StratigicProjectRelated}</td>
+                                    <td className={`text-center`}>{data.EmergencyRelated}</td>
+                                    <td style={{ minWidth: "200px", textWrap: "wrap" }}>{data.BusinessJustification}</td>
                                 </tr>
                             ))}
                         </tbody>

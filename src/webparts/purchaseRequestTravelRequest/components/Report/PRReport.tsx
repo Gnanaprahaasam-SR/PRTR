@@ -147,12 +147,19 @@ const PRReport: FC<IPurchaseRequestFormProps> = (props) => {
 
     const handleExport = (): void => {
         const dataToExport = filteredData.map(data => ({
-            "PR Number": data.PRNumber,
-            "Status": data.Status,
-            "Requester": data.Requester,
-            "Department": data.Department,
-            "Requested Date": data.RequestedDate,
-
+            "PR Number": data.PRNumber ?? "",
+            "Status": data.Status ?? "",
+            "Requestor Name": data.Requester ?? "",
+            "Department": data.Department ?? "",
+            "Requested Date": data.RequestedDate ?? "",
+            "Purchase Details": data.PurchaseDetails ?? "",
+            "Category": data.Category ?? "",
+            "Total Cost": data.TotalCost ?? "",
+            "Recurring Cost": data.RecurringCost ?? "",
+            "Purchase Type": data.PurchaseType ?? "",
+            "Use Case": data.UseCase ?? "",
+            "AR Required": data.ARRequired ?? "",
+            "Business Justification": data.BusinessJustification ?? ""
         }));
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
         const workbook = XLSX.utils.book_new();
@@ -250,7 +257,7 @@ const PRReport: FC<IPurchaseRequestFormProps> = (props) => {
                             <tr>
                                 <th className='p-2'>S.No</th>
                                 {columnsData.slice(2).map((column, index) => (
-                                    <th key={index} className={`p-2 ${column.label === "Status" && 'ps-3'}`} style={{ minWidth: "80px", maxWidth: "150px", textWrap: "wrap", }}>
+                                    <th key={index} className={`p-2 ${column.label === "Status" && 'ps-3'}`} style={{ minWidth: "80px", textWrap: "wrap", }}>
                                         <span className={`text-nowrap mb-1 d-block ${Style['table-header']}`}>
                                             {column.label}
                                             {sortConfig?.key === column.field && sortConfig.direction === 'ascending' ? (
@@ -283,7 +290,7 @@ const PRReport: FC<IPurchaseRequestFormProps> = (props) => {
                             {paginatedData.map((data, index) => (
                                 <tr key={index}>
                                     <td>{(currentPage - 1) * pageSize + index + 1}</td>
-                                    <td className={`text-center`}>{data.PRNumber}</td>
+                                    <td className={`ps-5`}>{data.PRNumber}</td>
                                     <td >
                                         <span className={
                                             data.Status === "Approved" ? Style.approved :
@@ -300,11 +307,11 @@ const PRReport: FC<IPurchaseRequestFormProps> = (props) => {
                                     <td >{data.RequestedDate}</td>
                                     <td >{data.PurchaseDetails}</td>
                                     <td >{data.Category}</td>
-                                    <td >{data.TotalCost}</td>
+                                    <td className={`text-center`}>{data.TotalCost}</td>
                                     <td >{data.RecurringCost}</td>
                                     <td >{data.PurchaseType}</td>
                                     <td >{data.UseCase}</td>
-                                    <td >{data.ARRequired}</td>
+                                    <td className={`text-center`}>{data.ARRequired}</td>
                                     <td style={{ minWidth: "200px", textWrap: "wrap" }}>{data.BusinessJustification}</td>
                                 </tr>
                             ))}
