@@ -22,7 +22,7 @@ const PieChartData: React.FC<IPieChartProps & IPieChartDataProps> = (props) => {
     const [deliveryStatusData, setDeliveryStatusData] = useState<IDeliveryStatusData[]>([]);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchPurchaseRequestDetails = async (purchaseRequestId: number| null): Promise<void> => {
+    const fetchPurchaseRequestDetails = async (purchaseRequestId: number | null): Promise<void> => {
         const service = new PurchaseRequestTravelRequestService(props.context);
 
         try {
@@ -110,21 +110,21 @@ const PieChartData: React.FC<IPieChartProps & IPieChartDataProps> = (props) => {
 
     return (
 
-        <div className='bg-white rounded-5 p-2' style={{ width: '100%', height: '100%' }}>
-            <h5 className='text-center'>PO By Delivery Status</h5>
+        <div className='bg-white rounded-5 p-2' style={{ width: '100%', height: '100%', minHeight: "450px" }}>
+            <h5 className='text-center'>Purchase Request By Status</h5>
             {error ? (
                 <p>{error}</p>
             ) : ((deliveryStatusData.length > 0) && (deliveryStatusData.length > 0)) ? (
-                <> <Stack horizontal wrap tokens={{ childrenGap: 20 }}>
-                    <PieChart
-                        height={280}
-                        width={280}
-                        data={dynamicData}
-                        colors={colors}
-                    />
-                </Stack>
-
-                </>
+                <div className='h-100 row'>
+                    <Stack horizontal wrap tokens={{ childrenGap: 20 }}>
+                        <PieChart
+                            height={400}
+                            width={400}
+                            data={dynamicData}
+                            colors={colors}
+                        />
+                    </Stack>
+                </div>
             ) : (
                 <p>Loading data...</p>
             )}

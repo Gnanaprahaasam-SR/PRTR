@@ -4,6 +4,7 @@ import styles from './Home.module.scss';
 import { PurchaseRequestTravelRequestService } from '../../Service/PurchaseRequestTravelRequest';
 // import BarChartData from '../BarChart/BarChart';
 import PieChartData from '../PieChart/PieChart';
+import HorizontalBarChartView from '../HorizontalBarChart/HorizontalBarChart';
 // import HorizontalBarChart from '../HorizontalBarChart/HorizontalBarChart';
 
 const Home: FC<IHomeProps> = (props) => {
@@ -122,7 +123,7 @@ const Home: FC<IHomeProps> = (props) => {
             </div>
             <div className='row'>
               <div className='col-12 col-md-12'>
-                {/* <HorizontalBarChart context={props.context} userId={props.userId} /> */}
+                <HorizontalBarChartView context={props.context} userId={props.userId} />
               </div>
 
             </div>
