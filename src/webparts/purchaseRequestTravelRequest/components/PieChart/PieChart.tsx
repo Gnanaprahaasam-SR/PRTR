@@ -111,23 +111,27 @@ const PieChartData: React.FC<IPieChartProps & IPieChartDataProps> = (props) => {
     return (
 
         <div className='bg-white rounded-5 p-2' style={{ width: '100%', height: '100%', minHeight: "450px" }}>
-            <h5 className='text-center'>Purchase Request By Status</h5>
-            {error ? (
-                <p>{error}</p>
-            ) : ((deliveryStatusData.length > 0) && (deliveryStatusData.length > 0)) ? (
-                <div className='h-100 row'>
-                    <Stack horizontal wrap tokens={{ childrenGap: 20 }}>
-                        <PieChart
-                            height={400}
-                            width={400}
-                            data={dynamicData}
-                            colors={colors}
-                        />
-                    </Stack>
+            <div className='row d-flex flex-row h-100 '>
+                <div className=' align-self-center'>
+                    <h5 className='text-center'>Purchase Request By Status</h5>
                 </div>
-            ) : (
-                <p>Loading data...</p>
-            )}
+                {error ? (
+                    <p>{error}</p>
+                ) : ((deliveryStatusData.length > 0) && (deliveryStatusData.length > 0)) ? (
+                    <div className='align-self-center '>
+                        <Stack horizontal wrap tokens={{ childrenGap: 20 }}>
+                            <PieChart
+                                height={380}
+                                width={380}
+                                data={dynamicData}
+                                colors={colors}
+                            />
+                        </Stack>
+                    </div>
+                ) : (
+                    <p>Loading data...</p>
+                )}
+            </div>
         </div>
 
 

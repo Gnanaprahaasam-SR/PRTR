@@ -2,10 +2,10 @@ import React, { FC, useEffect, useState } from 'react';
 import { IHomeProps } from './IHomeProps';
 import styles from './Home.module.scss';
 import { PurchaseRequestTravelRequestService } from '../../Service/PurchaseRequestTravelRequest';
-// import BarChartData from '../BarChart/BarChart';
 import PieChartData from '../PieChart/PieChart';
 import HorizontalBarChartView from '../HorizontalBarChart/HorizontalBarChart';
-// import HorizontalBarChart from '../HorizontalBarChart/HorizontalBarChart';
+import BarChartData from '../BarChart/BarChart';
+
 
 const Home: FC<IHomeProps> = (props) => {
   const [PRCounts, setPRCounts] = useState({
@@ -84,7 +84,7 @@ const Home: FC<IHomeProps> = (props) => {
         Welcome, <b>{props.userName}</b>
       </div>
       <div className='row'>
-        {/* PO Cards */}
+        {/* Purchase Request Cards */}
         <div className='col-lg-6'>
           <div className={styles.homesubsection}>
             <div className={styles.homesubtitle}>Purchase Request </div>
@@ -99,7 +99,7 @@ const Home: FC<IHomeProps> = (props) => {
               ))}
             </div>
             <div className='row'>
-             
+
               <div className='col-12 col-md-12'>
                 <PieChartData context={props.context} userId={props.userId} />
               </div>
@@ -107,7 +107,7 @@ const Home: FC<IHomeProps> = (props) => {
           </div>
         </div>
 
-        {/* Asset Cards */}
+        {/* Travel Request Cards */}
         <div className='col-lg-6'>
           <div className={styles.homesubsection}>
             <div className={styles.homesubtitle}>Travel Request</div>
@@ -125,11 +125,19 @@ const Home: FC<IHomeProps> = (props) => {
               <div className='col-12 col-md-12'>
                 <HorizontalBarChartView context={props.context} userId={props.userId} />
               </div>
-
             </div>
           </div>
         </div>
 
+
+        <div className='row'>
+          <div className={styles.homesubsection}>
+            <div className={styles.homesubtitle}>Yearly Purchase Request & Travel Request Details</div>
+            <div>
+              <BarChartData  context={props.context} userId={props.userId} />
+            </div>
+          </div>
+        </div>
 
       </div>
     </div>

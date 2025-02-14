@@ -95,11 +95,10 @@ const HorizontalBarChartView: React.FC<IHorizontalBarChartDataProps> = (props) =
     return (
         <div className='bg-white rounded-5 p-2 ' style={{ width: '100%', height: '100%', minHeight: "450px" }}>
             <div className='row d-flex flex-row h-100 '>
-                <div className=' align-self-center'>
+                <div className=' align-self-start'>
                     <h5 className='text-center'>Travel Request By Status </h5>   
                 </div>
-
-                <div className=' align-self-center p-3 '>
+                <div className=' align-self-start px-3 mt-5'>
                     <HorizontalBarChart data={getData(theme?.isInverted ?? false)} roundCorners={true} />
                 </div>
                 {error && <p>{error}</p>}
