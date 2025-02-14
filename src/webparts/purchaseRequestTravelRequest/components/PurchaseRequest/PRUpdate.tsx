@@ -246,7 +246,7 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
             <div className=" mb-3">
                 <div className='rounded-4 bg-white mb-3 row p-4 m-3'>
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                        <label className='form-label fw-bold'>Requester </label>
+                        <label className='form-label fw-bold'>Requestor Name</label>
                         <div className=''>{formData.requester}</div>
                     </div>
 
@@ -272,20 +272,21 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
                     {/* Total Cost */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
                         <label className='form-label fw-bold'>Total Cost </label>
-                        <div className=''>{formData.totalCost}</div>
+                        <div className=''>$ {formData.totalCost ? Number(formData.totalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}</div>
 
                     </div>
 
                     {/* Recurring Cost */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
                         <label className='form-label fw-bold'>Recurring Cost </label>
-                        <div className=''>{formData.recurringCost}</div>
+                        <div className=''>$ {formData.recurringCost ? Number(formData.recurringCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}
+                        </div>
 
                     </div>
 
                     {/* useCase */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                        <label className='form-label text-nowrap fw-bold'>UseCase </label>
+                        <label className='form-label text-nowrap fw-bold'>Use Case </label>
                         <div className=''>{formData.useCase}</div>
 
                     </div>
@@ -306,7 +307,7 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
 
                     {/* Item/Service Description */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                        <label className='form-label fw-bold'>Item/Service Description</label>
+                        <label className='form-label fw-bold'>Item / Service Description</label>
                         <div className=' text-wrap'>{formData.itemServiceDescription}</div>
 
                     </div>

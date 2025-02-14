@@ -17,15 +17,15 @@ import { PurchaseRequestTravelRequestService } from '../../Service/PurchaseReque
 import { ITravelRequestProps } from './ITravelRequestProps';
 import { TbCancel } from 'react-icons/tb';
 
-const columnsData: { label: string, field: string }[] = [
-    { label: 'S.No', field: 'serialNumber' },
-    { label: 'Action', field: 'Action' },
-    { label: 'TR Number', field: 'TRNumber' },
-    { label: 'Status', field: 'Status' },
-    { label: 'Requester', field: 'Requester' },
-    { label: 'Department', field: 'Department' },
-    { label: 'Requested Date', field: 'RequestedDate' },
-];
+// const columnsData: { label: string, field: string }[] = [
+//     { label: 'S.No', field: 'serialNumber' },
+//     { label: 'Action', field: 'Action' },
+//     { label: 'TR Number', field: 'TRNumber' },
+//     { label: 'Status', field: 'Status' },
+//     { label: 'Requester', field: 'Requester' },
+//     { label: 'Department', field: 'Department' },
+//     { label: 'Requested Date', field: 'RequestedDate' },
+// ];
 
 export interface ITRTableDataProps {
     TRNumber: string; // Changed from number to string
@@ -253,7 +253,7 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                             <option value="">All Columns</option>
                             <option value="TRNumber">TR Number</option>
                             <option value="Status">Status</option>
-                            <option value="Requester">Requester</option>
+                            <option value="Requester">Requestor Name</option>
                             <option value="Department">Department</option>
                             <option value="RequestedDate">Requested Date</option>
                         </select>
@@ -284,34 +284,131 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                             <tr>
                                 <th className='p-2'>S.No</th>
                                 <th className='p-2' style={{ minWidth: "80px", maxWidth: "80px", }}>Action</th>
-                                {columnsData.slice(2).map((column, index) => (
-                                    <th key={index} className='p-2' style={{ minWidth: "80px", maxWidth: "150px", textWrap:"wrap",}}>
-                                        <span className={`text-nowrap mb-1 d-block ${styles['table-header']}`}>
-                                            {column.label}
-                                            {sortConfig?.key === column.field && sortConfig.direction === 'ascending' ? (
-                                                <FaSortDown onClick={() => handleSort(column.field as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
-                                            ) : (
-                                                sortConfig?.key === column.field && sortConfig.direction === 'descending' ? (
-                                                    <FaSortUp onClick={() => handleSort(column.field as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
-                                                ) : (
-                                                    <FaSort className={styles['sort-icon']} onClick={() => handleSort(column.field as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
-                                                )
-                                            )}
-                                        </span>
-                                        {isFilterApplied === column.field && filterableFields.includes(column.field as keyof ITRTableDataProps) && (
-                                            <div>
-                                                <input
-                                                    type="text"
-                                                    placeholder={`Search ${column.label}`}
-                                                    value={filters[column.field as keyof ITRTableDataProps] || ''}
-                                                    onChange={(e) => handleFilterChange(column.field as keyof ITRTableDataProps, e.target.value)}
-                                                    className={`d-inline-block px-1 ${Style.searchInput}`}
-                                                />
-                                                <MdOutlineCancel onClick={() => { setIsFilterApplied(''); setFilters({}) }} style={{ cursor: 'pointer', marginLeft: '5px' }} size={18} />
-                                            </div>
+                                <th className='p-2' style={{  textWrap: "wrap" }}>
+                                    <span className={`text-nowrap mb-1 d-block ${styles['table-header']}`}>
+                                        TR Number
+                                        {sortConfig?.key === 'TRNumber' && sortConfig.direction === 'ascending' ? (
+                                            <FaSortDown onClick={() => handleSort('TRNumber' as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                        ) : sortConfig?.key === 'TRNumber' && sortConfig.direction === 'descending' ? (
+                                            <FaSortUp onClick={() => handleSort('TRNumber' as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                        ) : (
+                                            <FaSort className={styles['sort-icon']} onClick={() => handleSort('TRNumber' as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
                                         )}
-                                    </th>
-                                ))}
+                                    </span>
+                                    {isFilterApplied === 'TRNumber' && filterableFields.includes('TRNumber' as keyof ITRTableDataProps) && (
+                                        <div>
+                                            <input
+                                                type="text"
+                                                placeholder="Search TR Number"
+                                                value={filters['TRNumber' as keyof ITRTableDataProps] || ''}
+                                                onChange={(e) => handleFilterChange('TRNumber' as keyof ITRTableDataProps, e.target.value)}
+                                                className={`d-inline-block px-1 ${Style.searchInput}`}
+                                            />
+                                            <MdOutlineCancel onClick={() => { setIsFilterApplied(''); setFilters({}) }} style={{ cursor: 'pointer', marginLeft: '5px' }} size={18} />
+                                        </div>
+                                    )}
+                                </th>
+
+                                <th className='ps-4' style={{  textWrap: "wrap", textAlign:"left" }}>
+                                    <span className={`text-nowrap mb-1 d-block ${styles['table-header']}`}>
+                                        Status
+                                        {sortConfig?.key === 'Status' && sortConfig.direction === 'ascending' ? (
+                                            <FaSortDown onClick={() => handleSort('Status' as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                        ) : sortConfig?.key === 'Status' && sortConfig.direction === 'descending' ? (
+                                            <FaSortUp onClick={() => handleSort('Status' as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                        ) : (
+                                            <FaSort className={styles['sort-icon']} onClick={() => handleSort('Status' as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                        )}
+                                    </span>
+                                    {isFilterApplied === 'Status' && filterableFields.includes('Status' as keyof ITRTableDataProps) && (
+                                        <div>
+                                            <input
+                                                type="text"
+                                                placeholder="Search Status"
+                                                value={filters['Status' as keyof ITRTableDataProps] || ''}
+                                                onChange={(e) => handleFilterChange('Status' as keyof ITRTableDataProps, e.target.value)}
+                                                className={`d-inline-block px-1 ${Style.searchInput}`}
+                                            />
+                                            <MdOutlineCancel onClick={() => { setIsFilterApplied(''); setFilters({}) }} style={{ cursor: 'pointer', marginLeft: '5px' }} size={18} />
+                                        </div>
+                                    )}
+                                </th>
+
+                                <th className='p-2' style={{ textWrap: "wrap" }}>
+                                    <span className={`text-nowrap mb-1 d-block ${styles['table-header']}`}>
+                                        Requestor Name
+                                        {sortConfig?.key === 'Requester' && sortConfig.direction === 'ascending' ? (
+                                            <FaSortDown onClick={() => handleSort('Requester' as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                        ) : sortConfig?.key === 'Requester' && sortConfig.direction === 'descending' ? (
+                                            <FaSortUp onClick={() => handleSort('Requester' as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                        ) : (
+                                            <FaSort className={styles['sort-icon']} onClick={() => handleSort('Requester' as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                        )}
+                                    </span>
+                                    {isFilterApplied === 'Requester' && filterableFields.includes('Requester' as keyof ITRTableDataProps) && (
+                                        <div>
+                                            <input
+                                                type="text"
+                                                placeholder="Search Requester"
+                                                value={filters['Requester' as keyof ITRTableDataProps] || ''}
+                                                onChange={(e) => handleFilterChange('Requester' as keyof ITRTableDataProps, e.target.value)}
+                                                className={`d-inline-block px-1 ${Style.searchInput}`}
+                                            />
+                                            <MdOutlineCancel onClick={() => { setIsFilterApplied(''); setFilters({}) }} style={{ cursor: 'pointer', marginLeft: '5px' }} size={18} />
+                                        </div>
+                                    )}
+                                </th>
+
+                                <th className='p-2 ps-3' style={{ textWrap: "wrap" }}>
+                                    <span className={`text-nowrap mb-1 d-block ${styles['table-header']}`}>
+                                        Department
+                                        {sortConfig?.key === 'Department' && sortConfig.direction === 'ascending' ? (
+                                            <FaSortDown onClick={() => handleSort('Department' as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                        ) : sortConfig?.key === 'Department' && sortConfig.direction === 'descending' ? (
+                                            <FaSortUp onClick={() => handleSort('Department' as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                        ) : (
+                                            <FaSort className={styles['sort-icon']} onClick={() => handleSort('Department' as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                        )}
+                                    </span>
+                                    {isFilterApplied === 'Department' && filterableFields.includes('Department' as keyof ITRTableDataProps) && (
+                                        <div>
+                                            <input
+                                                type="text"
+                                                placeholder="Search Department"
+                                                value={filters['Department' as keyof ITRTableDataProps] || ''}
+                                                onChange={(e) => handleFilterChange('Department' as keyof ITRTableDataProps, e.target.value)}
+                                                className={`d-inline-block px-1 ${Style.searchInput}`}
+                                            />
+                                            <MdOutlineCancel onClick={() => { setIsFilterApplied(''); setFilters({}) }} style={{ cursor: 'pointer', marginLeft: '5px' }} size={18} />
+                                        </div>
+                                    )}
+                                </th>
+
+                                <th className='p-2 ps-3' style={{ textWrap: "wrap" }}>
+                                    <span className={`text-nowrap mb-1 d-block ${styles['table-header']}`}>
+                                        Requested Date
+                                        {sortConfig?.key === 'RequestedDate' && sortConfig.direction === 'ascending' ? (
+                                            <FaSortDown onClick={() => handleSort('RequestedDate' as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                        ) : sortConfig?.key === 'RequestedDate' && sortConfig.direction === 'descending' ? (
+                                            <FaSortUp onClick={() => handleSort('RequestedDate' as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                        ) : (
+                                            <FaSort className={styles['sort-icon']} onClick={() => handleSort('RequestedDate' as keyof ITRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                        )}
+                                    </span>
+                                    {isFilterApplied === 'RequestedDate' && filterableFields.includes('RequestedDate' as keyof ITRTableDataProps) && (
+                                        <div>
+                                            <input
+                                                type="text"
+                                                placeholder="Search Requested Date"
+                                                value={filters['RequestedDate' as keyof ITRTableDataProps] || ''}
+                                                onChange={(e) => handleFilterChange('RequestedDate' as keyof ITRTableDataProps, e.target.value)}
+                                                className={`d-inline-block px-1 ${Style.searchInput}`}
+                                            />
+                                            <MdOutlineCancel onClick={() => { setIsFilterApplied(''); setFilters({}) }} style={{ cursor: 'pointer', marginLeft: '5px' }} size={18} />
+                                        </div>
+                                    )}
+                                </th>
+
                             </tr>
                         </thead>
                         <tbody>
@@ -344,7 +441,7 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                                         )}
                                     </td>
 
-                                    <td className={`ps-4`}>{data.TRNumber}</td>
+                                    <td className={``}>{data.TRNumber}</td>
                                     <td>
                                         <span className={
                                             data.Status === "Approved" ? Style.approved :

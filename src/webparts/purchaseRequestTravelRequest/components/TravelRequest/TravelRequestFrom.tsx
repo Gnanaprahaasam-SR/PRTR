@@ -517,17 +517,17 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
 
                     {/* Strategic Project Related */}
                     <div className=" col-12 col-sm-6 col-md-4 d-flex align-items-center">
-                        <div className="form-check gap-2">
-                            <input className={`form-check-input ${Style.inputStyle}`} type="checkbox" id="tax" checked={formData?.StratigicProjectRelated ?? false} onChange={(e) => handleTaxToggle("StratigicProjectRelated", e.target.checked)} />
-                            <label className="form-check-label">Strategic Project Related </label>
+                        <div className="form-check form-switch gap-2">
+                            <input className={`form-check-input ${Style.checkBox} ${Style.inputStyle}`} type="checkbox" id="tax" checked={formData?.StratigicProjectRelated ?? false} onChange={(e) => handleTaxToggle("StratigicProjectRelated", e.target.checked)} />
+                            <label className="form-check-label" id="tax">Strategic Project Related </label>
                         </div>
                     </div>
 
                     {/* Emergency related */}
                     <div className=" col-12 col-sm-6 col-md-4 d-flex align-items-center">
-                        <div className="form-check gap-2">
-                            <input className={`form-check-input ${Style.inputStyle}`} type="checkbox" id="emergency" checked={formData?.EmergencyRelated ?? false} onChange={(e) => handleTaxToggle("EmergencyRelated", e.target.checked)} />
-                            <label className="form-check-label">Emergency Related</label>
+                        <div className="form-check form-switch gap-2">
+                            <input className={`form-check-input  ${Style.inputStyle} ${Style.checkBox}`} type="checkbox" id="emergency" checked={formData?.EmergencyRelated ?? false} onChange={(e) => handleTaxToggle("EmergencyRelated", e.target.checked)} />
+                            <label className="form-check-label" id="emergency">Emergency Related</label>
                         </div>
                     </div>
 

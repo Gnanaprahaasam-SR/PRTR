@@ -100,7 +100,7 @@ const BarChartData: React.FC<IBarChartProps> = (props) => {
 
     return (
         <div className='bg-white rounded-5 p-2'>
-            <h6 className='text-center text-wrap'>PR - TR for ({selectedYear})</h6>
+            <h5 className='text-center text-wrap'>PR - TR for ({selectedYear})</h5>
 
             {/* Bootstrap Select Dropdown for Year Selection */}
             <div className='col-12 col-sm-4 col-md-3 float-end'>

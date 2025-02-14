@@ -17,15 +17,15 @@ import { IPurchaseRequestFormProps } from './IPurchaseRequestFormProps';
 import { PurchaseRequestTravelRequestService } from '../../Service/PurchaseRequestTravelRequest';
 import { TbCancel } from 'react-icons/tb';
 
-const columnsData: { label: string, field: string }[] = [
-    { label: 'S.No', field: 'serialNumber' },
-    { label: 'Action', field: 'Action' },
-    { label: 'PR Number', field: 'PRNumber' },
-    { label: 'Status', field: 'Status' },
-    { label: 'Requester', field: 'Requester' },
-    { label: 'Department', field: 'Department' },
-    { label: 'Requested Date', field: 'RequestedDate' },
-];
+// const columnsData: { label: string, field: string }[] = [
+//     { label: 'S.No', field: 'serialNumber' },
+//     { label: 'Action', field: 'Action' },
+//     { label: 'PR Number', field: 'PRNumber' },
+//     { label: 'Status', field: 'Status' },
+//     { label: 'Requester', field: 'Requester' },
+//     { label: 'Department', field: 'Department' },
+//     { label: 'Requested Date', field: 'RequestedDate' },
+// ];
 
 export interface IPRTableDataProps {
     PRNumber: string; // Changed from number to string
@@ -258,7 +258,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                             <option value="">All Columns</option>
                             <option value="PRNumber">PR Number</option>
                             <option value="Status">Status</option>
-                            <option value="Requester">Requester</option>
+                            <option value="Requester">Requestor Name</option>
                             <option value="Department">Department</option>
                             <option value="RequestedDate">Requested Date</option>
                         </select>
@@ -287,43 +287,150 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                     <table className={`${Style.customTable}`}>
                         <thead>
                             <tr>
-                                <th className='p-2'>S.No</th>
-                                <th className='p-2' style={{ minWidth: "80px", maxWidth: "80px" }}>Action</th>
-                                {columnsData.slice(2).map((column, index) => (
-                                    <th key={index} className='p-2' style={{ minWidth: "80px", maxWidth: "150px", textWrap:"wrap",}}>
-                                        <span className={`text-nowrap mb-1 d-block ${styles['table-header']}`}>
-                                            {column.label}
-                                            {sortConfig?.key === column.field && sortConfig.direction === 'ascending' ? (
-                                                <FaSortDown onClick={() => handleSort(column.field as keyof IPRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                <th className='p-2 text-center'>S.No</th>
+                                <th className='p-2 text-center' style={{width: "80px", maxWidth: "80px" }}>Action</th>
+                                <th className='p-2' style={{ textWrap: "wrap" }}>
+                                    <span className={`text-nowrap mb-1 d-block ${styles['table-header']}`}>
+                                        PR Number
+                                        {sortConfig?.key === 'PRNumber' && sortConfig.direction === 'ascending' ? (
+                                            <FaSortDown onClick={() => handleSort('PRNumber')} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                        ) : (
+                                            sortConfig?.key === 'PRNumber' && sortConfig.direction === 'descending' ? (
+                                                <FaSortUp onClick={() => handleSort('PRNumber')} style={{ cursor: 'pointer', marginLeft: '5px' }} />
                                             ) : (
-                                                sortConfig?.key === column.field && sortConfig.direction === 'descending' ? (
-                                                    <FaSortUp onClick={() => handleSort(column.field as keyof IPRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
-                                                ) : (
-                                                    <FaSort className={styles['sort-icon']} onClick={() => handleSort(column.field as keyof IPRTableDataProps)} style={{ cursor: 'pointer', marginLeft: '5px' }} />
-                                                )
-                                            )}
-                                        </span>
-                                        {isFilterApplied === column.field && filterableFields.includes(column.field as keyof IPRTableDataProps) && (
-                                            <div>
-                                                <input
-                                                    type="text"
-                                                    placeholder={`Search ${column.label}`}
-                                                    value={filters[column.field as keyof IPRTableDataProps] || ''}
-                                                    onChange={(e) => handleFilterChange(column.field as keyof IPRTableDataProps, e.target.value)}
-                                                    className={`d-inline-block px-1 ${Style.searchInput}`}
-                                                />
-                                                <MdOutlineCancel onClick={() => { setIsFilterApplied(''); setFilters({}) }} style={{ cursor: 'pointer', marginLeft: '5px' }} size={18} />
-                                            </div>
+                                                <FaSort className={styles['sort-icon']} onClick={() => handleSort('PRNumber')} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                            )
                                         )}
-                                    </th>
-                                ))}
+                                    </span>
+                                    {isFilterApplied === 'PRNumber' && filterableFields.includes('PRNumber') && (
+                                        <div>
+                                            <input
+                                                type="text"
+                                                placeholder="Search PR Number"
+                                                value={filters['PRNumber'] || ''}
+                                                onChange={(e) => handleFilterChange('PRNumber', e.target.value)}
+                                                className={`d-inline-block px-1 ${Style.searchInput}`}
+                                            />
+                                            <MdOutlineCancel onClick={() => { setIsFilterApplied(''); setFilters({}) }} style={{ cursor: 'pointer', marginLeft: '5px' }} size={18} />
+                                        </div>
+                                    )}
+                                </th>
+
+                                <th className='ps-4' style={{textWrap: "wrap", textAlign:"left" }}>
+                                    <span className={`text-nowrap mb-1 d-block ${styles['table-header']}`}>
+                                        Status
+                                        {sortConfig?.key === 'Status' && sortConfig.direction === 'ascending' ? (
+                                            <FaSortDown onClick={() => handleSort('Status')} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                        ) : (
+                                            sortConfig?.key === 'Status' && sortConfig.direction === 'descending' ? (
+                                                <FaSortUp onClick={() => handleSort('Status')} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                            ) : (
+                                                <FaSort className={styles['sort-icon']} onClick={() => handleSort('Status')} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                            )
+                                        )}
+                                    </span>
+                                    {isFilterApplied === 'Status' && filterableFields.includes('Status') && (
+                                        <div>
+                                            <input
+                                                type="text"
+                                                placeholder="Search Status"
+                                                value={filters['Status'] || ''}
+                                                onChange={(e) => handleFilterChange('Status', e.target.value)}
+                                                className={`d-inline-block px-1 ${Style.searchInput}`}
+                                            />
+                                            <MdOutlineCancel onClick={() => { setIsFilterApplied(''); setFilters({}) }} style={{ cursor: 'pointer', marginLeft: '5px' }} size={18} />
+                                        </div>
+                                    )}
+                                </th>
+
+                                <th className='p-2 ps-3' style={{ textWrap: "wrap" }}>
+                                    <span className={`text-nowrap mb-1 d-block ${styles['table-header']}`}>
+                                        Requestor Name
+                                        {sortConfig?.key === 'Requester' && sortConfig.direction === 'ascending' ? (
+                                            <FaSortDown onClick={() => handleSort('Requester')} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                        ) : (
+                                            sortConfig?.key === 'Requester' && sortConfig.direction === 'descending' ? (
+                                                <FaSortUp onClick={() => handleSort('Requester')} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                            ) : (
+                                                <FaSort className={styles['sort-icon']} onClick={() => handleSort('Requester')} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                            )
+                                        )}
+                                    </span>
+                                    {isFilterApplied === 'Requester' && filterableFields.includes('Requester') && (
+                                        <div>
+                                            <input
+                                                type="text"
+                                                placeholder="Search Requester"
+                                                value={filters['Requester'] || ''}
+                                                onChange={(e) => handleFilterChange('Requester', e.target.value)}
+                                                className={`d-inline-block px-1 ${Style.searchInput}`}
+                                            />
+                                            <MdOutlineCancel onClick={() => { setIsFilterApplied(''); setFilters({}) }} style={{ cursor: 'pointer', marginLeft: '5px' }} size={18} />
+                                        </div>
+                                    )}
+                                </th>
+
+                                <th className='p-2 ps-3' style={{  textWrap: "wrap" }}>
+                                    <span className={`text-nowrap mb-1 d-block ${styles['table-header']}`}>
+                                        Department
+                                        {sortConfig?.key === 'Department' && sortConfig.direction === 'ascending' ? (
+                                            <FaSortDown onClick={() => handleSort('Department')} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                        ) : (
+                                            sortConfig?.key === 'Department' && sortConfig.direction === 'descending' ? (
+                                                <FaSortUp onClick={() => handleSort('Department')} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                            ) : (
+                                                <FaSort className={styles['sort-icon']} onClick={() => handleSort('Department')} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                            )
+                                        )}
+                                    </span>
+                                    {isFilterApplied === 'Department' && filterableFields.includes('Department') && (
+                                        <div>
+                                            <input
+                                                type="text"
+                                                placeholder="Search Department"
+                                                value={filters['Department'] || ''}
+                                                onChange={(e) => handleFilterChange('Department', e.target.value)}
+                                                className={`d-inline-block px-1 ${Style.searchInput}`}
+                                            />
+                                            <MdOutlineCancel onClick={() => { setIsFilterApplied(''); setFilters({}) }} style={{ cursor: 'pointer', marginLeft: '5px' }} size={18} />
+                                        </div>
+                                    )}
+                                </th>
+
+                                <th className='p-2 ps-3' style={{ textWrap: "wrap" }}>
+                                    <span className={`text-nowrap mb-1 d-block ${styles['table-header']}`}>
+                                        Requested Date
+                                        {sortConfig?.key === 'RequestedDate' && sortConfig.direction === 'ascending' ? (
+                                            <FaSortDown onClick={() => handleSort('RequestedDate')} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                        ) : (
+                                            sortConfig?.key === 'RequestedDate' && sortConfig.direction === 'descending' ? (
+                                                <FaSortUp onClick={() => handleSort('RequestedDate')} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                            ) : (
+                                                <FaSort className={styles['sort-icon']} onClick={() => handleSort('RequestedDate')} style={{ cursor: 'pointer', marginLeft: '5px' }} />
+                                            )
+                                        )}
+                                    </span>
+                                    {isFilterApplied === 'RequestedDate' && filterableFields.includes('RequestedDate') && (
+                                        <div>
+                                            <input
+                                                type="text"
+                                                placeholder="Search Requested Date"
+                                                value={filters['RequestedDate'] || ''}
+                                                onChange={(e) => handleFilterChange('RequestedDate', e.target.value)}
+                                                className={`d-inline-block px-1 ${Style.searchInput}`}
+                                            />
+                                            <MdOutlineCancel onClick={() => { setIsFilterApplied(''); setFilters({}) }} style={{ cursor: 'pointer', marginLeft: '5px' }} size={18} />
+                                        </div>
+                                    )}
+                                </th>
+
                             </tr>
                         </thead>
                         <tbody>
                             {paginatedData.map((data, index) => (
                                 <tr key={index}>
-                                    <td>{(currentPage - 1) * pageSize + index + 1}</td>
-                                    <td>
+                                    <td className='text-center'>{(currentPage - 1) * pageSize + index + 1}</td>
+                                    <td className='text-center'>
                                         {table === 'PR' ? (
                                             data.Status === "Approved" || data.Status === "In Progress" ? (
                                                 <>
@@ -352,15 +459,15 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                                             </>
                                         )}
                                     </td>
-                                    <td className={`ps-4`}>{data.PRNumber}</td>
-                                    <td >
+                                    <td className={``}>{data.PRNumber}</td>
+                                    <td className=''>
                                         <span className={
-                                            data.Status === "Approved" ? Style.approved :
+                                            data.Status === "Approved" ? Style.approved  :
                                                 data.Status === "Rejected" ? Style.rejected :
                                                     data.Status === "Draft" ? Style.draft :
                                                         data.Status === "In Progress" ? Style.pending :
                                                             ""
-                                        }>
+                                        } >
                                             {data.Status === "Approved" && <FaRegCircleCheck size={14} />}
                                             {data.Status === "Rejected" && <TbCancel size={15} />}
                                             {data.Status === "Draft" && <FaRegClipboard size={14} />}
@@ -370,7 +477,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                                     </td>
                                     <td >{data.Requester}</td>
                                     <td >{data.Department}</td>
-                                    <td >{data.RequestedDate}</td>
+                                    <td className='text-center'>{data.RequestedDate}</td>
                                 </tr>
                             ))}
                         </tbody>

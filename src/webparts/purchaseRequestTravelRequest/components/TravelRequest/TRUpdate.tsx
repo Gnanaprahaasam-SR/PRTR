@@ -265,7 +265,7 @@ const TRUpdate: FC<ITravelRequestProps> = (props) => {
                     {/* Total Cost Estimate */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
                         <label className='form-label fw-bold'>Total Cost Estimate </label>
-                        <div>{formData?.TotalCostEstimate}</div>
+                        <div>$ {formData.TotalCostEstimate ? Number(formData.TotalCostEstimate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}</div>
                     </div>
 
                     {/* Strategic Project Related */}

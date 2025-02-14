@@ -198,7 +198,7 @@
   width: 100%;
   border-collapse: collapse;
   border-spacing: 0;
-  text-align: left;
+  // text-align: left;
   overflow-x: scroll;
 }
 
@@ -206,7 +206,7 @@
 .tableHeading th {
   background: #2A3439 !important;
   color: white !important;
-  text-align: left;
+  text-align: center;
   vertical-align: middle;
   white-space: nowrap;
   padding: 10px;
@@ -215,7 +215,7 @@
 
 .customTable td,
 .tableBody td {
-  text-align: left;
+  text-align: center;
   border-bottom: 1px solid #F0F2F7;
   background: #ffff;
   vertical-align: middle;
@@ -224,55 +224,55 @@
   white-space: nowrap;
 }
 
-.customTable th:nth-child(1),
-.customTable td:nth-child(1) {
-  position: -webkit-sticky;
-  position: sticky;
-  left: 0;
-  width: 60px;
-  min-width: 60px;
-  max-width: 60px;
-  z-index: 10;
-  // font-weight: bold;
-  color: #ffffff;
-  padding: 10px;
-  text-align: center;
-  vertical-align: middle;
-  text-wrap: nowrap;
-}
+// .customTable th:nth-child(1),
+// .customTable td:nth-child(1) {
+//   position: -webkit-sticky;
+//   position: sticky;
+//   left: 0;
+//   width: 60px;
+//   min-width: 60px;
+//   max-width: 60px;
+//   z-index: 10;
+//   // font-weight: bold;
+//   color: #ffffff;
+//   padding: 10px;
+//   text-align: center;
+//   vertical-align: middle;
+//   text-wrap: nowrap;
+// }
 
-.customTable th:nth-child(2),
-.customTable td:nth-child(2) {
-  position: -webkit-sticky;
-  position: sticky;
-  left: 60px;
-  width: 80px;
-  min-width: 80px;
-  max-width: 80px;
-  z-index: 10;
-  // font-weight: bold;
-  color: #ffffff;
-  padding: 10px;
-  text-align: center;
-  vertical-align: middle;
-  text-wrap: nowrap;
-}
+// .customTable th:nth-child(2),
+// .customTable td:nth-child(2) {
+//   position: -webkit-sticky;
+//   position: sticky;
+//   left: 60px;
+//   width: 80px;
+//   min-width: 80px;
+//   max-width: 80px;
+//   z-index: 10;
+//   // font-weight: bold;
+//   color: #ffffff;
+//   padding: 10px;
+//   text-align: center;
+//   vertical-align: middle;
+//   text-wrap: nowrap;
+// }
 
-.customTable th:nth-child(3),
-.customTable td:nth-child(3) {
-  position: -webkit-sticky;
-  position: sticky;
-  left: 140px;
-  width: 140px;
-  min-width: 120px;
-  max-width: 120px;
-  z-index: 10;
-  // font-weight: bold;
-  color: #ffffff;
-  padding: 10px;
-  vertical-align: middle;
-  text-wrap: nowrap;
-}
+// .customTable th:nth-child(3),
+// .customTable td:nth-child(3) {
+//   position: -webkit-sticky;
+//   position: sticky;
+//   left: 140px;
+//   width: 140px;
+//   min-width: 120px;
+//   max-width: 120px;
+//   z-index: 10;
+//   // font-weight: bold;
+//   color: #ffffff;
+//   padding: 10px;
+//   vertical-align: middle;
+//   text-wrap: nowrap;
+// }
 
 .lightGray {
   background: rgb(243, 243, 243) !important;
@@ -441,7 +441,6 @@ th:not(.sticky) {
   margin: 10px 0px;
 }
 
-
 .input-style {
   border: 1px solid #cccccc !important;
 }
@@ -456,6 +455,11 @@ th:not(.sticky) {
   &:focus {
     border: 2px solid #0078D4;
   }
+}
+
+.checkBox {
+  border-color:  #c7c7c7 !important;
+  outline: none;
 }
 
 .AssetManagementTitle {

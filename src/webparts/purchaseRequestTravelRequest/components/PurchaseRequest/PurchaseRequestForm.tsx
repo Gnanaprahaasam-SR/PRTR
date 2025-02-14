@@ -19,7 +19,7 @@ import { PurchaseRequestTravelRequestService } from '../../Service/PurchaseReque
 import { FaRegCircleCheck } from "react-icons/fa6";
 import { TbCancel } from "react-icons/tb";
 import { FiShoppingCart } from 'react-icons/fi';
-
+// import CurrencyInput from 'react-currency-input-field';
 
 
 export interface IPurchaseRequestDataProps {
@@ -263,6 +263,14 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
         setFormData({ ...formData, [field]: value });
 
     };
+
+    // const handleCurrencyChange = (value: string | undefined, name: string) => {
+ 
+    //     setFormData((prevState) => ({
+    //         ...prevState,
+    //         [name]: value ? value : "",
+    //     }));
+    // };
 
     const handleFormSubmit = async (): Promise<void> => {
         setLoading(true);
@@ -552,6 +560,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                         }}
                     />
                 </div>
+                
                 {/* Total Cost */}
                 <div className='mb-2 col-12 col-sm-6 col-md-4'>
                     <label className='form-label'>Total Cost </label>
@@ -562,6 +571,17 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                         value={formData.totalCost ?? ""}
                         onChange={(e) => handleFormDataChange('totalCost', e.target.value)}
                     />
+                    {/* <CurrencyInput
+                        prefix='$'
+                        id="totalCost"
+                        name="totalCost"
+                        className={`${Style.inputStyle}`}
+                        allowDecimals
+                        allowNegativeValue={false}
+                        defaultValue={formData.totalCost ?? ''}
+                        decimalsLimit={2}
+                        onValueChange={(value) => handleCurrencyChange( value, 'totalCost' )}
+                    /> */}
                 </div>
 
                 {/* Recurring Cost */}
@@ -651,11 +671,12 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                         onChange={(e) => handleFormDataChange('businessJustification', e.target.value)}
                     />
                 </div>
+
                 {/* AR Required */}
                 <div className=" mb-2 col-12 col-md-6 d-flex align-items-center">
-                    <div className="form-check gap-2">
-                        <input className={`form-check-input ${Style.inputStyle}`} type="checkbox" id="tax" checked={formData?.ARRequired} onChange={(e) => handleTaxToggle(e.target.checked)} />
-                        <label className="form-check-label">AR Required</label>
+                    <div className="form-check  form-switch gap-2">
+                        <input className={`form-check-input ${Style.inputStyle} ${Style.checkBox}`} type="checkbox" id="AR" checked={formData?.ARRequired} onChange={(e) => handleTaxToggle(e.target.checked)} />
+                        <label className="form-check-label" id='AR'>AR Required</label>
                     </div>
                 </div>
 
