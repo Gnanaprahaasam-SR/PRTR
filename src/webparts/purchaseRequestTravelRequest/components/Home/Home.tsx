@@ -2,9 +2,10 @@ import React, { FC, useEffect, useState } from 'react';
 import { IHomeProps } from './IHomeProps';
 import styles from './Home.module.scss';
 import { PurchaseRequestTravelRequestService } from '../../Service/PurchaseRequestTravelRequest';
-import PieChartData from '../PieChart/PieChart';
+// import PieChartData from '../PieChart/PieChart';
 import HorizontalBarChartView from '../HorizontalBarChart/HorizontalBarChart';
 import BarChartData from '../BarChart/BarChart';
+import DonutChartComponent from '../DonutChart/DonutChart';
 
 
 const Home: FC<IHomeProps> = (props) => {
@@ -40,7 +41,7 @@ const Home: FC<IHomeProps> = (props) => {
     }
   };
 
-  const fetchPRDataCount = async (userId: number): Promise<void> => {
+  const fetchPRDataCount = async (): Promise<void> => {
     const service = new PurchaseRequestTravelRequestService(props.context);
     try {
       const statusCount = await service.getPRTRPurchaseRequest();
@@ -59,23 +60,23 @@ const Home: FC<IHomeProps> = (props) => {
 
 
   useEffect(() => {
-    fetchPRDataCount(props.userId);
+    fetchPRDataCount();
     fetchTRCounts();
 
   }, []);
 
   const PRCardData = [
     { title: "Total", count: PRCounts.total },
+    { title: "In Progress", count: PRCounts.inProgress },
     { title: "Approved", count: PRCounts.approved },
-    { title: "Rejected", count: PRCounts.rejected },
-    { title: "In Progress", count: PRCounts.inProgress }
+    { title: "Rejected", count: PRCounts.rejected }
   ];
 
   const TRCardData = [
     { title: "Total", count: TRCounts.total },
+    { title: "In Progress", count: TRCounts.inProgress },
     { title: "Approved", count: TRCounts.approved },
-    { title: "Rejected", count: TRCounts.rejected },
-    { title: "In Progress", count: TRCounts.inProgress }
+    { title: "Rejected", count: TRCounts.rejected }
   ];
 
   return (
@@ -86,8 +87,8 @@ const Home: FC<IHomeProps> = (props) => {
       <div className='row'>
         {/* Purchase Request Cards */}
         <div className='col-lg-6'>
+          <div className={`${styles.homesubtitle} mb-2`}>Purchase Request Status</div>
           <div className={styles.homesubsection}>
-            <div className={styles.homesubtitle}>Purchase Request </div>
             <div className='row'>
               {PRCardData.map((card, index) => (
                 <div className='col-lg-3 col-md-4 col-6' key={index}>
@@ -100,7 +101,7 @@ const Home: FC<IHomeProps> = (props) => {
             </div>
             <div className='row'>
               <div className='col-12 col-md-12 '>
-                <PieChartData context={props.context} userId={props.userId} />
+                <DonutChartComponent context={props.context} userId={props.userId} />
               </div>
             </div>
           </div>
@@ -108,8 +109,8 @@ const Home: FC<IHomeProps> = (props) => {
 
         {/* Travel Request Cards */}
         <div className='col-lg-6'>
+          <div className={`${styles.homesubtitle} mb-2`}>Travel Request Status</div>
           <div className={styles.homesubsection}>
-            <div className={styles.homesubtitle}>Travel Request</div>
             <div className='row'>
               {TRCardData.map((card, index) => (
                 <div className='col-lg-3 col-md-4 col-6' key={index}>
@@ -131,9 +132,9 @@ const Home: FC<IHomeProps> = (props) => {
 
         <div className='row'>
           <div className={styles.homesubsection}>
-            <div className={styles.homesubtitle}>Yearly Purchase Request & Travel Request Details</div>
-            <div>
-              <BarChartData  context={props.context} userId={props.userId} />
+            <div className={`${styles.homesubtitle} mb-2`}>Yearly Purchase Request & Travel Request Details</div>
+            <div className=''>
+              <BarChartData context={props.context} userId={props.userId} />
             </div>
           </div>
         </div>

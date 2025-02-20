@@ -279,10 +279,26 @@ export class PurchaseRequestTravelRequestService {
         }
     }
 
-    public async addTravelRequestDetail(newTR: any, approver: any[], TRId: number | null): Promise<any> {
+
+    private async readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
+        return new Promise<ArrayBuffer>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                if (reader.result instanceof ArrayBuffer) {
+                    resolve(reader.result);
+                } else {
+                    reject(new Error("Failed to read file."));
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+    }
+
+    public async addTravelRequestDetail(newTR: any, approver: any[], TRId: number | null, attachment: File[]): Promise<any> {
         const sp = getSP(this.context);
         const TravelRequestList = sp?.web?.lists?.getByTitle("PRTRTravelRequestDetails");
         const ApprovalList = sp?.web?.lists?.getByTitle("PRTRTravelRequestApprovals");
+        const TRDocument = sp?.web?.lists?.getByTitle("PRTRTravelRequestAttachment");
 
         if (!TravelRequestList || !ApprovalList) {
             throw new Error("List 'PRTRTravelRequestApprovals' or 'PRTRTravelRequestDetails' not found.");
@@ -293,7 +309,7 @@ export class PurchaseRequestTravelRequestService {
         try {
             let newTRId: number;
             let newTRDetails: any;
-
+            let newDocument: any;
             if (newTR?.Status !== "Draft") {
                 if (TRId) {
                     const existingTR = await TravelRequestList.items.getById(TRId)();
@@ -336,8 +352,29 @@ export class PurchaseRequestTravelRequestService {
                         return await ApprovalList.items.add(formattedDetail);
                     })
                 );
+                for (const file of attachment) {
+                    const fileName = `${newTRId}_${file.name}`;
+                    const fileContent = await this.readFileAsArrayBuffer(file); // Function to read file as ArrayBuffer
 
-                return { TRDetails: newTRDetails, ApprovalDetails: newApprovals };
+                    // Upload the file
+                    await TRDocument.rootFolder.files.addUsingPath(fileName, fileContent, { Overwrite: true });
+
+                    const items = await TRDocument.items.filter(`FileLeafRef eq '${fileName}'`).top(1)();
+                    if (items.length === 0) {
+                        throw new Error(`Uploaded file '${fileName}' not found in the document library.`);
+                    }
+                    const fileId = items[0].Id;
+
+                    // console.log("fileId", fileId)
+
+                    const DocumentItem = await TRDocument.items.getById(fileId).update({
+                        TravelRequestIdId: newTRId
+                    });
+                    newDocument = DocumentItem
+                    console.log(`File ${fileName} uploaded   ${DocumentItem} to TRUploadDocuments library and associated with PRGeneralDetailID ${newTRId}.`);
+                }
+
+                return { TRDetails: newTRDetails, ApprovalDetails: newApprovals, Documents: newDocument };
             } else {
                 if (TRId) {
                     const existingTR = await TravelRequestList.items.getById(TRId)();
@@ -346,7 +383,7 @@ export class PurchaseRequestTravelRequestService {
                         console.log("Updated existing TR:", updatedTR);
                         newTRDetails = updatedTR;
                     }
-
+                    newTRId = TRId;
                     // Delete existing approvals
                     const existingApprovals = await ApprovalList.items
                         .filter(`TravelRequestId/Id eq ${TRId}`)();
@@ -357,11 +394,35 @@ export class PurchaseRequestTravelRequestService {
                     console.log(`Deleted ${existingApprovals.length} old approvals for TR ID ${TRId}`);
 
 
-                    return existingTR;
                 } else {
                     const newTRDetail = await TravelRequestList.items.add(newTR);
-                    return newTRDetail;
+                    newTRDetails = newTRDetail;
+                    newTRId = newTRDetail.ID;
                 }
+
+                for (const file of attachment) {
+                    const fileName = `${newTRId}_${file.name}`;
+                    const fileContent = await this.readFileAsArrayBuffer(file); // Function to read file as ArrayBuffer
+
+                    // Upload the file
+                    await TRDocument.rootFolder.files.addUsingPath(fileName, fileContent, { Overwrite: true });
+
+                    const items = await TRDocument.items.filter(`FileLeafRef eq '${fileName}'`).top(1)();
+                    if (items.length === 0) {
+                        throw new Error(`Uploaded file '${fileName}' not found in the document library.`);
+                    }
+                    const fileId = items[0].Id;
+
+                    // console.log("fileId", fileId)
+
+                    const DocumentItem = await TRDocument.items.getById(fileId).update({
+                        TravelRequestIdId: newTRId
+                    });
+                    newDocument = DocumentItem
+                    console.log(`File ${fileName} uploaded   ${DocumentItem} to TRUploadDocuments library and associated with PRGeneralDetailID ${newTRId}.`);
+                }
+
+                return { TRDetails: newTRDetails, Documents: newDocument };
             }
         } catch (error) {
             console.error("Error handling Travel Request and Approvals:", error);
@@ -389,8 +450,8 @@ export class PurchaseRequestTravelRequestService {
                 filterCondition = `Status ne 'Draft'`; // If a specific status is provided
             }
 
-            let query = list.items.select("ID", "Requester/Id", "Requester/Title", "Requester/EMail", "RequestedDate", "Department/Department", "Department/Id", "Where", "When", "TotalCostEstimate", "StratigicProjectRelated", "EmergencyRelated", "Status", "BusinessJustification", "Author/Title")
-                .expand("Requester", "Department","Author");
+            let query = list.items.select("ID", "Requester/Id", "Requester/Title", "Requester/EMail", "RequestedDate", "Department/Department", "Department/Id", "Where", "When", "TotalCostEstimate", "StratigicProjectRelated", "EmergencyRelated", "Status", "BusinessJustification", "Author/Title", "Created")
+                .expand("Requester", "Department", "Author",);
 
             // Apply filter only if a condition exists
             if (filterCondition) {
@@ -450,17 +511,19 @@ export class PurchaseRequestTravelRequestService {
     }
 
 
-    public async addPurchaseRequestForm(newPRData: any, approvers: any[], PRId: number | null): Promise<any> {
+    public async addPurchaseRequestForm(newPRData: any, approvers: any[], PRId: number | null, attachment: File[]): Promise<any> {
         const sp = getSP(this.context);
         const web = sp?.web;
         const PurchaseRequestList = web?.lists?.getByTitle("PRTRPurchaseRequestDetails");
         const ApprovalsTranstion = web?.lists?.getByTitle("PRTRPurchaseRequestApprovals");
+        const PRDocument = web?.lists?.getByTitle("PRTRPurchaseRequestAttachment");
         const Status = newPRData?.Status;
         console.log("Input Data:", newPRData, approvers, PRId);
 
         try {
             let newPRId: number;
             let newPRDetails: any;
+            let newDocument: any;
             if (Status !== "Draft") {
                 if (PRId) {
                     const existingPR = await PurchaseRequestList.items.getById(PRId)();
@@ -477,6 +540,8 @@ export class PurchaseRequestTravelRequestService {
                         await ApprovalsTranstion.items.getById(approval.ID).delete();
                     }
                     console.log(`Deleted ${existingApprovals.length} old approvals for PR ID ${PRId}`);
+
+
                 } else {
                     const newPRDetail = await PurchaseRequestList.items.add(newPRData);
                     newPRDetails = newPRDetail;
@@ -502,9 +567,32 @@ export class PurchaseRequestTravelRequestService {
                     })
                 );
 
-                return { TRDetails: newPRDetails, ApprovalDetails: newApprovals };
+                for (const file of attachment) {
+                    const fileName = `${newPRId}_${file.name}`;
+                    const fileContent = await this.readFileAsArrayBuffer(file); // Function to read file as ArrayBuffer
+
+                    // Upload the file
+                    await PRDocument.rootFolder.files.addUsingPath(fileName, fileContent, { Overwrite: true });
+
+                    const items = await PRDocument.items.filter(`FileLeafRef eq '${fileName}'`).top(1)();
+                    if (items.length === 0) {
+                        throw new Error(`Uploaded file '${fileName}' not found in the document library.`);
+                    }
+                    const fileId = items[0].Id;
+
+                    // console.log("fileId", fileId)
+
+                    const DocumentItem = await PRDocument.items.getById(fileId).update({
+                        PurchaseRequestIdId: newPRId
+                    });
+                    newDocument = DocumentItem
+                    console.log(`File ${fileName} uploaded   ${DocumentItem} to PRUploadDocuments library and associated with PRGeneralDetailID ${newPRId}.`);
+                }
+
+                return { TRDetails: newPRDetails, ApprovalDetails: newApprovals, document: newDocument };
             }
             else {
+
                 if (PRId) {
                     const existingPR = await PurchaseRequestList.items.getById(PRId)();
                     if (existingPR) {
@@ -512,6 +600,7 @@ export class PurchaseRequestTravelRequestService {
                         console.log("Updated existing PR:", updatedPR);
                         newPRDetails = updatedPR;
                     }
+                    newPRId = PRId;
 
                     // Delete existing approvals
                     const existingApprovals = await ApprovalsTranstion.items.filter(`PurchaseRequestId/Id eq '${PRId}'`)();
@@ -520,11 +609,35 @@ export class PurchaseRequestTravelRequestService {
                     }
                     console.log(`Deleted ${existingApprovals.length} old approvals for PR ID ${PRId}`);
 
-                    return existingPR;
+
                 } else {
                     const newPRDetail = await PurchaseRequestList.items.add(newPRData);
-                    return newPRDetail;
+                    newPRDetails = newPRDetail;
+                    newPRId = newPRDetail.ID;
                 }
+
+                for (const file of attachment) {
+                    const fileName = `${newPRId}_${file.name}`;
+                    const fileContent = await this.readFileAsArrayBuffer(file); // Function to read file as ArrayBuffer
+
+                    // Upload the file
+                    await PRDocument.rootFolder.files.addUsingPath(fileName, fileContent, { Overwrite: true });
+
+                    const items = await PRDocument.items.filter(`FileLeafRef eq '${fileName}'`).top(1)();
+                    if (items.length === 0) {
+                        throw new Error(`Uploaded file '${fileName}' not found in the document library.`);
+                    }
+                    const fileId = items[0].Id;
+
+                    // console.log("fileId", fileId)
+
+                    const DocumentItem = await PRDocument.items.getById(fileId).update({
+                        PurchaseRequestIdId: newPRId
+                    });
+                    newDocument = DocumentItem;
+                    console.log(`File ${fileName} uploaded   ${DocumentItem} to PRUploadDocuments library and associated with PRGeneralDetailID ${PRId}.`);
+                }
+                return { PRDetails: newPRDetails, document: newDocument };
             }
 
         } catch (error) {
@@ -532,6 +645,43 @@ export class PurchaseRequestTravelRequestService {
             throw error;
         }
     }
+
+
+    public async getTravelRequestDocuments(TravelRequestId: number): Promise<any[]> {
+        const sp = getSP(this.context);
+        const web = sp?.web;
+        const documentList = web?.lists?.getByTitle("PRTRTravelRequestAttachment");
+
+        try {
+            const TravelDocument = await documentList.items
+                .select("FileLeafRef", "FileRef", "Id")
+                .filter(`TravelRequestId eq '${TravelRequestId}'`)();
+
+            console.log("Fetched PRTRTravelRequestAttachment:", TravelDocument);
+            return TravelDocument;
+        } catch (error) {
+            console.error("Error retrieving PRTRTravelRequestAttachment:", error);
+            throw error;
+        }
+    }
+
+    public async deletePRTRTravelRequestDocument(documentId: number): Promise<void> {
+        console.log(documentId);
+        try {
+            const sp = getSP(this.context);
+            const web = sp?.web;
+            const documentsLibrary = web.lists.getByTitle("PRTRTravelRequestAttachment");
+            await documentsLibrary.items.getById(documentId).delete();
+
+            console.log(`Document with ID ${documentId} deleted successfully from PRTRTravelRequest Attachment.`);
+        } catch (error) {
+            console.error(`Error deleting document with ID ${documentId}:`, error);
+            throw error;
+        }
+    }
+
+
+
 
     public async getPurchaseRequestApprovals(PRId: number): Promise<any[]> {
         try {
@@ -588,8 +738,8 @@ export class PurchaseRequestTravelRequestService {
                 filterCondition = `Status ne 'Draft'`; // If a specific status is provided
             }
 
-            let query = list.items.select("ID", "Requester/Id", "Requester/Title", "Requester/EMail", "RequestedDate", "Department/Department", "Department/Id", "PurchaseDetails", "PurchaseType", "Category", "TotalCost", "RecurringCost", "ItemServiceDescription", "UseCase", "Status", "BusinessJustification", "ARRequired","Author/Title")
-                .expand("Requester", "Department","Author");
+            let query = list.items.select("ID", "Requester/Id", "Requester/Title", "Requester/EMail", "RequestedDate", "Department/Department", "Department/Id", "PurchaseDetails", "PurchaseType", "Category", "TotalCost", "RecurringCost", "ItemServiceDescription", "UseCase", "Status", "BusinessJustification", "ARRequired", "Author/Title", "Created", "ARDetails")
+                .expand("Requester", "Department", "Author");
 
             // Apply filter only if a condition exists
             if (filterCondition) {
@@ -606,6 +756,39 @@ export class PurchaseRequestTravelRequestService {
 
         } catch (error) {
             console.error("Error retrieving PRTR PurchaseRequest:", error);
+            throw error;
+        }
+    }
+
+    public async getPurchaseRequestDocuments(PurchaseRequestId: number): Promise<any[]> {
+        const sp = getSP(this.context);
+        const web = sp?.web;
+        const documentList = web?.lists?.getByTitle("PRTRPurchaseRequestAttachment");
+
+        try {
+            const PurchaseDocument = await documentList.items
+                .select("FileLeafRef", "FileRef", "Id")
+                .filter(`PurchaseRequestId eq '${PurchaseRequestId}'`)();
+
+            console.log("Fetched PRTRPurchaseRequestAttachment:", PurchaseDocument);
+            return PurchaseDocument;
+        } catch (error) {
+            console.error("Error retrieving PRTRPurchaseRequestAttachment:", error);
+            throw error;
+        }
+    }
+
+    public async deletePRTRPurchaseRequestDocument(documentId: number): Promise<void> {
+        console.log(documentId);
+        try {
+            const sp = getSP(this.context);
+            const web = sp?.web;
+            const documentsLibrary = web.lists.getByTitle("PRTRPurchaseRequestAttachment");
+            await documentsLibrary.items.getById(documentId).delete();
+
+            console.log(`Document with ID ${documentId} deleted successfully from PRTRPurchaseRequest Attachment.`);
+        } catch (error) {
+            console.error(`Error deleting document with ID ${documentId}:`, error);
             throw error;
         }
     }

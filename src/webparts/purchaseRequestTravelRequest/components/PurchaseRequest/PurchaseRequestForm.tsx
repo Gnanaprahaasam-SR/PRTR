@@ -1,16 +1,18 @@
-import React, { FC, useEffect, useState } from 'react'
+import React, { FC, useEffect, useRef, useState } from 'react'
 import Style from '../PurchaseRequestTravelRequest.module.scss';
 import Select, { SingleValue } from 'react-select';
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
-
+// import { DatePicker, mergeStyleSets } from "@fluentui/react";
+// import { format } from "date-fns";
 import { RiArrowUpCircleFill } from 'react-icons/ri';
 import { BsBoxArrowLeft } from "react-icons/bs";
 import { BsHourglassSplit } from "react-icons/bs";
-import { GrPowerReset } from "react-icons/gr";
+import { GrAttachment, GrPowerReset } from "react-icons/gr";
 import { FaClock, FaUser } from "react-icons/fa6";
 import {
     Dialog,
     DialogType,
+    IconButton,
 } from '@fluentui/react';
 import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -21,6 +23,19 @@ import { TbCancel } from "react-icons/tb";
 import { FiShoppingCart } from 'react-icons/fi';
 // import CurrencyInput from 'react-currency-input-field';
 
+
+// const styles = mergeStyleSets({
+//     root: {
+//         selectors: {
+//             color: 'black',
+//             border: "1px solid #E3E3E3 !important" ,
+//             background: "white",
+//             padding: "3.5px",
+//             width: "100%"
+//         },
+        
+//     }
+// });
 
 export interface IPurchaseRequestDataProps {
     id: number | null;
@@ -39,6 +54,7 @@ export interface IPurchaseRequestDataProps {
     ARRequired: boolean;
     useCase: string;
     status: string;
+    ARDetails: string;
 }
 
 
@@ -75,6 +91,12 @@ interface IApproverProps {
     ApprovedDate: string
 }
 
+interface DocumentState {
+    id: number;
+    fileName: string;
+    fileRef: string;
+}
+
 
 const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
     const dateFormate = (date: string): string => {
@@ -105,6 +127,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
         ARRequired: false,
         useCase: "",
         status: "Pending",
+        ARDetails: "",
     });
 
     const [approvers, setApprovers] = useState<IApproverProps[]>([]);
@@ -124,6 +147,9 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
         setDialogMessage('');
         setDialogTitle('');
     }
+    const [document, setDocument] = useState<DocumentState[]>([]);
+    const [attachment, setAttachment] = useState<File[]>([]);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const handleBackClick = (): void => {
         navigate("/purchaseRequestTable/PR");
@@ -211,6 +237,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                 ARRequired: PR.ARRequired ?? false,
                 status: PR.Status ?? "",
                 useCase: PR.UseCase ?? "",
+                ARDetails: PR.ARDetails ?? "",
             }));
 
             setFormData(data[0]);
@@ -241,14 +268,35 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
         }
     };
 
+    const fetchPRDocuments = async (PRNumber: number): Promise<void> => {
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        try {
+            const data = await service.getPurchaseRequestDocuments(PRNumber);
+
+            const PODocuments = data.map((item) => ({
+                id: item?.Id,
+                fileName: item?.FileLeafRef,
+                fileRef: item?.FileRef,
+            }));
+
+            setDocument(PODocuments);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error on fetching PO documents:', error);
+        }
+    };
+
+
     useEffect(() => {
         if (currentPRId && formData.status === "Draft") {
             fetchPurchaseRequestDetails(currentPRId);
             getApprover();
+            fetchPRDocuments(currentPRId);
         }
         else if (currentPRId) {
             fetchPurchaseRequestDetails(currentPRId);
             fetchExistingApproverlist(currentPRId);
+            fetchPRDocuments(currentPRId);
         }
     }, [PRId, formData.status]);
 
@@ -264,13 +312,59 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
 
     };
 
-    // const handleCurrencyChange = (value: string | undefined, name: string) => {
- 
-    //     setFormData((prevState) => ({
-    //         ...prevState,
-    //         [name]: value ? value : "",
-    //     }));
+    // const onSelectDate = (date: Date | null) => {
+    //     if (date) {
+    //         const formattedDate = format(date, "MM/dd/yyyy");
+    //         setFormData((prev) => {
+    //             return { ...prev, requestedDate: formattedDate };
+    //         });
+    //     }
     // };
+
+    const handleAttachment = (): void => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        const files = e.target.files;
+        if (files) {
+            const newFiles = Array.from(files);
+            setAttachment(prev => [...prev, ...newFiles]);
+            setDialogMessage(`Success`);
+            setDialogTitle(`File uploaded successfully`);
+            setIsDialogOpen(true);
+        }
+    };
+
+    const handleClearAttachment = (index: number): void => {
+        setAttachment(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const [fileToDelete, setFileToDelete] = useState<DocumentState | null>(null);
+    const [fileDeleteDialogVisible, setFileDeleteDialogVisible] = useState<boolean>(false);
+    const handleFileDelete = async (file: DocumentState) => {
+        setFileToDelete(file);
+        setFileDeleteDialogVisible(true);
+    }
+
+    const handleConfirmFileDelete = async () => {
+        if (fileToDelete) {
+            const service = new PurchaseRequestTravelRequestService(props.context);
+            // setLoading(true);
+            try {
+                await service.deletePRTRPurchaseRequestDocument(fileToDelete.id);
+                setDocument(prevDocuments => prevDocuments.filter(doc => doc.id !== fileToDelete.id));
+                // setLoading(false);
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                // setLoading(false);
+            }
+            setFileDeleteDialogVisible(false);
+            setFileToDelete(null);
+        }
+    };
 
     const handleFormSubmit = async (): Promise<void> => {
         setLoading(true);
@@ -288,12 +382,13 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
             ARRequired: formData.ARRequired,
             UseCase: formData.useCase,
             Status: "In Progress",
+            ARDetails: formData.ARDetails,
         };
 
         const PR = currentPRId;
         const service = new PurchaseRequestTravelRequestService(props.context);
         try {
-            const data = await service.addPurchaseRequestForm(newPRData, initialApprove, PR);
+            const data = await service.addPurchaseRequestForm(newPRData, initialApprove, PR, attachment);
             console.log(data);
             if (data) {
                 setIsDialogOpen(true);
@@ -329,12 +424,13 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
             ARRequired: formData.ARRequired,
             UseCase: formData.useCase,
             Status: "Draft",
+            ARDetails: formData.ARDetails,
         };
 
         const PR = currentPRId;
         const service = new PurchaseRequestTravelRequestService(props.context);
         try {
-            const data = await service.addPurchaseRequestForm(newPRData, approvers, PR);
+            const data = await service.addPurchaseRequestForm(newPRData, approvers, PR, attachment);
             console.log(data);
             if (data) {
                 setIsDialogOpen(true);
@@ -455,7 +551,9 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
             ARRequired: false,
             useCase: "",
             status: "In Progress",
+            ARDetails: "",
         })
+        setAttachment([]);
     }
 
 
@@ -530,6 +628,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                         }}
                     />
                 </div>
+
                 {/* Requested Date */}
                 <div className='mb-2 col-12 col-sm-6 col-md-4'>
                     <label className='form-label text-nowrap'>Requested Date</label>
@@ -540,6 +639,12 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                         value={formData.requestedDate}
                         onChange={(e) => handleFormDataChange('requestedDate', e.target.value)}
                     />
+                    {/* <DatePicker
+                        value={new Date(formData.requestedDate)}
+                        formatDate={(date: Date) => date?.toLocaleDateString("en-US")} // Format as MM/DD/YYYY
+                        onSelectDate={onSelectDate}
+                        className={styles.root}
+                    /> */}
                 </div>
 
                 <div className='mb-2 col-12 col-sm-6 col-md-4'>
@@ -560,7 +665,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                         }}
                     />
                 </div>
-                
+
                 {/* Total Cost */}
                 <div className='mb-2 col-12 col-sm-6 col-md-4'>
                     <label className='form-label'>Total Cost </label>
@@ -598,7 +703,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
 
                 {/* useCase */}
                 <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                    <label className='form-label text-nowrap'>Use case </label>
+                    <label className='form-label text-nowrap'>Use Case </label>
                     <Select
                         {...props}
                         isClearable={true}
@@ -673,11 +778,69 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                 </div>
 
                 {/* AR Required */}
-                <div className=" mb-2 col-12 col-md-6 d-flex align-items-center">
+                <div className=" mb-2 col-12 col-sm-6 col-md-4 d-flex align-items-center">
                     <div className="form-check  form-switch gap-2">
                         <input className={`form-check-input ${Style.inputStyle} ${Style.checkBox}`} type="checkbox" id="AR" checked={formData?.ARRequired} onChange={(e) => handleTaxToggle(e.target.checked)} />
                         <label className="form-check-label" id='AR'>AR Required</label>
                     </div>
+                </div>
+
+                {/* Purchase Details */}
+                {formData?.ARRequired &&
+                    <div className='mb-2 col-12 col-sm-6 col-md-4'>
+                        <label className='form-label'>AR Details</label>
+                        <input
+                            type='text'
+                            className={`${Style.inputStyle}`}
+                            name='ARDetails'
+                            value={formData.ARDetails}
+                            onChange={(e) => handleFormDataChange('ARDetails', e.target.value)}
+                        />
+                    </div>
+                }
+                <div className='mb-2'>
+                    <div className='my-2'>
+                        <button type='button' className={`${Style.primaryButton} text-nowrap`} onClick={handleAttachment}>
+                            <GrAttachment size={20} /> Attach files
+                        </button>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            name="attachments"
+                            multiple
+                            onChange={handleFileChange}
+                            style={{ display: 'none' }}
+                        />
+                    </div>
+                    {attachment.map((file, index) => (
+                        <div key={index} className="d-flex align-items-center ">
+                            <p className='mb-0 me-1'>{index + 1}. {file.name}</p>
+                            <div className='text-danger'>
+
+                                <IconButton
+                                    iconProps={{ iconName: 'Delete' }}
+                                    title="Delete"
+                                    onClick={() => handleClearAttachment(index)}
+                                    className={Style.iconButton}
+                                />
+
+                            </div>
+                        </div>
+                    ))}
+                    {document.map((file: any, index) => (
+                        <div className='d-flex align-items-center' key={index}>
+                            <p className='mb-0 me-1'>{attachment.length + index + 1}. {file.fileName}</p>
+                            <div>
+
+                                <IconButton
+                                    iconProps={{ iconName: 'Delete' }}
+                                    title="Delete"
+                                    onClick={() => handleFileDelete(file)}
+                                    className={Style.iconButton}
+                                />
+                            </div>
+                        </div>
+                    ))}
                 </div>
 
                 <>
@@ -762,6 +925,22 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                 <div className=" d-flex gap-2 flex-nowrap align-items-center justify-content-end">
                     <button className={`${Style.secondaryButton} px-3`} onClick={handleSaveAsDraft} > Confirm</button>
                     <button className={`${Style.closeButton} px-3`} onClick={() => setConfirmDraft(false)} > Cancel </button>
+                </div>
+            </Dialog>
+
+            {/* confirm file Delete */}
+            <Dialog
+                hidden={!fileDeleteDialogVisible}
+                onDismiss={() => setFileDeleteDialogVisible(false)}
+                dialogContentProps={{
+                    type: DialogType.normal,
+                    subText: "Are you sure you want to delete this document? This action cannot be reversed.",
+                }}
+
+            >
+                <div className=" d-flex gap-2 flex-nowrap align-items-center justify-content-end">
+                    <button className={`${Style.secondaryButton} px-3`} onClick={handleConfirmFileDelete} > Confirm</button>
+                    <button className={`${Style.closeButton} px-3`} onClick={() => setFileDeleteDialogVisible(false)} > Cancel </button>
                 </div>
             </Dialog>
 

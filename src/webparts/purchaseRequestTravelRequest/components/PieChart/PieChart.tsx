@@ -1,16 +1,40 @@
 import React, { useEffect, useState } from 'react';
-import { IDataPoint, PieChart, IPieChartProps, DataVizPalette } from '@fluentui/react-charting';
+import { IDataPoint, PieChart, IPieChartProps } from '@fluentui/react-charting';
 import { Stack } from '@fluentui/react';
 import { IPieChartDataProps } from './IPieChartProps';
 import { PurchaseRequestTravelRequestService } from '../../Service/PurchaseRequestTravelRequest';
-import { IPurchaseRequestDataProps } from '../PurchaseRequest/PurchaseRequestForm';
-
 
 interface IDeliveryStatusData {
     x: string;
     y: number;
 }
 
+interface IPurchaseRequestDataProps {
+    id: number | null;
+    requester: string;
+    requesterId: number | undefined;
+    department: string;
+    departmentId: number | undefined;
+    requestedDate: string;
+    purchaseDetails: string;
+    itemServiceDescription: string;
+    category: string;
+    totalCost: number | undefined;
+    recurringCost: number | undefined;
+    businessJustification: string;
+    purchaseType: string;
+    ARRequired: boolean;
+    useCase: string;
+    status: string;
+}
+
+
+const statusColors = [
+    '#1D8843', // Green
+    '#ff3149',  // red
+    '#FF8008',   // yellow
+    '#6FB2E7', // Blue
+]
 
 const PieChartData: React.FC<IPieChartProps & IPieChartDataProps> = (props) => {
     const [dataList, setDataList] = useState<IPurchaseRequestDataProps[]>([]);
@@ -93,12 +117,12 @@ const PieChartData: React.FC<IPieChartProps & IPieChartDataProps> = (props) => {
 
     }, [dataList]);
 
-    const initialColors = [
-        [DataVizPalette.color1, DataVizPalette.color2, DataVizPalette.color3, DataVizPalette.color4, DataVizPalette.color5],
-        [DataVizPalette.color6, DataVizPalette.color7, DataVizPalette.color8, DataVizPalette.color9],
-        [DataVizPalette.color10, DataVizPalette.color11, DataVizPalette.color12, DataVizPalette.color13],
-        [DataVizPalette.color30],
-    ];
+    // const initialColors = [
+    //     [DataVizPalette.color1, DataVizPalette.color2, DataVizPalette.color3, DataVizPalette.color4, DataVizPalette.color5],
+    //     [DataVizPalette.color6, DataVizPalette.color7, DataVizPalette.color8, DataVizPalette.color9],
+    //     [DataVizPalette.color10, DataVizPalette.color11, DataVizPalette.color12, DataVizPalette.color13],
+    //     [DataVizPalette.color30],
+    // ];
 
     const dynamicData: IDataPoint[] = deliveryStatusData.map((statusData) => ({
         x: statusData.x,
@@ -106,25 +130,26 @@ const PieChartData: React.FC<IPieChartProps & IPieChartDataProps> = (props) => {
     }));
 
 
-    const [colors] = useState<string[]>(initialColors[0]);
+    const [colors] = useState<string[]>(statusColors);
 
     return (
 
         <div className='bg-white rounded-5 p-2' style={{ width: '100%', height: '100%', minHeight: "450px" }}>
             <div className='row  h-100 '>
-                <div className=' align-self-center'>
+                {/* <div className=' align-self-center'>
                     <h5 className='text-center'>Purchase Request By Status</h5>
-                </div>
+                </div> */}
                 {error ? (
                     <p>{error}</p>
                 ) : ((deliveryStatusData.length > 0) && (deliveryStatusData.length > 0)) ? (
-                    <div className='d-flex justify-content-center align-items-center' style={{alignSelf:"center"}}>
+                    <div className='d-flex justify-content-center align-items-center' style={{ alignSelf: "center" }}>
                         <Stack horizontal wrap tokens={{ childrenGap: 20 }}>
                             <PieChart
                                 height={380}
                                 width={380}
                                 data={dynamicData}
                                 colors={colors}
+                                strokeWidth={400}
                             />
                         </Stack>
                     </div>

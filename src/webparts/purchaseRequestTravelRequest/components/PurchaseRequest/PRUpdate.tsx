@@ -1,10 +1,6 @@
 import React, { FC, useEffect, useState } from 'react'
 import Style from '../PurchaseRequestTravelRequest.module.scss';
-
-// import { RiArrowUpCircleFill } from 'react-icons/ri';
 import { BsBoxArrowLeft } from "react-icons/bs";
-// import { BsHourglassSplit } from "react-icons/bs";
-// import { GrPowerReset } from "react-icons/gr";
 import { FaClock, FaUser } from "react-icons/fa6";
 import {
     Dialog,
@@ -17,7 +13,8 @@ import { PurchaseRequestTravelRequestService } from '../../Service/PurchaseReque
 import { FaRegCircleCheck } from "react-icons/fa6";
 import { TbCancel } from "react-icons/tb";
 import { FiShoppingCart } from 'react-icons/fi';
-
+import { GrAttachment } from 'react-icons/gr';
+import { format } from "date-fns";
 
 
 interface IPurchaseRequestDataProps {
@@ -37,6 +34,7 @@ interface IPurchaseRequestDataProps {
     ARRequired: boolean;
     useCase: string;
     status: string;
+    ARDetails: string;
 }
 
 interface IApproverProps {
@@ -51,14 +49,18 @@ interface IApproverProps {
     ApprovedDate: string
 }
 
-
+interface DocumentState {
+    id: number;
+    fileName: string;
+    fileRef: string;
+}
 
 const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
-    const dateFormate = (date: string): string => {
-        console.log(date)
-        const existingDate = new Date(date).toISOString().split('T')[0];
-        return existingDate;
-    };
+    // const dateFormate = (date: string): string => {
+    //     console.log(date)
+    //     const existingDate = new Date(date).toISOString().split('T')[0];
+    //     return existingDate;
+    // };
 
     const currentDate = new Date().toISOString().split('T')[0];
     const { PRId } = useParams();
@@ -81,6 +83,7 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
         ARRequired: false,
         useCase: "",
         status: "Pending",
+        ARDetails: "",
     });
 
     const [approvers, setApprovers] = useState<IApproverProps[]>([]);
@@ -98,6 +101,7 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
         setDialogMessage('');
         setDialogTitle('');
     }
+    const [document, setDocument] = useState<DocumentState[]>([]);
 
     const handleBackClick = (): void => {
         navigate(-1);
@@ -124,7 +128,7 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
                 requesterId: PR.Requester?.Id ?? undefined,
                 department: PR.Department?.Department ?? "",
                 departmentId: PR.Department?.Id ?? undefined,
-                requestedDate: PR.RequestedDate ? dateFormate(PR.RequestedDate) : "",
+                requestedDate: PR.RequestedDate ?? "",
                 itemServiceDescription: PR.ItemServiceDescription ?? "",
                 category: PR.Category ?? "",
                 totalCost: PR.TotalCost ?? undefined,
@@ -135,6 +139,7 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
                 ARRequired: PR.ARRequired ?? false,
                 status: PR.Status ?? "",
                 useCase: PR.UseCase ?? "",
+                ARDetails: PR.ARDetails ?? "",
             }));
 
             setFormData(data[0]);
@@ -160,7 +165,7 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
                     Status: item.Status,
                     Hierarchy: item.Hierarchy,
                     Comments: item.Comments,
-                    ApprovedDate: item.ApprovedDate ? dateFormate(item.ApprovedDate) : ""
+                    ApprovedDate: item.ApprovedDate ??  ""
                 })).sort((a, b) => (a.Hierarchy || 0) - (b.Hierarchy || 0));
                 setApprovers(Approvers);
             }
@@ -170,11 +175,30 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
         }
     };
 
+    const fetchPRDocuments = async (PRNumber: number): Promise<void> => {
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        try {
+            const data = await service.getPurchaseRequestDocuments(PRNumber);
+
+            const PRDocuments = data.map((item) => ({
+                id: item?.Id,
+                fileName: item?.FileLeafRef,
+                fileRef: item?.FileRef,
+            }));
+
+            setDocument(PRDocuments);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error on fetching PO documents:', error);
+        }
+    };
+
     useEffect(() => {
         setLoading(true);
         if (currentPRId) {
             fetchPurchaseRequestDetails(currentPRId);
             fetchExistingApproverlist(currentPRId);
+            fetchPRDocuments(currentPRId);
         }
     }, [currentPRId]);
 
@@ -243,8 +267,8 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
 
             </div>
 
-            <div className=" mb-3">
-                <div className='rounded-4 bg-white mb-3 row p-4 m-3'>
+            <div className=" mb-3 p-3">
+                <div className='rounded-4 bg-white mb-3 row p-4'>
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
                         <label className='form-label fw-bold'>Requestor Name</label>
                         <div className=''>{formData.requester}</div>
@@ -260,7 +284,7 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
                     {/* Requested Date */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
                         <label className='form-label text-nowrap fw-bold'>Requested Date </label>
-                        <div className=''>{formData.requestedDate}</div>
+                        <div className=''>{formData.requestedDate? format(new Date(formData.requestedDate), "MM-dd-yyyy"):""}</div>
 
                     </div>
 
@@ -312,12 +336,6 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
 
                     </div>
 
-                    {/* Business Justification */}
-                    <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                        <label className='form-label fw-bold'>Business Justification</label>
-                        <div className='label text-wrap'>{formData.businessJustification}</div>
-
-                    </div>
                     {/* AR Required */}
                     <div className=" mb-2 col-12 col-sm-6 col-md-4 ">
                         <div className="gap-2">
@@ -325,8 +343,40 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
                             <div>{formData?.ARRequired ? "Yes" : "No"}</div>
                         </div>
                     </div>
-                </div>
 
+                    {/* ARDetails */}
+                    {
+                        formData?.ARRequired &&
+                        <div className=" mb-2 col-12 col-sm-6 col-md-4 ">
+                            <div className="gap-2">
+                                <label className="form-check-label fw-bold">AR Details</label>
+                                <div>{formData?.ARDetails}</div>
+                            </div>
+                        </div>
+                    }
+
+                    {/* Business Justification */}
+                    <div className='mb-2 col-12 col-sm-6 col-md-4'>
+                        <label className='form-label fw-bold'>Business Justification</label>
+                        <div className='label text-wrap'>{formData.businessJustification}</div>
+                    </div>
+                </div>
+                <div className='col my-2'>
+                    <label className='form-label fw-bold'><GrAttachment /> Attached files</label>
+                    {document.length > 0 ? (document.map((doc, index) => (
+                        <div key={doc.id} className="d-flex align-items-center ">
+                            <a
+                                href={`${doc.fileRef.split('/').map(encodeURIComponent).join('/')}`}
+                                download={doc.fileName}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                {(index + 1) + `) `}{doc.fileName}
+                            </a>
+                        </div>))) : <div>
+                        <p>No attachment found</p>
+                    </div>}
+                </div>
                 <>
                     <hr />
                     <div>
@@ -374,7 +424,7 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
                                 {(approver.Status === "Approved" || approver.Status === "Rejected") && (
                                     <div className='d-flex flex-wrap align-items-center justify-content-between row px-2'>
                                         <div className='col-12 col-md-9 text-wrap'><b>Comments:</b> {approver.Comments}</div>
-                                        <div className='col-12 col-md-3'>{approver.ApprovedDate}</div>
+                                        <div className='col-12 col-md-3'>{approver.ApprovedDate? format(new Date(approver.ApprovedDate), "MM-dd-yyyy"):""}</div>
                                     </div>
                                 )}
                             </div>

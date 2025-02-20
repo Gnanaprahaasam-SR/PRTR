@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GroupedVerticalBarChart, getColorFromToken, DataVizPalette } from '@fluentui/react-charting';
+import { GroupedVerticalBarChart, } from '@fluentui/react-charting';
 import { IBarChartProps } from './IBarChartProps';
 import { PurchaseRequestTravelRequestService } from '../../Service/PurchaseRequestTravelRequest';
 import Style from "../PurchaseRequestTravelRequest.module.scss";
@@ -8,6 +8,11 @@ const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
 ];
+
+const statusColors = {
+    PR: '#6FB2E7', // Blue
+    TR: '#FF8008',   // yellow
+};
 
 interface IChartData {
     name: string;
@@ -74,14 +79,14 @@ const BarChartData: React.FC<IBarChartProps> = (props) => {
                         key: 'PR',
                         data: tempData[month].PR,
                         xAxisCalloutData: `${month} PR`,
-                        color: getColorFromToken(DataVizPalette.color10),
+                        color: statusColors.PR,
                         legend: 'Purchase Request',
                     },
                     {
                         key: 'TR',
                         data: tempData[month].TR,
                         xAxisCalloutData: `${month} TR`,
-                        color: getColorFromToken(DataVizPalette.color11),
+                        color: statusColors.TR,
                         legend: 'Travel Request',
                     },
                 ],
@@ -100,9 +105,8 @@ const BarChartData: React.FC<IBarChartProps> = (props) => {
 
     return (
         <div className='bg-white rounded-5 p-2'>
-            <h5 className='text-center text-wrap'>PR - TR for ({selectedYear})</h5>
-
-            {/* Bootstrap Select Dropdown for Year Selection */}
+            {/* <h5 className='text-center text-wrap'>PR - TR for ({selectedYear})</h5> */}
+           
             <div className='col-12 col-sm-4 col-md-3 float-end'>
                 <div className='form-group px-4'>
                     <label className="form-label fw-bold">Select Year</label>

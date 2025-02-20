@@ -5,8 +5,7 @@ import { PurchaseRequestTravelRequestService } from "../../Service/PurchaseReque
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import LoadingSpinner from "../LoadingSpinner/LoadingSpinner";
 import { TbCancel } from "react-icons/tb";
-// import { TbCancel } from "react-icons/tb";
-// import { FaRegCircleCheck } from "react-icons/fa6";
+import { format } from "date-fns";
 
 interface IPurchaseRequestDataProps {
     id: number | null;
@@ -25,6 +24,8 @@ interface IPurchaseRequestDataProps {
     ARRequired: boolean;
     useCase: string;
     status: string;
+    author: string;
+    createdDate: string;
 }
 
 interface IApproverProps {
@@ -69,6 +70,8 @@ const PRDocument = forwardRef<HTMLDivElement, IPurchaseRequestDocument>(({ conte
         ARRequired: false,
         useCase: "",
         status: "Pending",
+        author: "",
+        createdDate: "",
     });
 
     const [approvers, setApprovers] = useState<IApproverProps[]>([]);
@@ -105,7 +108,7 @@ const PRDocument = forwardRef<HTMLDivElement, IPurchaseRequestDocument>(({ conte
                 requesterId: PR.Requester?.Id,
                 department: PR.Department?.Department ?? "",
                 departmentId: PR.Department?.Id,
-                requestedDate: formatDate(PR.RequestedDate),
+                requestedDate: PR.RequestedDate,
                 itemServiceDescription: PR.ItemServiceDescription ?? "",
                 category: PR.Category ?? "",
                 totalCost: PR.TotalCost ?? undefined,
@@ -116,6 +119,8 @@ const PRDocument = forwardRef<HTMLDivElement, IPurchaseRequestDocument>(({ conte
                 ARRequired: PR.ARRequired ?? false,
                 status: PR.Status ?? "",
                 useCase: PR.UseCase ?? "",
+                author: PR.Author?.Title ?? "",
+                createdDate: PR.Created,
             });
         } catch (error) {
             console.error("Error fetching Travel Request:", error);
@@ -165,75 +170,86 @@ const PRDocument = forwardRef<HTMLDivElement, IPurchaseRequestDocument>(({ conte
         <div className="p-3 bg-light rounded-3" ref={ref} >
             {loading && <LoadingSpinner />}
 
-            <div className="d-flex align-items-center text-center">
-                <img src={logo} alt="logo" width="100"  className="me-4"/>
-
-                <h5 className="text-center ms-5">
+            <div className="d-flex align-items-center justify-content-between">
+                <img src={logo} alt="logo" width="100" />
+                <h5 className="">
                     Purchase Request Approval
                 </h5>
+                <div className="mt-2">
+                    <div className="text-nowrap text-start" style={{ fontSize: "12px" }}>PR No: {formData.id}</div>
+                    <div className="text-nowrap text-start" style={{ fontSize: "12px" }}>Created by: {formData.author ?? "N/A"}</div>
+                    <div className="text-nowrap text-start" style={{ fontSize: "12px" }}>Date: {formData.createdDate?format(new Date(formData.createdDate), "MM-dd-yyy"):'N/A'}</div>
+                </div>
             </div>
+            {/* <div className=" clearfix">
+                <div className=" float-end">
+                    <div className="text-nowrap text-start" style={{ fontSize: "12px" }}>PR#: {formData.id}</div>
+                    <div className="text-nowrap text-start" style={{ fontSize: "12px" }}>Created By: {formData.author ?? "N/A"}</div>
+                    <div className="text-nowrap text-start" style={{ fontSize: "12px" }}>Date: {formData.createdDate ?? "N/A"}</div>
+                </div>
+            </div> */}
 
-            <div className="rounded-4 bg-white mb-3 row p-4 m-3">
-                <div className="mb-2 col-12 col-sm-6 col-md-4">
+            <div className="mb-3 row p-4">
+                <div className="mb-2 col-12 col-sm-4 col-md-4">
                     <label className="form-label fw-bold">Requestor Name</label>
                     <div>{formData.requester}</div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-6 col-md-4">
+                <div className="mb-2 col-12 col-sm-4 col-md-4">
                     <label className="form-label fw-bold">Department</label>
                     <div>{formData.department}</div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-6 col-md-4">
+                <div className="mb-2 col-12 col-sm-4 col-md-4">
                     <label className="form-label fw-bold">Requested Date</label>
-                    <div>{formData.requestedDate}</div>
+                    <div>{formData.requestedDate ? format(new Date(formData?.requestedDate), "MM-dd-yyy") : ""}</div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-6 col-md-4">
+                <div className="mb-2 col-12 col-sm-4 col-md-4">
                     <label className="form-label fw-bold">Category</label>
                     <div>{formData.category}</div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-6 col-md-4">
+                <div className="mb-2 col-12 col-sm-4 col-md-4">
                     <label className="form-label fw-bold">Total Cost</label>
                     <div>
                         {`$ ${formData.totalCost?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}`}
                     </div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-6 col-md-4">
+                <div className="mb-2 col-12 col-sm-4 col-md-4">
                     <label className="form-label fw-bold">Recurring Cost</label>
                     <div>
                         {`$ ${formData.recurringCost?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}`}
                     </div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-6 col-md-4">
+                <div className="mb-2 col-12 col-sm-4 col-md-4">
                     <label className="form-label fw-bold">Use Case</label>
                     <div>{formData.useCase}</div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-6 col-md-4">
+                <div className="mb-2 col-12 col-sm-4 col-md-4">
                     <label className="form-label fw-bold">Purchase Type</label>
                     <div>{formData.purchaseType}</div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-6 col-md-4">
+                <div className="mb-2 col-12 col-sm-4 col-md-4">
                     <label className="form-label fw-bold">Purchase Details</label>
                     <div>{formData.purchaseDetails}</div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-6 col-md-4">
+                <div className="mb-2 col-12 col-sm-4 col-md-4">
                     <label className="form-label fw-bold">Item / Service Description</label>
                     <div>{formData.itemServiceDescription}</div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-6 col-md-4">
+                <div className="mb-2 col-12 col-sm-4 col-md-4">
                     <label className="form-label fw-bold">AR Required</label>
                     <div>{formData.ARRequired ? "Yes" : "No"}</div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-6 col-md-4">
+                <div className="mb-2 col-12 col-sm-4 col-md-4">
                     <label className="form-label fw-bold">Status</label>
                     <div>{formData.status}</div>
                 </div>
@@ -271,12 +287,12 @@ const PRDocument = forwardRef<HTMLDivElement, IPurchaseRequestDocument>(({ conte
                                             : approver.Status === "Approved" ? "text-success"
                                                 : "text-danger"
                                     }
-                                        style={{ color: approver?.Status === "Pending" ? "#FF8008" : "", textWrap:"nowrap" }}
+                                        style={{ color: approver?.Status === "Pending" ? "#FF8008" : "", textWrap: "nowrap" }}
                                     >
-                                        {approver.Status}   
+                                        {approver.Status}
                                     </b>
                                 </span>
-                                <div className="fst-italic ms-2">{approver.ApprovedDate}</div>
+                                <div className="fst-italic ms-2">{format(new Date(approver.ApprovedDate),"MM-dd-yyyy")}</div>
                             </div>
                         </div>
                     </div>

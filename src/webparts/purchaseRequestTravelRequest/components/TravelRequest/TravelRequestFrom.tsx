@@ -1,16 +1,17 @@
-import React, { FC, useState, useEffect } from 'react';
+import React, { FC, useState, useEffect, useRef } from 'react';
 import Style from '../PurchaseRequestTravelRequest.module.scss';
 import Select, { SingleValue } from 'react-select';
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import { PurchaseRequestTravelRequestService } from '../../Service/PurchaseRequestTravelRequest';
 import { RiArrowUpCircleFill } from 'react-icons/ri';
 import { BsBoxArrowLeft, BsHourglassSplit } from "react-icons/bs";
-import { GrPowerReset } from 'react-icons/gr';
+import { GrAttachment, GrPowerReset } from 'react-icons/gr';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ITravelRequestProps } from './ITravelRequestProps';
 import {
     Dialog,
     DialogType,
+    IconButton,
 } from '@fluentui/react';
 import { FaClock, FaUser } from "react-icons/fa6";
 import { MdFlightTakeoff } from "react-icons/md";
@@ -52,6 +53,11 @@ interface IApproversProps {
     ApprovedDate: string;
 }
 
+interface DocumentState {
+    id: number;
+    fileName: string;
+    fileRef: string;
+}
 
 
 
@@ -99,6 +105,9 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
         setDialogTitle('');
     }
 
+    const [document, setDocument] = useState<DocumentState[]>([]);
+    const [attachment, setAttachment] = useState<File[]>([]);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const handleBackClick = (): void => {
         navigate("/travelRequestTable/TR"); // Navigate to the previous page
@@ -152,7 +161,6 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
     useEffect(() => {
         fetchDepartment();
         fetchApproverlist();
-
     }, []);
 
 
@@ -218,18 +226,83 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
     };
 
 
+    const fetchTRDocuments = async (TRNumber: number): Promise<void> => {
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        try {
+            const data = await service.getTravelRequestDocuments(TRNumber);
+
+            const PODocuments = data.map((item) => ({
+                id: item?.Id,
+                fileName: item?.FileLeafRef,
+                fileRef: item?.FileRef,
+            }));
+
+            setDocument(PODocuments);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error on fetching TR documents:', error);
+        }
+    };
+
     useEffect(() => {
         if (currentTRId && formData.Status === "Draft") {
             fetchTravelRequestDetails(currentTRId);
             fetchApproverlist();
+            fetchTRDocuments(currentTRId);
         }
         else if (currentTRId) {
             fetchTravelRequestDetails(currentTRId);
             fetchExistingApproverlist(currentTRId);
+            fetchTRDocuments(currentTRId);
         }
     }, [TRId, formData.Status]);
 
 
+
+    const handleAttachment = (): void => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+        const files = e.target.files;
+        if (files) {
+            const newFiles = Array.from(files);
+            setAttachment(prev => [...prev, ...newFiles]);
+            setDialogMessage(`Success`);
+            setDialogTitle(`File uploaded successfully`);
+            setIsDialogOpen(true);
+        }
+    };
+
+    const handleClearAttachment = (index: number): void => {
+        setAttachment(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const [fileToDelete, setFileToDelete] = useState<DocumentState | null>(null);
+    const [fileDeleteDialogVisible, setFileDeleteDialogVisible] = useState<boolean>(false);
+    const handleFileDelete = async (file: DocumentState) => {
+        setFileToDelete(file);
+        setFileDeleteDialogVisible(true);
+    }
+
+    const handleConfirmFileDelete = async () => {
+        if (fileToDelete) {
+            const service = new PurchaseRequestTravelRequestService(props.context);
+            // setLoading(true);
+            try {
+                await service.deletePRTRTravelRequestDocument(fileToDelete.id);
+                setDocument(prevDocuments => prevDocuments.filter(doc => doc.id !== fileToDelete.id));
+                // setLoading(false);
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                // setLoading(false);
+            }
+            setFileDeleteDialogVisible(false);
+            setFileToDelete(null);
+        }
+    };
 
 
 
@@ -289,6 +362,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
             EmergencyRelated: false,
             Status: "In Progress",
         });
+        setAttachment([]);
     };
 
 
@@ -312,7 +386,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
 
         try {
 
-            const data = await service.addTravelRequestDetail(newTR, initialApprove, currentTRId);
+            const data = await service.addTravelRequestDetail(newTR, initialApprove, currentTRId, attachment);
             console.log(data)
             if (data) {
                 if (data) {
@@ -353,7 +427,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
 
         try {
             setConfirmSubmit(false);
-            const data = await service.addTravelRequestDetail(newTR, approvers, currentTRId);
+            const data = await service.addTravelRequestDetail(newTR, approvers, currentTRId, attachment);
             console.log(data)
             if (data) {
                 if (data) {
@@ -544,6 +618,50 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                     </div>
                 </div>
 
+                <div className='mb-2'>
+                    <div className='my-2'>
+                        <button type='button' className={`${Style.primaryButton} text-nowrap`} onClick={handleAttachment}>
+                            <GrAttachment size={20} /> Attach files
+                        </button>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            name="attachments"
+                            multiple
+                            onChange={handleFileChange}
+                            style={{ display: 'none' }}
+                        />
+                    </div>
+                    {attachment.map((file, index) => (
+                        <div key={index} className="d-flex align-items-center ">
+                            <p className='mb-0 me-1'>{index + 1}. {file.name}</p>
+                            <div className='text-danger'>
+
+                                <IconButton
+                                    iconProps={{ iconName: 'Delete' }}
+                                    title="Delete"
+                                    onClick={() => handleClearAttachment(index)}
+                                    className={Style.iconButton}
+                                />
+
+                            </div>
+                        </div>
+                    ))}
+                    {document.map((file: any, index) => (
+                        <div className='d-flex align-items-center' key={index}>
+                            <p className='mb-0 me-1'>{attachment.length + index + 1}. {file.fileName}</p>
+                            <div>
+
+                                <IconButton
+                                    iconProps={{ iconName: 'Delete' }}
+                                    title="Delete"
+                                    onClick={() => handleFileDelete(file)}
+                                    className={Style.iconButton}
+                                />
+                            </div>
+                        </div>
+                    ))}
+                </div>
 
                 <>
                     <hr />
@@ -645,6 +763,23 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                     <button className={`${Style.closeButton} px-3`} onClick={() => setConfirmDraft(false)} > Cancel </button>
                 </div>
             </Dialog>
+
+            {/* confirm file Delete */}
+            <Dialog
+                hidden={!fileDeleteDialogVisible}
+                onDismiss={() => setFileDeleteDialogVisible(false)}
+                dialogContentProps={{
+                    type: DialogType.normal,
+                    subText: "Are you sure you want to delete this document? This action cannot be reversed.",
+                }}
+
+            >
+                <div className=" d-flex gap-2 flex-nowrap align-items-center justify-content-end">
+                    <button className={`${Style.secondaryButton} px-3`} onClick={handleConfirmFileDelete} > Confirm</button>
+                    <button className={`${Style.closeButton} px-3`} onClick={() => setFileDeleteDialogVisible(false)} > Cancel </button>
+                </div>
+            </Dialog>
+
 
         </div >
 

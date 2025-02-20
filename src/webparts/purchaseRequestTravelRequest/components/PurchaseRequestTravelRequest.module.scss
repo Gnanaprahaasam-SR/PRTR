@@ -110,7 +110,7 @@
 
 
 .ternaryButton {
-  background: #FFCE22;
+  background: #fad242;  //#ffce22
   color: #000000;
   padding: 6px 10px;
   border-radius: 50px;
@@ -588,6 +588,10 @@ th:not(.sticky) {
 //   }
 // }
 
+
+.smallFont{
+  font-size: 12px;
+}
 
 
 .activeTabBtn {

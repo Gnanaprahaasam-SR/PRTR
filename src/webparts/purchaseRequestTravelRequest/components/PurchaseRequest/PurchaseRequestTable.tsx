@@ -60,6 +60,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
     const [globalFilter, setGlobalFilter] = useState<string>('');
     const [selectedColumn, setSelectedColumn] = useState('');
     const [currentPR, setCurrentPR] = useState<number | null>(null);
+
     const handleGlobalFilterChange = (value: string) => {
         setGlobalFilter(value);
     };
@@ -164,7 +165,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
         const day = String(date.getDate()).padStart(2, '0');
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const year = date.getFullYear();
-        return `${day}-${month}-${year}`;
+        return `${month}-${day}-${year}`;
     };
 
     const fetchPurchaseRequestData = async (status: string, userId: number): Promise<void> => {
@@ -408,19 +409,19 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
     //     }
     // };
 
-
     const printRef = useRef<HTMLDivElement>(null);
 
-    const handlePrintPreview = () => {
+    const handlePrintPreview = (PRId: number): void => {
+        setCurrentPR(PRId);
+        setTimeout(() => {
+            if (printRef.current) {
+                const printContent = printRef.current.innerHTML;
+                const printPreview = window.open("", "print_preview", "resizable=yes,scrollbars=yes,status=yes,toolbar=yes,width=800,height=600");
 
-        if (printRef.current) {
-            const printContent = printRef.current.innerHTML;
-            const printPreview = window.open("", "print_preview", "resizable=yes,scrollbars=yes,status=yes,toolbar=yes,width=800,height=600");
-
-            if (printPreview) {
-                const printDocument = printPreview.document;
-                printDocument.open();
-                printDocument.write(`
+                if (printPreview) {
+                    const printDocument = printPreview.document;
+                    printDocument.open();
+                    printDocument.write(`
               <html>
               <head>
                 <title>Print Preview</title>
@@ -428,14 +429,14 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                 <style>
                   @page {
                     size: A4;
-                    margin: 20mm;
+                    margin: 10mm;
                   }
 
                   @media print {
                     body {
                       font-family: Arial, sans-serif;
                       margin: 0;
-                      padding: 10px;
+                      padding: 0;
                     }
                     .container {
                       width: 100%;
@@ -472,16 +473,19 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
               </body>
               </html>
             `);
-                printDocument.close();
+                    printDocument.close();
 
-                // Ensure styles are applied before printing
-                printPreview.onload = () => {
-                    printPreview.focus();
-                };
-            } else {
-                alert("Popup blocked! Please allow pop-ups for this site.");
+                    // Ensure styles are applied before printing
+                    printPreview.onload = () => {
+                        printPreview.focus();
+                    };
+                } else {
+                    alert("Popup blocked! Please allow pop-ups for this site.");
+                }
             }
-        }
+        }, 500);
+
+
     };
 
 
@@ -489,9 +493,12 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
     return (
         <section className='bg-white rounded-5'>
             {loading && <LoadingSpinner />}
-            <div style={{ display: "none" }}>
-                {currentPR && <PRDocument context={props.context} currentPRId={currentPR} ref={printRef} />}
-            </div>
+            {currentPR !== null && (
+                <div style={{ display: "none" }}>
+                    <PRDocument context={props.context} currentPRId={currentPR} ref={printRef} />
+                </div>
+            )}
+
             <div className='d-flex flex-wrap align-items-center justify-content-between'>
                 <div className={Style['tabs-container']}>
                     {tabs.map((tab, index) => (
@@ -542,7 +549,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                     <Link to="/purchaseRequest" className='text-decoration-none'>
                         <button className={`${Style.primaryButton}`}>
                             <HiPlusCircle size={20} />
-                            Add PR
+                            Add Purchase
                         </button>
                     </Link>
                     <button className={`${Style.secondaryButton} text-nowrap`} onClick={handleExport}>
@@ -707,7 +714,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                                                         <IconButton iconProps={{ iconName: 'View' }} title="View" className={Style.iconButton} />
                                                     </Link>
 
-                                                    <IconButton iconProps={{ iconName: 'PDF' }} title="PDF" className={Style.iconButton} disabled={data.Status !== "Approved"} onClick={() => { handlePrintPreview(); setCurrentPR(Number(data.PRNumber)) }} />
+                                                    <IconButton iconProps={{ iconName: 'PDF' }} title="PDF" className={Style.iconButton} disabled={data.Status !== "Approved"} onClick={() => { handlePrintPreview(Number(data.PRNumber)); }} />
                                                 </>
                                             ) : (
                                                 <>
@@ -720,7 +727,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                                                             <IconButton iconProps={{ iconName: 'View' }} title="View" className={Style.iconButton} />
                                                         </Link>
                                                     }
-                                                    <IconButton iconProps={{ iconName: 'PDF' }} title="PDF" className={Style.iconButton} disabled={data.Status !== "Approved"} onClick={() => { handlePrintPreview(); setCurrentPR(Number(data.PRNumber)) }} />
+                                                    <IconButton iconProps={{ iconName: 'PDF' }} title="PDF" className={Style.iconButton} disabled={data.Status !== "Approved"} onClick={() => { handlePrintPreview(Number(data.PRNumber)); }} />
                                                 </>
                                             )
                                         ) : (

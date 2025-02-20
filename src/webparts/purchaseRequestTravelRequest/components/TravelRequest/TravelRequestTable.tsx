@@ -159,7 +159,7 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
         const day = String(date.getDate()).padStart(2, '0');
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const year = date.getFullYear();
-        return `${day}-${month}-${year}`;
+        return `${month}-${day}-${year}`;
     };
 
     const fetchPurchaseRequestData = async (status: string, userId: number): Promise<void> => {
@@ -204,79 +204,79 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
 
     const printRef = useRef<HTMLDivElement>(null);
 
-    const handlePrintPreview = () => {
+    const handlePrintPreview = (TRId: number) => {
+        setCurrentTR(TRId);
+        setTimeout(() => {
+            if (printRef.current) {
+                const printContent = printRef.current.innerHTML;
+                const printPreview = window.open("", "print_preview", "resizable=yes,scrollbars=yes,status=yes,toolbar=yes,width=800,height=600");
 
-        if (printRef.current) {
-            const printContent = printRef.current.innerHTML;
-            const printPreview = window.open("", "print_preview", "resizable=yes,scrollbars=yes,status=yes,toolbar=yes,width=800,height=600");
+                if (printPreview) {
+                    const printDocument = printPreview.document;
+                    printDocument.open();
+                    printDocument.write(`
+                      <html>
+                      <head>
+                        <title>Print Preview</title>
+                        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                        <style>
+                          @page {
+                            size: A4;
+                            margin: 10mm;
+                          }
+        
+                          @media print {
+                            body {
+                              font-family: Arial, sans-serif;
+                              margin: 0;
+                              padding: 0;
+                            }
+                            .container {
+                              width: 100%;
+                              max-width: 100%; 
+                            }
+                            .table {
+                              width: 100%;
+                              border-collapse: collapse;
+                            }
+                            .table th, .table td {
+                              border: 1px solid #000 !important;
+                              padding: 8px;
+                            }
+                            .print-button {
+                              display: none !important;
+                            }
+                          }
+                         
+                          .print-button {
+                            padding: 10px 20px;
+                            font-size: 16px;
+                            margin: 20px;
+                            cursor: pointer;
+                          }
+                        </style>
+                      </head>
+                      <body onload="window.focus();">
+                        <div class="container">
+                          <div id="print-content">${printContent}</div>
+                          <div class="d-flex justify-content-center align-items-center">
+                            <button class="btn btn-primary print-button" onclick="window.print()">Print Form</button>
+                          </div>
+                        </div>
+                      </body>
+                      </html>
+                    `);
+                    printDocument.close();
 
-            if (printPreview) {
-                const printDocument = printPreview.document;
-                printDocument.open();
-                printDocument.write(`
-                  <html>
-                  <head>
-                    <title>Print Preview</title>
-                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-                    <style>
-                      @page {
-                        size: A4;
-                        margin: 20mm;
-                      }
-    
-                      @media print {
-                        body {
-                          font-family: Arial, sans-serif;
-                          margin: 0;
-                        
-                        }
-                        .container {
-                          width: 100%;
-                          max-width: 100%;
-                          padding: 0;
-                          margin: 0; 
-                        }
-                        .table {
-                          width: 100%;
-                          border-collapse: collapse;
-                        }
-                        .table th, .table td {
-                          border: 1px solid #000 !important;
-                          padding: 8px;
-                        }
-                        .print-button {
-                          display: none !important;
-                        }
-                      }
-                     
-                      .print-button {
-                        padding: 10px 20px;
-                        font-size: 16px;
-                        margin: 20px;
-                        cursor: pointer;
-                      }
-                    </style>
-                  </head>
-                  <body onload="window.focus();">
-                    <div class="container">
-                      <div id="print-content">${printContent}</div>
-                      <div class="d-flex justify-content-center align-items-center">
-                        <button class="btn btn-primary print-button" onclick="window.print()">Print Form</button>
-                      </div>
-                    </div>
-                  </body>
-                  </html>
-                `);
-                printDocument.close();
-
-                // Ensure styles are applied before printing
-                printPreview.onload = () => {
-                    printPreview.focus();
-                };
-            } else {
-                alert("Popup blocked! Please allow pop-ups for this site.");
+                    // Ensure styles are applied before printing
+                    printPreview.onload = () => {
+                        printPreview.focus();
+                    };
+                } else {
+                    alert("Popup blocked! Please allow pop-ups for this site.");
+                }
             }
-        }
+        }, 500)
     };
 
 
@@ -298,9 +298,11 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
     return (
         <section className='bg-white rounded-5'>
             {loading && <LoadingSpinner />}
-            <div style={{ display: "none" }}>
-                {currentTR && <TRDocument context={props.context} currentTRId={currentTR} ref={printRef} />}
-            </div>
+            {currentTR !== null &&
+                <div style={{ display: "none" }}>
+                    <TRDocument context={props.context} currentTRId={currentTR} ref={printRef} />
+                </div>
+            }
             <div className='d-flex flex-wrap align-items-center justify-content-between'>
                 <div className={Style['tabs-container']}>
                     {tabs.map((tab, index) => (
@@ -351,7 +353,7 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                     <Link to="/travelRequest" className='text-decoration-none'>
                         <button className={`${Style.primaryButton}`}>
                             <HiPlusCircle size={20} />
-                            Add TR
+                            Add Travel
                         </button>
                     </Link>
                     <button className={`${Style.secondaryButton} text-nowrap`} onClick={handleExport}>
@@ -505,7 +507,7 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                                                     <Link to={`/travelRequestUpdate/${data.TRNumber}`}>
                                                         <IconButton iconProps={{ iconName: "View" }} title="View" className={Style.iconButton} />
                                                     </Link>
-                                                    <IconButton iconProps={{ iconName: 'PDF' }} title="PDF" className={Style.iconButton} disabled={data.Status !== "Approved"} onClick={() => { handlePrintPreview(); setCurrentTR(Number(data.TRNumber)) }} />
+                                                    <IconButton iconProps={{ iconName: 'PDF' }} title="PDF" className={Style.iconButton} disabled={data.Status !== "Approved"} onClick={() => { handlePrintPreview(Number(data.TRNumber)); }} />
                                                 </>
                                             ) : (
                                                 <>
@@ -518,7 +520,7 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                                                             <IconButton iconProps={{ iconName: "Edit" }} title="Edit" className={Style.iconButton} />
                                                         </Link>
                                                     }
-                                                    <IconButton iconProps={{ iconName: 'PDF' }} title="PDF" className={Style.iconButton} disabled={data.Status !== "Approved"} onClick={() => { handlePrintPreview(); setCurrentTR(Number(data.TRNumber)) }} />
+                                                    <IconButton iconProps={{ iconName: 'PDF' }} title="PDF" className={Style.iconButton} disabled={data.Status !== "Approved"} onClick={() => { handlePrintPreview(Number(data.TRNumber)); }} />
                                                 </>
                                             )
                                         ) : (
