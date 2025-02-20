@@ -389,8 +389,8 @@ export class PurchaseRequestTravelRequestService {
                 filterCondition = `Status ne 'Draft'`; // If a specific status is provided
             }
 
-            let query = list.items.select("ID", "Requester/Id", "Requester/Title", "Requester/EMail", "RequestedDate", "Department/Department", "Department/Id", "Where", "When", "TotalCostEstimate", "StratigicProjectRelated", "EmergencyRelated", "Status", "BusinessJustification")
-                .expand("Requester", "Department");
+            let query = list.items.select("ID", "Requester/Id", "Requester/Title", "Requester/EMail", "RequestedDate", "Department/Department", "Department/Id", "Where", "When", "TotalCostEstimate", "StratigicProjectRelated", "EmergencyRelated", "Status", "BusinessJustification", "Author/Title")
+                .expand("Requester", "Department","Author");
 
             // Apply filter only if a condition exists
             if (filterCondition) {
@@ -588,8 +588,8 @@ export class PurchaseRequestTravelRequestService {
                 filterCondition = `Status ne 'Draft'`; // If a specific status is provided
             }
 
-            let query = list.items.select("ID", "Requester/Id", "Requester/Title", "Requester/EMail", "RequestedDate", "Department/Department", "Department/Id", "PurchaseDetails", "PurchaseType", "Category", "TotalCost", "RecurringCost", "ItemServiceDescription", "UseCase", "Status", "BusinessJustification", "ARRequired")
-                .expand("Requester", "Department");
+            let query = list.items.select("ID", "Requester/Id", "Requester/Title", "Requester/EMail", "RequestedDate", "Department/Department", "Department/Id", "PurchaseDetails", "PurchaseType", "Category", "TotalCost", "RecurringCost", "ItemServiceDescription", "UseCase", "Status", "BusinessJustification", "ARRequired","Author/Title")
+                .expand("Requester", "Department","Author");
 
             // Apply filter only if a condition exists
             if (filterCondition) {

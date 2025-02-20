@@ -99,8 +99,7 @@ const Home: FC<IHomeProps> = (props) => {
               ))}
             </div>
             <div className='row'>
-
-              <div className='col-12 col-md-12'>
+              <div className='col-12 col-md-12 '>
                 <PieChartData context={props.context} userId={props.userId} />
               </div>
             </div>

@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useRef, useState } from 'react';
 import Style from '../PurchaseRequestTravelRequest.module.scss';
 import { IconButton } from '@fluentui/react/lib/Button';
 import { FaClock, FaRegClipboard, FaSort, FaSortDown, FaSortUp } from "react-icons/fa6";
@@ -16,6 +16,7 @@ import styles from '../PurchaseRequestTravelRequest.module.scss';
 import { PurchaseRequestTravelRequestService } from '../../Service/PurchaseRequestTravelRequest';
 import { ITravelRequestProps } from './ITravelRequestProps';
 import { TbCancel } from 'react-icons/tb';
+import TRDocument from './TRpdfView';
 
 // const columnsData: { label: string, field: string }[] = [
 //     { label: 'S.No', field: 'serialNumber' },
@@ -52,6 +53,7 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
     const [loading, setLoading] = useState<boolean>(false);
     const [globalFilter, setGlobalFilter] = useState<string>('');
     const [selectedColumn, setSelectedColumn] = useState('');
+    const [currentTR, setCurrentTR] = useState<number | null>(null);
 
     const handleGlobalFilterChange = (value: string) => {
         setGlobalFilter(value);
@@ -200,6 +202,84 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
         }
     }, [table]);
 
+    const printRef = useRef<HTMLDivElement>(null);
+
+    const handlePrintPreview = () => {
+
+        if (printRef.current) {
+            const printContent = printRef.current.innerHTML;
+            const printPreview = window.open("", "print_preview", "resizable=yes,scrollbars=yes,status=yes,toolbar=yes,width=800,height=600");
+
+            if (printPreview) {
+                const printDocument = printPreview.document;
+                printDocument.open();
+                printDocument.write(`
+                  <html>
+                  <head>
+                    <title>Print Preview</title>
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                    <style>
+                      @page {
+                        size: A4;
+                        margin: 20mm;
+                      }
+    
+                      @media print {
+                        body {
+                          font-family: Arial, sans-serif;
+                          margin: 0;
+                        
+                        }
+                        .container {
+                          width: 100%;
+                          max-width: 100%;
+                          padding: 0;
+                          margin: 0; 
+                        }
+                        .table {
+                          width: 100%;
+                          border-collapse: collapse;
+                        }
+                        .table th, .table td {
+                          border: 1px solid #000 !important;
+                          padding: 8px;
+                        }
+                        .print-button {
+                          display: none !important;
+                        }
+                      }
+                     
+                      .print-button {
+                        padding: 10px 20px;
+                        font-size: 16px;
+                        margin: 20px;
+                        cursor: pointer;
+                      }
+                    </style>
+                  </head>
+                  <body onload="window.focus();">
+                    <div class="container">
+                      <div id="print-content">${printContent}</div>
+                      <div class="d-flex justify-content-center align-items-center">
+                        <button class="btn btn-primary print-button" onclick="window.print()">Print Form</button>
+                      </div>
+                    </div>
+                  </body>
+                  </html>
+                `);
+                printDocument.close();
+
+                // Ensure styles are applied before printing
+                printPreview.onload = () => {
+                    printPreview.focus();
+                };
+            } else {
+                alert("Popup blocked! Please allow pop-ups for this site.");
+            }
+        }
+    };
+
+
     const tabs = [
         {
             key: 'TR',
@@ -218,6 +298,9 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
     return (
         <section className='bg-white rounded-5'>
             {loading && <LoadingSpinner />}
+            <div style={{ display: "none" }}>
+                {currentTR && <TRDocument context={props.context} currentTRId={currentTR} ref={printRef} />}
+            </div>
             <div className='d-flex flex-wrap align-items-center justify-content-between'>
                 <div className={Style['tabs-container']}>
                     {tabs.map((tab, index) => (
@@ -284,7 +367,7 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                             <tr>
                                 <th className='p-2'>S.No</th>
                                 <th className='p-2' style={{ minWidth: "80px", maxWidth: "80px", }}>Action</th>
-                                <th className='p-2' style={{  textWrap: "wrap" }}>
+                                <th className='p-2' style={{ textWrap: "wrap" }}>
                                     <span className={`text-nowrap mb-1 d-block ${styles['table-header']}`}>
                                         TR Number
                                         {sortConfig?.key === 'TRNumber' && sortConfig.direction === 'ascending' ? (
@@ -309,7 +392,7 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                                     )}
                                 </th>
 
-                                <th className='ps-4' style={{  textWrap: "wrap", textAlign:"left" }}>
+                                <th className='ps-4' style={{ textWrap: "wrap", textAlign: "left" }}>
                                     <span className={`text-nowrap mb-1 d-block ${styles['table-header']}`}>
                                         Status
                                         {sortConfig?.key === 'Status' && sortConfig.direction === 'ascending' ? (
@@ -418,9 +501,12 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                                     <td>
                                         {table === "TR" ? (
                                             data.Status === "Approved" || data.Status === "In Progress" ? (
-                                                <Link to={`/travelRequestUpdate/${data.TRNumber}`}>
-                                                    <IconButton iconProps={{ iconName: "View" }} title="View" className={Style.iconButton} />
-                                                </Link>
+                                                <>
+                                                    <Link to={`/travelRequestUpdate/${data.TRNumber}`}>
+                                                        <IconButton iconProps={{ iconName: "View" }} title="View" className={Style.iconButton} />
+                                                    </Link>
+                                                    <IconButton iconProps={{ iconName: 'PDF' }} title="PDF" className={Style.iconButton} disabled={data.Status !== "Approved"} onClick={() => { handlePrintPreview(); setCurrentTR(Number(data.TRNumber)) }} />
+                                                </>
                                             ) : (
                                                 <>
                                                     {data.RequesterId !== props.userId && data.Status === "Rejected" ?
@@ -432,6 +518,7 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                                                             <IconButton iconProps={{ iconName: "Edit" }} title="Edit" className={Style.iconButton} />
                                                         </Link>
                                                     }
+                                                    <IconButton iconProps={{ iconName: 'PDF' }} title="PDF" className={Style.iconButton} disabled={data.Status !== "Approved"} onClick={() => { handlePrintPreview(); setCurrentTR(Number(data.TRNumber)) }} />
                                                 </>
                                             )
                                         ) : (

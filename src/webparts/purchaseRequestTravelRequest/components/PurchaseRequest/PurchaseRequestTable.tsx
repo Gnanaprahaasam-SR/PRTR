@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useState, useRef } from 'react';
 import Style from '../PurchaseRequestTravelRequest.module.scss';
 import { IconButton } from '@fluentui/react/lib/Button';
 import { FaClock, FaRegCircleCheck, FaRegClipboard, FaSort, FaSortDown, FaSortUp } from "react-icons/fa6";
@@ -16,6 +16,8 @@ import styles from '../PurchaseRequestTravelRequest.module.scss';
 import { IPurchaseRequestFormProps } from './IPurchaseRequestFormProps';
 import { PurchaseRequestTravelRequestService } from '../../Service/PurchaseRequestTravelRequest';
 import { TbCancel } from 'react-icons/tb';
+// import jsPDF from 'jspdf';
+import PRDocument from './PRpdfView';
 
 // const columnsData: { label: string, field: string }[] = [
 //     { label: 'S.No', field: 'serialNumber' },
@@ -44,6 +46,8 @@ export interface IPRTableDataProps {
     UseCase: string;
 }
 
+
+
 const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
     const { table } = useParams();
     const [dataList, setDataList] = useState<IPRTableDataProps[]>([]);
@@ -55,7 +59,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
     const [loading, setLoading] = useState<boolean>(false);
     const [globalFilter, setGlobalFilter] = useState<string>('');
     const [selectedColumn, setSelectedColumn] = useState('');
-
+    const [currentPR, setCurrentPR] = useState<number | null>(null);
     const handleGlobalFilterChange = (value: string) => {
         setGlobalFilter(value);
     };
@@ -220,9 +224,274 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
         }
     ];
 
+
+    // const handlePdfGenerator = async (purchaseRequestId: number) => {
+    //     const service = new PurchaseRequestTravelRequestService(props.context);
+
+    //     try {
+    //         const pdfData = await service.getPurchaseRequestDetails(null, "All", purchaseRequestId);
+    //         const PRDetails = pdfData.PRDetails[0];
+
+    //         const dataApprover = await service.getPurchaseRequestApprovals(purchaseRequestId);
+    //         const Approvers = dataApprover.map((item: any) => ({
+    //             Id: item.ID,
+    //             PRId: item.PurchaseRequestId?.Id,
+    //             Approver: item.Approver?.Title,
+    //             ApproverId: item.Approver?.Id,
+    //             Role: item.Role,
+    //             Status: item.Status,
+    //             Hierarchy: item.Hierarchy,
+    //             Comments: item.Comments,
+    //             ApprovedDate: item.ApprovedDate ? formatDate(item.ApprovedDate) : "N/A"
+    //         })).sort((a, b) => (a.Hierarchy || 0) - (b.Hierarchy || 0));
+
+    //         const logoUrl = await service.getPRTRLogo();
+    //         const fullLogoUrl = logoUrl?.document?.FileRef ?? "";
+
+    //         const doc = new jsPDF("p", "mm", "a4");
+    //         const pageHeight = doc.internal.pageSize.height;
+    //         const pageWidth = doc.internal.pageSize.width;
+    //         const pagePadding = 10;
+    //         const defaultFontSize = 8;
+    //         let currentY = 20;
+
+    //         // **Add Logo**
+    //         if (fullLogoUrl) {
+    //             try {
+    //                 doc.addImage(fullLogoUrl, "PNG", pagePadding, 10, 20, 20);
+    //             } catch (error) {
+    //                 console.error("Error adding logo:", error);
+    //                 alert("Failed to load logo image. Please check the image URL.");
+    //                 return;
+    //             }
+    //         }
+
+    //         // **Title**
+    //         doc.setFontSize(12).setFont("helvetica", "bold");
+    //         doc.text("Purchase Request Details", pageWidth / 2, currentY, { align: "center" });
+    //         currentY += 8;
+
+    //         // **General Details**
+    //         doc.setFontSize(defaultFontSize).setFont("helvetica", "normal");
+    //         const details = [
+    //             `PR#: ${PRDetails?.Id ?? "N/A"}`,
+    //             `Created By: ${PRDetails?.Author?.Title ?? "N/A"}`
+    //         ];
+
+    //         details.forEach((detail) => {
+    //             doc.text(detail, pageWidth - pagePadding, currentY, { align: "right" });
+    //             currentY += 6;
+    //         });
+
+    //         // **Draw Horizontal Line**
+    //         doc.setLineWidth(0.5).line(pagePadding, currentY, pageWidth - pagePadding, currentY);
+    //         currentY += 10;
+
+    //         // **Purchase Request Details**
+    //         const titles = [
+    //             "Requestor Name", "Department", "Requested Date",
+    //             "Category", "Purchase Details", "Purchase Type",
+    //             "Item / Service Description", "Total Cost", "Recurring Cost",
+    //             "Use Case", "AR Required", "Status", "Business Justification"
+    //         ];
+
+    //         const values = [
+    //             PRDetails?.Requester?.Title ?? "N/A",
+    //             PRDetails?.Department?.Department ?? "N/A",
+    //             formatDate(PRDetails?.RequestedDate) ?? "N/A",
+    //             PRDetails?.Category ?? "N/A",
+    //             PRDetails?.PurchaseDetails ?? "N/A",
+    //             PRDetails?.PurchaseType ?? "N/A",
+    //             PRDetails?.ItemServiceDescription ?? "N/A",
+    //             `$ ${PRDetails.TotalCost ? Number(PRDetails.TotalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 0.00}`,
+    //             `$ ${PRDetails.RecurringCost ? Number(PRDetails.RecurringCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 0.00}`,
+    //             PRDetails?.UseCase ?? "N/A",
+    //             PRDetails?.ARRequired ? "Yes" : "No",
+    //             PRDetails?.Status ?? "N/A",
+    //             PRDetails?.BusinessJustification ?? "N/A",
+    //         ];
+
+    //         // **Display in Table Format (3 Columns Per Row)**
+    //         const itemsPerRow = 3;
+    //         const itemWidth = (pageWidth - pagePadding * 2) / itemsPerRow;
+    //         const lineHeight = 6;
+
+    //         for (let i = 0; i < titles.length; i++) {
+    //             if (currentY + lineHeight > pageHeight - pagePadding) {
+    //                 doc.addPage();
+    //                 currentY = 10;
+    //             }
+
+    //             const currentColumn = i % itemsPerRow;
+    //             const xPosition = pagePadding + currentColumn * itemWidth;
+
+    //             if (currentColumn === 0 && i !== 0) {
+    //                 currentY += lineHeight;
+    //             }
+
+    //             doc.setFont("helvetica", "bold").text(titles[i], xPosition, currentY);
+    //             doc.setFont("helvetica", "normal");
+
+    //             const wrappedText = doc.splitTextToSize(values[i], itemWidth - 5);
+    //             wrappedText.forEach((line: any, index: any) => {
+    //                 if (currentY + lineHeight > pageHeight - pagePadding) {
+    //                     doc.addPage();
+    //                     currentY = 10;
+    //                 }
+    //                 doc.text(line, xPosition, currentY + lineHeight * (index + 1));
+    //             });
+
+    //             if (currentColumn === itemsPerRow - 1) {
+    //                 currentY += lineHeight * wrappedText.length;
+    //             }
+    //         }
+
+    //         currentY += 15;
+    //         // **Draw Horizontal Line**
+    //         doc.setLineWidth(0.5).line(pagePadding, currentY, pageWidth - pagePadding, currentY);
+    //         currentY += 10;
+
+    //         // **Approver Details**
+    //         doc.setFont("helvetica", "bold").text("Approval Details:", pagePadding, currentY);
+    //         currentY += 6;
+
+    //         Approvers.forEach((approver, index) => {
+    //             if (currentY + 20 > pageHeight - pagePadding) {
+    //                 doc.addPage();
+    //                 currentY = 10;
+    //             }
+
+    //             doc.setFont("helvetica", "bold");
+    //             doc.text(`Approver ${index + 1}:`, pagePadding, currentY);
+    //             currentY += 5;
+
+    //             doc.setFont("helvetica", "bold");
+    //             doc.text(`Name: `, pagePadding, currentY);
+    //             doc.setFont("helvetica", "normal");
+    //             doc.text(`${approver.Approver ?? "N/A"}`, 40, currentY);
+    //             currentY += 5;
+
+    //             doc.setFont("helvetica", "bold");
+    //             doc.text(`Role: `, pagePadding, currentY);
+    //             doc.setFont("helvetica", "normal");
+    //             doc.text(`${approver.Role ?? "N/A"}`, 40, currentY);
+    //             currentY += 5;
+
+    //             doc.setFont("helvetica", "bold");
+    //             doc.text(`Approved Date:`, pagePadding, currentY);
+    //             doc.setFont("helvetica", "normal");
+    //             doc.text(`${approver.ApprovedDate ?? "N/A"}`, 40, currentY);
+    //             currentY += 5;
+
+    //             doc.setFont("helvetica", "bold");
+    //             doc.text("Comments:", pagePadding, currentY);
+    //             doc.setFont("helvetica", "normal");
+
+    //             const wrappedComments = doc.splitTextToSize(approver.Comments || "N/A", pageWidth - 4 * pagePadding, currentY);
+    //             wrappedComments.forEach((line: any) => {
+    //                 if (currentY + 6 > pageHeight - pagePadding) {
+    //                     doc.addPage();
+    //                     currentY = 10;
+    //                 }
+    //                 doc.text(line, 40, currentY);
+    //                 currentY += 5;
+    //             });
+
+    //             currentY += 5; // Add spacing after each approver
+    //         });
+
+    //         // **Save PDF**
+    //         doc.save(`PurchaseRequisition_${PRDetails?.Id ?? "N/A"}.pdf`);
+
+    //     } catch (error) {
+    //         console.error("Error generating PDF:", error);
+    //     }
+    // };
+
+
+    const printRef = useRef<HTMLDivElement>(null);
+
+    const handlePrintPreview = () => {
+
+        if (printRef.current) {
+            const printContent = printRef.current.innerHTML;
+            const printPreview = window.open("", "print_preview", "resizable=yes,scrollbars=yes,status=yes,toolbar=yes,width=800,height=600");
+
+            if (printPreview) {
+                const printDocument = printPreview.document;
+                printDocument.open();
+                printDocument.write(`
+              <html>
+              <head>
+                <title>Print Preview</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                <style>
+                  @page {
+                    size: A4;
+                    margin: 20mm;
+                  }
+
+                  @media print {
+                    body {
+                      font-family: Arial, sans-serif;
+                      margin: 0;
+                      padding: 10px;
+                    }
+                    .container {
+                      width: 100%;
+                      max-width: 100%;
+                    }
+                    .table {
+                      width: 100%;
+                      border-collapse: collapse;
+                    }
+                    .table th, .table td {
+                      border: 1px solid #000 !important;
+                      padding: 8px;
+                    }
+                    .print-button {
+                      display: none !important;
+                    }
+                  }
+                 
+                  .print-button {
+                    padding: 10px 20px;
+                    font-size: 16px;
+                    margin: 20px;
+                    cursor: pointer;
+                  }
+                </style>
+              </head>
+              <body onload="window.focus();">
+                <div class="container">
+                  <div id="print-content">${printContent}</div>
+                  <div class="d-flex justify-content-center align-items-center">
+                    <button class="btn btn-primary print-button" onclick="window.print()">Print Form</button>
+                  </div>
+                </div>
+              </body>
+              </html>
+            `);
+                printDocument.close();
+
+                // Ensure styles are applied before printing
+                printPreview.onload = () => {
+                    printPreview.focus();
+                };
+            } else {
+                alert("Popup blocked! Please allow pop-ups for this site.");
+            }
+        }
+    };
+
+
+
     return (
         <section className='bg-white rounded-5'>
             {loading && <LoadingSpinner />}
+            <div style={{ display: "none" }}>
+                {currentPR && <PRDocument context={props.context} currentPRId={currentPR} ref={printRef} />}
+            </div>
             <div className='d-flex flex-wrap align-items-center justify-content-between'>
                 <div className={Style['tabs-container']}>
                     {tabs.map((tab, index) => (
@@ -288,7 +557,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                         <thead>
                             <tr>
                                 <th className='p-2 text-center'>S.No</th>
-                                <th className='p-2 text-center' style={{width: "80px", maxWidth: "80px" }}>Action</th>
+                                <th className='p-2 text-center' style={{ width: "80px", maxWidth: "80px" }}>Action</th>
                                 <th className='p-2' style={{ textWrap: "wrap" }}>
                                     <span className={`text-nowrap mb-1 d-block ${styles['table-header']}`}>
                                         PR Number
@@ -316,7 +585,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                                     )}
                                 </th>
 
-                                <th className='ps-4' style={{textWrap: "wrap", textAlign:"left" }}>
+                                <th className='ps-4' style={{ textWrap: "wrap", textAlign: "left" }}>
                                     <span className={`text-nowrap mb-1 d-block ${styles['table-header']}`}>
                                         Status
                                         {sortConfig?.key === 'Status' && sortConfig.direction === 'ascending' ? (
@@ -370,7 +639,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                                     )}
                                 </th>
 
-                                <th className='p-2 ps-3' style={{  textWrap: "wrap" }}>
+                                <th className='p-2 ps-3' style={{ textWrap: "wrap" }}>
                                     <span className={`text-nowrap mb-1 d-block ${styles['table-header']}`}>
                                         Department
                                         {sortConfig?.key === 'Department' && sortConfig.direction === 'ascending' ? (
@@ -437,6 +706,8 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                                                     <Link to={`/purchaseRequestUpdate/${data.PRNumber}`}>
                                                         <IconButton iconProps={{ iconName: 'View' }} title="View" className={Style.iconButton} />
                                                     </Link>
+
+                                                    <IconButton iconProps={{ iconName: 'PDF' }} title="PDF" className={Style.iconButton} disabled={data.Status !== "Approved"} onClick={() => { handlePrintPreview(); setCurrentPR(Number(data.PRNumber)) }} />
                                                 </>
                                             ) : (
                                                 <>
@@ -449,6 +720,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                                                             <IconButton iconProps={{ iconName: 'View' }} title="View" className={Style.iconButton} />
                                                         </Link>
                                                     }
+                                                    <IconButton iconProps={{ iconName: 'PDF' }} title="PDF" className={Style.iconButton} disabled={data.Status !== "Approved"} onClick={() => { handlePrintPreview(); setCurrentPR(Number(data.PRNumber)) }} />
                                                 </>
                                             )
                                         ) : (
@@ -462,7 +734,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                                     <td className={``}>{data.PRNumber}</td>
                                     <td className=''>
                                         <span className={
-                                            data.Status === "Approved" ? Style.approved  :
+                                            data.Status === "Approved" ? Style.approved :
                                                 data.Status === "Rejected" ? Style.rejected :
                                                     data.Status === "Draft" ? Style.draft :
                                                         data.Status === "In Progress" ? Style.pending :

@@ -111,14 +111,14 @@ const PieChartData: React.FC<IPieChartProps & IPieChartDataProps> = (props) => {
     return (
 
         <div className='bg-white rounded-5 p-2' style={{ width: '100%', height: '100%', minHeight: "450px" }}>
-            <div className='row d-flex flex-row h-100 '>
+            <div className='row  h-100 '>
                 <div className=' align-self-center'>
                     <h5 className='text-center'>Purchase Request By Status</h5>
                 </div>
                 {error ? (
                     <p>{error}</p>
                 ) : ((deliveryStatusData.length > 0) && (deliveryStatusData.length > 0)) ? (
-                    <div className='align-self-center '>
+                    <div className='d-flex justify-content-center align-items-center' style={{alignSelf:"center"}}>
                         <Stack horizontal wrap tokens={{ childrenGap: 20 }}>
                             <PieChart
                                 height={380}
