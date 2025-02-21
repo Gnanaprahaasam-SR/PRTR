@@ -275,6 +275,7 @@ const PRReport: FC<IPurchaseRequestFormProps> = (props) => {
                             vertical-align: middle;
                             padding: 10px;
                             font-weight: normal !important;
+                            font-size: 10px;
                         }
     
                         td {
@@ -285,6 +286,7 @@ const PRReport: FC<IPurchaseRequestFormProps> = (props) => {
                             vertical-align: middle;
                             color: black !important;
                             padding: 10px;
+                            font-size: 10px;
                         }
     
                         .print-button {
