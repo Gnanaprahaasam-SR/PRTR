@@ -832,25 +832,28 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
 
                 {/* AR Required */}
                 <div className=" mb-2 col-12 col-sm-6 col-md-4 d-flex align-items-center">
+                    <div className='d-flex flex-column'>
                     <div className="form-check  form-switch gap-2">
                         <input className={`form-check-input ${Style.inputStyle} ${Style.checkBox}`} type="checkbox" id="AR" checked={formData?.ARRequired} onChange={(e) => handleTaxToggle(e.target.checked)} />
                         <label className="form-check-label" id='AR'>AR Required</label>
                     </div>
+                    {formData?.ARRequired &&
+                        <div>
+                            {/* <label className='form-label'>AR Details</label> */}
+                            <input
+                                type='text'
+                                className={`${Style.inputStyle}`}
+                                name='ARDetails'
+                                placeholder='AR Details'
+                                value={formData.ARDetails}
+                                onChange={(e) => handleFormDataChange('ARDetails', e.target.value)}
+                            />
+                        </div>}
+                        </div>
                 </div>
 
                 {/* Purchase Details */}
-                {formData?.ARRequired &&
-                    <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                        <label className='form-label'>AR Details</label>
-                        <input
-                            type='text'
-                            className={`${Style.inputStyle}`}
-                            name='ARDetails'
-                            value={formData.ARDetails}
-                            onChange={(e) => handleFormDataChange('ARDetails', e.target.value)}
-                        />
-                    </div>
-                }
+
                 <div className='mb-2'>
                     <div className='my-2'>
                         <button type='button' className={`${Style.primaryButton} text-nowrap`} onClick={handleAttachment}>
@@ -882,9 +885,8 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                     ))}
                     {document.map((file: any, index) => (
                         <div className='d-flex align-items-center' key={index}>
-                            <p className='mb-0 me-1'>{attachment.length + index + 1}. {file.fileName}</p>
+                            <a href={file.fileRef} download={file.fileName.split("_")[1]}><p className='mb-0 me-1'>{attachment.length + index + 1}. {file.fileName.split("_")[1]}</p></a>
                             <div>
-
                                 <IconButton
                                     iconProps={{ iconName: 'Delete' }}
                                     title="Delete"
