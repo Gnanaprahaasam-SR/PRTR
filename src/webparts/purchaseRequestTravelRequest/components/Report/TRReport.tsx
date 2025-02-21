@@ -265,6 +265,7 @@ const TRReport: FC<ITravelRequestProps> = (props) => {
                                 vertical-align: middle;
                                 padding: 10px;
                                 font-weight: normal !important;
+                                 font-size: 10px;
                             }
         
                             td {
@@ -275,6 +276,7 @@ const TRReport: FC<ITravelRequestProps> = (props) => {
                                 vertical-align: middle;
                                 color: black !important;
                                 padding: 10px;
+                                 font-size: 10px;
                             }
         
                             .print-button {

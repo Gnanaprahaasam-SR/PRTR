@@ -59,7 +59,7 @@ const TRReportPDF = forwardRef<HTMLDivElement, ITableDataProps>(({ tableData }, 
                         <thead>
                             <tr>
                                 {columnsData.map((column, index) => (
-                                    <th key={index} className={`p-2`} style={{ minWidth: "80px", whiteSpace: "nowrap" }}>
+                                    <th key={index} className={`p-2`} style={{ minWidth: "80px", whiteSpace: "nowrap", fontSize:"10px" }}>
                                         {column.label}
                                     </th>
                                 ))}
@@ -69,9 +69,9 @@ const TRReportPDF = forwardRef<HTMLDivElement, ITableDataProps>(({ tableData }, 
                             {tableData && tableData.length > 0 ? (
                                 tableData.map((data, index) => (
                                     <tr key={index}>
-                                        <td>{index + 1}</td>
-                                        <td className="ps-5">{data.TRNumber}</td>
-                                        <td>
+                                        <td style={{fontSize:"10px"}}>{index + 1}</td>
+                                        <td style={{fontSize:"10px"}} className="ps-5">{data.TRNumber}</td>
+                                        <td style={{fontSize:"10px"}}>
                                             <span className={
                                                 data.Status === "Approved" ? Style.approved :
                                                     data.Status === "Rejected" ? Style.rejected :
@@ -82,14 +82,14 @@ const TRReportPDF = forwardRef<HTMLDivElement, ITableDataProps>(({ tableData }, 
                                                 {data.Status}
                                             </span>
                                         </td>
-                                        <td>{data.Requester}</td>
-                                        <td>{data.Department}</td>
-                                        <td>{formatDate(data.RequestedDate)}</td>
-                                        <td>{data.Where}</td>
-                                        <td>{formatDate(data.When)}</td>
-                                        <td>${data.TotalCostEstimate ? Number(data.TotalCostEstimate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}</td>
-                                        <td>{data.StratigicProjectRelated}</td>
-                                        <td>{data.EmergencyRelated}</td>
+                                        <td style={{fontSize:"10px"}}>{data.Requester}</td>
+                                        <td style={{fontSize:"10px"}}>{data.Department}</td>
+                                        <td style={{fontSize:"10px"}}>{formatDate(data.RequestedDate)}</td>
+                                        <td style={{fontSize:"10px"}}>{data.Where}</td>
+                                        <td style={{fontSize:"10px"}}>{formatDate(data.When)}</td>
+                                        <td style={{fontSize:"10px"}}>${data.TotalCostEstimate ? Number(data.TotalCostEstimate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}</td>
+                                        <td style={{fontSize:"10px"}}>{data.StratigicProjectRelated}</td>
+                                        <td style={{fontSize:"10px"}}>{data.EmergencyRelated}</td>
                                     </tr>
                                 ))
                             ) : (
