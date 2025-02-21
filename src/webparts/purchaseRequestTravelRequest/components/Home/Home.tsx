@@ -132,7 +132,7 @@ const Home: FC<IHomeProps> = (props) => {
 
         <div className='row'>
           <div className={styles.homesubsection}>
-            <div className={`${styles.homesubtitle} mb-2`}>Yearly Purchase Request & Travel Request Details</div>
+            <div className={`${styles.homesubtitle} mb-2`}>Request Details by Year</div>
             <div className=''>
               <BarChartData context={props.context} userId={props.userId} />
             </div>
