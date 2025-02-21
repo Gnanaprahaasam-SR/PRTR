@@ -842,7 +842,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                 </div>
 
                 {/* AR Required */}
-                <div className=" mb-2 col-12 col-sm-6 col-md-4 d-flex align-items-center">
+                <div className=" mb-2 col-12 col-sm-6 col-md-6 d-flex align-items-center">
                     <div className='d-flex flex-column'>
                     <div className="form-check  form-switch gap-2">
                         <input className={`form-check-input ${Style.inputStyle} ${Style.checkBox}`} type="checkbox" id="AR" checked={formData?.ARRequired} onChange={(e) => handleTaxToggle(e.target.checked)} />
