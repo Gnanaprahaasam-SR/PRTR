@@ -347,7 +347,7 @@ const TRUpdate: FC<ITravelRequestProps> = (props) => {
                                         </div>
                                     </div>
                                     <div className='col-12 col-sm-6 col-md-3'>
-                                        {approver.ApproverId === props.userId && approver.Hierarchy === minHierarchy ? (
+                                        {approver.ApproverId === props.userId && approver.Hierarchy === minHierarchy && formData.Status === "In Progress"? (
                                             <div className='d-flex justify-content-evenly align-items-center'>
                                                 <button className={`${Style.secondaryButton} px-3 `} onClick={() => handleApprovals("Approved", approver.Id)}> Approve</button>
                                                 <button className={`${Style.rejecteButton} px-3 `} onClick={() => handleApprovals("Rejected", approver.Id)}>Reject</button>

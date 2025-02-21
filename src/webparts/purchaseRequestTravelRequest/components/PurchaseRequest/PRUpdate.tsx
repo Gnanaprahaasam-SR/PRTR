@@ -398,7 +398,7 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
                                         </div>
                                     </div>
                                     <div className='col-12 col-sm-6 col-md-3'>
-                                        {approver.ApproverId === props.userId && approver.Hierarchy === minHierarchy ? (
+                                        {approver.ApproverId === props.userId && approver.Hierarchy === minHierarchy && formData.status === "In Progress"? (
                                             <div className='gap-3 d-flex'>
                                                 <button className={`${Style.secondaryButton} px-3`} onClick={() => handleApprovals("Approved", approver.Id)}> Approve</button>
                                                 <button className={`${Style.rejecteButton} px-3 `} onClick={() => handleApprovals("Rejected", approver.Id)}>Reject</button>

@@ -6,7 +6,7 @@ import PRForm from './PurchaseRequest/PurchaseRequestForm';
 import Header from './Header/Header';
 import Home from './Home/Home';
 import PurchaseRequestTable from './PurchaseRequest/PurchaseRequestTable';
-import TravelRequestForm from './TravelRequest/TravelRequestFrom';
+import TravelRequestForm from './TravelRequest/TravelRequestForm';
 import PRUpdate from './PurchaseRequest/PRUpdate';
 import TravelRequestTable from './TravelRequest/TravelRequestTable';
 import TRUpdate from './TravelRequest/TRUpdate';

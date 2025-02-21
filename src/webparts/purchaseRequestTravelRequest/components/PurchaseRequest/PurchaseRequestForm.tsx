@@ -104,7 +104,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
     const currentPRId: number | null = PRId ? parseInt(PRId as string, 10) || null : null;
 
     const [team, setTeam] = useState<ITeamsProps[] | null>(null);
-    const [currentTeam, setCurrentTeam] = useState<ITeamsProps | null>(null);
+
     const [formData, setFormData] = useState<IPurchaseRequestDataProps>({
         id: null,
         requester: props?.userName,
@@ -124,6 +124,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
         status: "Pending",
         ARDetails: "",
     });
+
 
     const [approvers, setApprovers] = useState<IApproverProps[]>([]);
     const [initialApprove, setInitialApprove] = useState<IApproverProps[]>([]);
@@ -162,6 +163,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                 team: item.Team,
             }));
             setTeam(teams);
+            console.log(teams)
         } catch (error) {
             console.error('Error fetching Departments:', error);
         }
@@ -201,13 +203,15 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                 Comments: "",
                 ApprovedDate: ''
             }));
-            if (!PRId && !currentPRId) {
-                setApprovers(approver);
-            }
             if (formData.status === "Draft") {
                 setApprovers(approver);
             }
+            if (!PRId && !currentPRId) {
+                setApprovers(approver);
+            }
+
             setInitialApprove(approver);
+            console.log(approver);
         } catch (error) {
             console.error('Error fetching Approvers:', error);
         }
@@ -220,20 +224,16 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
     }, []);
 
     useEffect(() => {
-        if (formData.requesterId && team && team?.length > 0) {
+        if (!team || team.length === 0) return;
+        if (formData.requesterId) {
             const currentTeam = team.find(teamMember => teamMember.userId === formData.requesterId);
             if (currentTeam) {
-                setCurrentTeam(currentTeam);
+                getApprover(currentTeam.team);
             }
         }
     }, [formData.requesterId, team]);
 
 
-    useEffect(() => {
-        if (currentTeam && currentTeam.team) {
-            getApprover(currentTeam.team);
-        }
-    }, [currentTeam]);
 
     const fetchPurchaseRequestDetails = async (purchaseRequestId: number): Promise<void> => {
         const service = new PurchaseRequestTravelRequestService(props.context);
@@ -319,6 +319,12 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
     useEffect(() => {
         if (currentPRId && formData.status === "Draft") {
             fetchPurchaseRequestDetails(currentPRId);
+            if (formData.requesterId) {
+                const currentTeam = team?.find(teamMember => teamMember.userId === formData.requesterId);
+                if (currentTeam) {
+                    getApprover(currentTeam.team);
+                }
+            }
             fetchPRDocuments(currentPRId);
         }
         else if (currentPRId) {
@@ -326,7 +332,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
             fetchExistingApproverlist(currentPRId);
             fetchPRDocuments(currentPRId);
         }
-    }, [PRId, formData.status]);
+    }, [PRId, formData.status, formData.requesterId]);
 
 
     const peoplePickerContext: IPeoplePickerContext = {
@@ -523,6 +529,11 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
             [`${fieldName}Id`]: items.length > 0 ? items[0].id : undefined,
             [`${fieldName}`]: items.length > 0 ? items[0].text : '',
         }));
+
+        const currentTeam = team?.find(teamMember => teamMember.userId === items[0].id);
+        if (currentTeam) {
+            getApprover(currentTeam.team);
+        }
     };
 
 

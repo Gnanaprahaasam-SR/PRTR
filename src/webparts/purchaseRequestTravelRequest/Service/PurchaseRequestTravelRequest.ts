@@ -266,7 +266,7 @@ export class PurchaseRequestTravelRequestService {
 
             // Query to select fields and filter by Department
             const query = list.items
-                .select("ID", "Approver/Id", "Approver/Title", "Approver/EMail", "Role", "Hierarchy")
+                .select("ID", "Approver/Id", "Approver/Title", "Approver/EMail", "Role", "Hierarchy", "Team")
                 .expand("Approver")
                 .filter(`Team eq '${Team}'`)
                 .orderBy("Hierarchy", true);

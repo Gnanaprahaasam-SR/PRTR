@@ -60,6 +60,12 @@ interface DocumentState {
     fileRef: string;
 }
 
+interface ITeamsProps {
+    id: number;
+    user: string;
+    userId: number;
+    team: string;
+}
 
 
 const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
@@ -74,6 +80,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
     const { TRId } = useParams();
     const currentTRId: number | null = TRId ? parseInt(TRId as string, 10) || null : null;
 
+    const [team, setTeam] = useState<ITeamsProps[] | null>(null);
 
     const [formData, setFormData] = useState<ITravelRequestFormProps>({
         Id: null,
@@ -114,6 +121,25 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
         navigate("/travelRequestTable/TR"); // Navigate to the previous page
     };
 
+    const fetchTeams = async (): Promise<void> => {
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        try {
+
+            const data = await service.getPRTRTeams();
+            const teams = data.map((item, index) => ({
+                id: item.ID,
+                user: item.User?.Title,
+                userId: item.User?.Id,
+                team: item.Team,
+            }));
+            setTeam(teams);
+            console.log(teams)
+        } catch (error) {
+            console.error('Error fetching Departments:', error);
+        }
+    };
+
+
     const fetchDepartment = async (): Promise<void> => {
         const service = new PurchaseRequestTravelRequestService(props.context);
         try {
@@ -145,6 +171,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                 Comments: "",
                 ApprovedDate: "",
             }));
+            
             if (!TRId && !currentTRId) {
                 setApprovers(Approvers);
             }
@@ -161,8 +188,18 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
 
     useEffect(() => {
         fetchDepartment();
-        fetchApproverlist("Team1");
+        fetchTeams();
     }, []);
+
+    useEffect(() => {
+        if (!team || team.length === 0) return;
+        if (formData.RequesterId) {
+            const currentTeam = team.find(teamMember => teamMember.userId === formData.RequesterId);
+            if (currentTeam) {
+                fetchApproverlist(currentTeam.team);
+            }
+        }
+    }, [formData.RequesterId, team]);
 
 
     const fetchTravelRequestDetails = async (travelRequestId: number): Promise<void> => {
@@ -248,7 +285,12 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
     useEffect(() => {
         if (currentTRId && formData.Status === "Draft") {
             fetchTravelRequestDetails(currentTRId);
-            fetchApproverlist("Team1");
+            if (formData.RequesterId) {
+                const currentTeam = team?.find(teamMember => teamMember.userId === formData.RequesterId);
+                if (currentTeam) {
+                    fetchApproverlist(currentTeam.team);
+                }
+            }
             fetchTRDocuments(currentTRId);
         }
         else if (currentTRId) {
@@ -256,7 +298,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
             fetchExistingApproverlist(currentTRId);
             fetchTRDocuments(currentTRId);
         }
-    }, [TRId, formData.Status]);
+    }, [TRId, formData.Status, formData.RequesterId]);
 
     const onSelectDate = (date: Date | null, field: string) => {
         if (date) {
@@ -353,6 +395,10 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
             [`${fieldName}Id`]: items.length > 0 ? items[0].id : undefined,
             [`${fieldName}`]: items.length > 0 ? items[0].text : '',
         }));
+        const currentTeam = team?.find(teamMember => teamMember.userId === items[0].id);
+        if (currentTeam) {
+            fetchApproverlist(currentTeam.team);
+        }
     };
 
     const handleReset = (): void => {
@@ -513,11 +559,13 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                                 defaultSelectedUsers={formData.Requester ? [formData.Requester] : []}
                                 onChange={(items: any[]): void => handlePeoplePickerChange('Requester', items)}
                                 styles={{
-                                    text:
-                                    {
-                                        border: "1px solid #cccccc",
-                                        padding: "6px"
-                                    }
+                                    text: {
+                                        color: 'black',
+                                        border: "1px solid #E3E3E3",
+                                        background: "white",
+                                        padding: "3.5px",
+                                        width: "100%"
+                                    },
 
                                 }}
                             />
