@@ -155,7 +155,6 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
         }
     };
 
-
     const fetchApproverlist = async (team: string): Promise<void> => {
         const service = new PurchaseRequestTravelRequestService(props.context);
         setLoading(true);
@@ -171,7 +170,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                 Comments: "",
                 ApprovedDate: "",
             }));
-            
+
             if (!TRId && !currentTRId) {
                 setApprovers(Approvers);
             }
@@ -190,6 +189,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
         fetchDepartment();
         fetchTeams();
     }, []);
+
 
     useEffect(() => {
         if (!team || team.length === 0) return;
@@ -759,7 +759,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                     ))}
                     {document.map((file: any, index) => (
                         <div className='d-flex align-items-center' key={index}>
-                            <a href={file.fileRef}  download={file.fileName.split("_")[1]}><p className='mb-0 me-1'>{attachment.length + index + 1}. {file.fileName.split("_")[1]}</p></a>
+                            <a href={file.fileRef} download={file.fileName.split("_")[1]}><p className='mb-0 me-1'>{attachment.length + index + 1}. {file.fileName.split("_")[1]}</p></a>
                             <div>
                                 <IconButton
                                     iconProps={{ iconName: 'Delete' }}
