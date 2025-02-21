@@ -18,7 +18,8 @@ import { MdFlightTakeoff } from "react-icons/md";
 import { FaRegCircleCheck } from "react-icons/fa6";
 import { TbCancel } from "react-icons/tb";
 import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
-
+import { DatePicker, } from "@fluentui/react";
+import { format } from "date-fns";
 
 interface ITravelRequestFormProps {
     Id: number | null;
@@ -129,11 +130,11 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
     };
 
 
-    const fetchApproverlist = async (): Promise<void> => {
+    const fetchApproverlist = async (team: string): Promise<void> => {
         const service = new PurchaseRequestTravelRequestService(props.context);
         setLoading(true);
         try {
-            const data = await service.getPRTRApprovers();
+            const data = await service.getPRTRApprovers(team);
             const Approvers = data.map((item: any) => ({
                 Id: item.ID,
                 Approver: item.Approver?.Title,
@@ -160,7 +161,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
 
     useEffect(() => {
         fetchDepartment();
-        fetchApproverlist();
+        fetchApproverlist("Team1");
     }, []);
 
 
@@ -247,7 +248,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
     useEffect(() => {
         if (currentTRId && formData.Status === "Draft") {
             fetchTravelRequestDetails(currentTRId);
-            fetchApproverlist();
+            fetchApproverlist("Team1");
             fetchTRDocuments(currentTRId);
         }
         else if (currentTRId) {
@@ -257,7 +258,15 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
         }
     }, [TRId, formData.Status]);
 
-
+    const onSelectDate = (date: Date | null, field: string) => {
+        if (date) {
+            const formattedDate = format(date, "MM-dd-yyyy");
+            setFormData((prev) => ({
+                ...prev,
+                [field]: formattedDate,
+            }));
+        }
+    };
 
     const handleAttachment = (): void => {
         if (fileInputRef.current) {
@@ -544,12 +553,42 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                     {/* Requested Date */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
                         <label className='form-label text-nowrap'>Requested Date </label>
-                        <input
+                        {/* <input
                             type="date"
                             className={`${Style.inputStyle}`}
                             name="RequestedDate"
                             value={formData.RequestedDate}
                             onChange={handleFormDataChange}
+                        /> */}
+                        <DatePicker
+                            value={new Date(formData.RequestedDate)}
+                            formatDate={(date: Date) => date?.toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "2-digit",
+                                day: "2-digit"
+                            }).replace(/\//g, "-")} // Format as MM/DD/YYYY
+                            onSelectDate={(date) => onSelectDate(date ? date : null, "RequestedDate")}
+
+                            styles={{
+                                textField: {
+                                    selectors: {
+                                        color: 'black',
+                                        border: "1px solid #E3E3E3 !important",
+                                        background: "white",
+                                        padding: "3.5px",
+                                        width: "100%",
+                                    }
+                                },
+                                root: {
+                                    selectors: {
+                                        color: 'black',
+                                        border: "1px solid #E3E3E3 !important",
+                                        background: "white",
+                                        padding: "3.5px",
+                                        width: "100%",
+                                    }
+                                }
+                            }}
                         />
                     </div>
 
@@ -568,18 +607,41 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                     {/* When */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
                         <label className='form-label'>When </label>
-                        <input
-                            type='date'
-                            className={`${Style.inputStyle}`}
-                            name='When'
-                            value={formData.When ?? ""}
-                            onChange={handleFormDataChange}
+                        <DatePicker
+                            value={formData.When ? new Date(formData.When) : undefined}
+                            formatDate={(date: Date) => date?.toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "2-digit",
+                                day: "2-digit"
+                            }).replace(/\//g, "-")} // Format as MM/DD/YYYY
+                            onSelectDate={(date) => onSelectDate(date ? date : null, "When")}
+
+                            styles={{
+                                textField: {
+                                    selectors: {
+                                        color: 'black',
+                                        border: "1px solid #E3E3E3 !important",
+                                        background: "white",
+                                        padding: "3.5px",
+                                        width: "100%",
+                                    }
+                                },
+                                root: {
+                                    selectors: {
+                                        color: 'black',
+                                        border: "1px solid #E3E3E3 !important",
+                                        background: "white",
+                                        padding: "3.5px",
+                                        width: "100%",
+                                    }
+                                }
+                            }}
                         />
                     </div>
 
                     {/* Total Cost Estimate */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                        <label className='form-label'>Total Cost Estimate </label>
+                        <label className='form-label'>Total Estimate Cost</label>
                         <input
                             type='number'
                             className={`${Style.inputStyle}`}

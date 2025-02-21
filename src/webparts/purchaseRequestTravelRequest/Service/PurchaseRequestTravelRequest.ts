@@ -255,7 +255,7 @@ export class PurchaseRequestTravelRequestService {
         }
     }
 
-    public async getPRTRApprovers(): Promise<any[]> {
+    public async getPRTRApprovers(Team: string): Promise<any[]> {
         try {
             const sp = getSP(this.context);
             const list = sp?.web?.lists?.getByTitle("PRTRApprover");
@@ -268,6 +268,7 @@ export class PurchaseRequestTravelRequestService {
             const query = list.items
                 .select("ID", "Approver/Id", "Approver/Title", "Approver/EMail", "Role", "Hierarchy")
                 .expand("Approver")
+                .filter(`Team eq '${Team}'`)
                 .orderBy("Hierarchy", true);
             const approversData = await query();
             console.log("Fetched Approvers:", approversData);
@@ -275,6 +276,29 @@ export class PurchaseRequestTravelRequestService {
 
         } catch (error) {
             console.error("Error retrieving PRTR Approvers:", error);
+            throw error;
+        }
+    }
+
+    public async getPRTRTeams(): Promise<any[]> {
+        try {
+            const sp = getSP(this.context);
+            const list = sp?.web?.lists?.getByTitle("PRTRTeams");
+
+            if (!list) {
+                throw new Error("List 'PRTRTeams' not found.");
+            }
+
+            // Query to select fields and filter by Department
+            const query = list.items
+                .select("ID", "User/Id", "User/Title", "User/EMail", "Team")
+                .expand("User")
+            const TeamsData = await query();
+            console.log("Fetched Teams:", TeamsData);
+            return TeamsData;
+
+        } catch (error) {
+            console.error("Error retrieving PRTR Teams:", error);
             throw error;
         }
     }
@@ -589,7 +613,7 @@ export class PurchaseRequestTravelRequestService {
                     console.log(`File ${fileName} uploaded   ${DocumentItem} to PRUploadDocuments library and associated with PRGeneralDetailID ${newPRId}.`);
                 }
 
-                return { TRDetails: newPRDetails, ApprovalDetails: newApprovals, document: newDocument };
+                return { PRDetails: newPRDetails, ApprovalDetails: newApprovals, document: newDocument };
             }
             else {
 
@@ -679,7 +703,6 @@ export class PurchaseRequestTravelRequestService {
             throw error;
         }
     }
-
 
 
 

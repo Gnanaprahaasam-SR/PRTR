@@ -2,8 +2,8 @@ import React, { FC, useEffect, useRef, useState } from 'react'
 import Style from '../PurchaseRequestTravelRequest.module.scss';
 import Select, { SingleValue } from 'react-select';
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
-// import { DatePicker, mergeStyleSets } from "@fluentui/react";
-// import { format } from "date-fns";
+import { DatePicker, } from "@fluentui/react";
+import { format } from "date-fns";
 import { RiArrowUpCircleFill } from 'react-icons/ri';
 import { BsBoxArrowLeft } from "react-icons/bs";
 import { BsHourglassSplit } from "react-icons/bs";
@@ -23,19 +23,6 @@ import { TbCancel } from "react-icons/tb";
 import { FiShoppingCart } from 'react-icons/fi';
 // import CurrencyInput from 'react-currency-input-field';
 
-
-// const styles = mergeStyleSets({
-//     root: {
-//         selectors: {
-//             color: 'black',
-//             border: "1px solid #E3E3E3 !important" ,
-//             background: "white",
-//             padding: "3.5px",
-//             width: "100%"
-//         },
-        
-//     }
-// });
 
 export interface IPurchaseRequestDataProps {
     id: number | null;
@@ -97,6 +84,13 @@ interface DocumentState {
     fileRef: string;
 }
 
+interface ITeamsProps {
+    id: number;
+    user: string;
+    userId: number;
+    team: string;
+}
+
 
 const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
     const dateFormate = (date: string): string => {
@@ -109,7 +103,8 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
     const { PRId } = useParams();
     const currentPRId: number | null = PRId ? parseInt(PRId as string, 10) || null : null;
 
-
+    const [team, setTeam] = useState<ITeamsProps[] | null>(null);
+    const [currentTeam, setCurrentTeam] = useState<ITeamsProps | null>(null);
     const [formData, setFormData] = useState<IPurchaseRequestDataProps>({
         id: null,
         requester: props?.userName,
@@ -155,6 +150,24 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
         navigate("/purchaseRequestTable/PR");
     };
 
+    const fetchTeams = async (): Promise<void> => {
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        try {
+
+            const data = await service.getPRTRTeams();
+            const teams = data.map((item, index) => ({
+                id: item.ID,
+                user: item.User?.Title,
+                userId: item.User?.Id,
+                team: item.Team,
+            }));
+            setTeam(teams);
+        } catch (error) {
+            console.error('Error fetching Departments:', error);
+        }
+    };
+
+
     const fetchDepartment = async (): Promise<void> => {
         const service = new PurchaseRequestTravelRequestService(props.context);
         const ActiveStatus = true;
@@ -172,12 +185,12 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
         }
     };
 
-    const getApprover = async (): Promise<void> => {
+    const getApprover = async (team: string): Promise<void> => {
         const service = new PurchaseRequestTravelRequestService(props.context);
         setLoading(true);
         try {
 
-            const data = await service.getPRTRApprovers();
+            const data = await service.getPRTRApprovers(team);
             const approver = data.map((item) => ({
                 Id: item.ID,
                 Approver: item.Approver?.Title,
@@ -202,9 +215,25 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
     }
 
     useEffect(() => {
-        getApprover();
+        fetchTeams();
         fetchDepartment();
     }, []);
+
+    useEffect(() => {
+        if (formData.requesterId && team && team?.length > 0) {
+            const currentTeam = team.find(teamMember => teamMember.userId === formData.requesterId);
+            if (currentTeam) {
+                setCurrentTeam(currentTeam);
+            }
+        }
+    }, [formData.requesterId, team]);
+
+
+    useEffect(() => {
+        if (currentTeam && currentTeam.team) {
+            getApprover(currentTeam.team);
+        }
+    }, [currentTeam]);
 
     const fetchPurchaseRequestDetails = async (purchaseRequestId: number): Promise<void> => {
         const service = new PurchaseRequestTravelRequestService(props.context);
@@ -290,7 +319,6 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
     useEffect(() => {
         if (currentPRId && formData.status === "Draft") {
             fetchPurchaseRequestDetails(currentPRId);
-            getApprover();
             fetchPRDocuments(currentPRId);
         }
         else if (currentPRId) {
@@ -312,14 +340,14 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
 
     };
 
-    // const onSelectDate = (date: Date | null) => {
-    //     if (date) {
-    //         const formattedDate = format(date, "MM/dd/yyyy");
-    //         setFormData((prev) => {
-    //             return { ...prev, requestedDate: formattedDate };
-    //         });
-    //     }
-    // };
+    const onSelectDate = (date: Date | null) => {
+        if (date) {
+            const formattedDate = format(date, "MM-dd-yyyy");
+            setFormData((prev) => {
+                return { ...prev, requestedDate: formattedDate };
+            });
+        }
+    };
 
     const handleAttachment = (): void => {
         if (fileInputRef.current) {
@@ -332,8 +360,8 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
         if (files) {
             const newFiles = Array.from(files);
             setAttachment(prev => [...prev, ...newFiles]);
-            setDialogMessage(`Success`);
-            setDialogTitle(`File uploaded successfully`);
+            setDialogMessage(`File uploaded successfully`);
+            setDialogTitle(`Success`);
             setIsDialogOpen(true);
         }
     };
@@ -609,6 +637,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                         />
                     </div>
                 </div>
+
                 {/* Department */}
                 <div className='mb-2 col-12 col-md-4 col-sm-6'>
                     <label className='form-label'>Department</label>
@@ -632,19 +661,43 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                 {/* Requested Date */}
                 <div className='mb-2 col-12 col-sm-6 col-md-4'>
                     <label className='form-label text-nowrap'>Requested Date</label>
-                    <input
+                    {/* <input
                         type="date"
                         className={`${Style.inputStyle}`}
                         name="requestedDate"
                         value={formData.requestedDate}
                         onChange={(e) => handleFormDataChange('requestedDate', e.target.value)}
-                    />
-                    {/* <DatePicker
-                        value={new Date(formData.requestedDate)}
-                        formatDate={(date: Date) => date?.toLocaleDateString("en-US")} // Format as MM/DD/YYYY
-                        onSelectDate={onSelectDate}
-                        className={styles.root}
                     /> */}
+                    <DatePicker
+                        value={new Date(formData.requestedDate)}
+                        formatDate={(date: Date) => date?.toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit"
+                        }).replace(/\//g, "-")} // Format as MM/DD/YYYY
+                        onSelectDate={onSelectDate}
+
+                        styles={{
+                            textField: {
+                                selectors: {
+                                    color: 'black',
+                                    border: "1px solid #E3E3E3 !important",
+                                    background: "white",
+                                    padding: "3.5px",
+                                    width: "100%",
+                                }
+                            },
+                            root: {
+                                selectors: {
+                                    color: 'black',
+                                    border: "1px solid #E3E3E3 !important",
+                                    background: "white",
+                                    padding: "3.5px",
+                                    width: "100%",
+                                }
+                            }
+                        }}
+                    />
                 </div>
 
                 <div className='mb-2 col-12 col-sm-6 col-md-4'>
@@ -885,7 +938,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                                 {(approver.Status === "Approved" || approver.Status === "Rejected") && (
                                     <div className='d-flex flex-wrap align-items-center justify-content-between row px-2'>
                                         <div className='col-12 col-md-9 text-wrap'><b>Comments:</b> {approver.Comments}</div>
-                                        <div className='col-12 col-md-3'>{approver.ApprovedDate}</div>
+                                        <div className='col-12 col-md-3'>{approver.ApprovedDate ? format(new Date(approver.ApprovedDate), "MM-dd-yyyy") : ""}</div>
                                     </div>
                                 )}
                             </div>

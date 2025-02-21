@@ -1,15 +1,17 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useRef, useState } from 'react';
 import Style from '../PurchaseRequestTravelRequest.module.scss';
 import { FaSort, FaSortDown, FaSortUp } from "react-icons/fa6";
 import { MdOutlineCancel } from "react-icons/md";
 import { FiArrowLeftCircle, FiArrowRightCircle } from "react-icons/fi";
-import { BsFileEarmarkSpreadsheetFill } from "react-icons/bs";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import styles from "./Report.module.scss";
 import { PurchaseRequestTravelRequestService } from '../../Service/PurchaseRequestTravelRequest';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
+import PRReportPDF from './ReportPRPDF';
+import { BsFileEarmarkSpreadsheetFill } from 'react-icons/bs';
+import { FaRegFilePdf } from 'react-icons/fa';
 
 const columnsData: { label: string, field: string }[] = [
     { label: 'S.No', field: 'serialNumber' },
@@ -45,6 +47,7 @@ export interface IPRTableDataProps {
     PurchaseType: string;
     UseCase: string;
     ARRequired: string;
+    ARDetails: string;
     BusinessJustification: string;
 }
 
@@ -154,8 +157,8 @@ const PRReport: FC<IPurchaseRequestFormProps> = (props) => {
             "Requested Date": data.RequestedDate ?? "",
             "Purchase Details": data.PurchaseDetails ?? "",
             "Category": data.Category ?? "",
-            "Total Cost": data.TotalCost ?? "",
-            "Recurring Cost": data.RecurringCost ?? "",
+            "Total Cost": `${data.TotalCost ? Number(data.TotalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}`,
+            "Recurring Cost": `${data.RecurringCost ? Number(data.RecurringCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}`,
             "Purchase Type": data.PurchaseType ?? "",
             "Use Case": data.UseCase ?? "",
             "AR Required": data.ARRequired ?? "",
@@ -174,7 +177,7 @@ const PRReport: FC<IPurchaseRequestFormProps> = (props) => {
         const day = String(date.getDate()).padStart(2, '0');
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const year = date.getFullYear();
-        return `${day}-${month}-${year}`;
+        return `${month}-${day}-${year}`;
     };
 
     const fetchPurchaseRequestData = async (status: string,): Promise<void> => {
@@ -199,6 +202,7 @@ const PRReport: FC<IPurchaseRequestFormProps> = (props) => {
                 PurchaseType: item.PurchaseType,
                 UseCase: item.UseCase,
                 ARRequired: item.ARRequired ? "Yes" : "No",
+                ARDetails: item.ARDetails,
                 BusinessJustification: item.BusinessJustification,
             }));
             setDataList(PRData);
@@ -213,11 +217,121 @@ const PRReport: FC<IPurchaseRequestFormProps> = (props) => {
         fetchPurchaseRequestData("All");
     }, []);
 
+    const printRef = useRef<HTMLDivElement>(null);
+
+    const handlePrintPreview = (): void => {
+        if (printRef.current) {
+            const printContent = printRef.current.cloneNode(true) as HTMLElement;
+
+            // Extract styles and apply inline
+            const elements = printContent.querySelectorAll('*');
+            elements.forEach((element) => {
+                const computedStyle = window.getComputedStyle(element);
+                const styleString = Array.from(computedStyle)
+                    .map((property) => `${property}: ${computedStyle.getPropertyValue(property)};`)
+                    .join(' ');
+                element.setAttribute('style', styleString);
+            });
+
+            const printPreview = window.open("", "Purchase Request", "resizable=yes,scrollbars=yes,status=yes,toolbar=yes,width=800,height=600");
+
+            if (printPreview) {
+                const printDocument = printPreview.document;
+                printDocument.open();
+                printDocument.write(`
+                  <html>
+                  <head>
+                    <title>Purchase Request</title>
+                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                    <style>
+                      @page {
+                        size: A4 landscape;
+                        margin: 10mm;
+                      }
+    
+                      @media print {
+                        body {
+                          font-family: Arial, sans-serif;
+                          margin: 0;
+                          padding: 0;
+                          font-size: 10px;
+                        }
+                        .container {
+                          width: 100%;
+                          max-width: 100%;
+                        }
+                          
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            border-spacing: 0;
+                            text-align: left;
+                        }
+    
+                        th {
+                            background: #2A3439 !important;
+                            color: white !important;
+                            text-align: left;
+                            vertical-align: middle;
+                            padding: 10px;
+                            font-weight: normal !important;
+                        }
+    
+                        td {
+                            text-align: left;
+                            border-bottom: 1px solid #F0F2F7;
+                            background: #ffff;
+                            text-align: left;
+                            vertical-align: middle;
+                            color: black !important;
+                            padding: 10px;
+                        }
+    
+                        .print-button {
+                          display: none !important;
+                        }
+                      }
+                     
+                      .print-button {
+                        padding: 10px 20px;
+                        font-size: 16px;
+                        margin: 20px;
+                        cursor: pointer;
+                      }
+                    </style>
+                  </head>
+                  <body onload="window.focus();">
+                    <div class="container">
+                      <div id="print-content">${printContent.innerHTML}</div>
+                      <div class="d-flex justify-content-center align-items-center">
+                        <button class="btn btn-primary print-button" onclick="window.print()">Print Form</button>
+                      </div>
+                    </div>
+                  </body>
+                  </html>
+                `);
+                printDocument.close();
+
+                // Ensure styles are applied before printing
+                printPreview.onload = () => {
+                    printPreview.focus();
+                };
+            } else {
+                alert("Popup blocked! Please allow pop-ups for this site.");
+            }
+        }
+    };
+
 
 
     return (
         <div className='bg-white rounded-5'>
             {loading && <LoadingSpinner />}
+            {
+                <div style={{ display: "none" }}>
+                    <PRReportPDF context={props.context} tableData={paginatedData} ref={printRef} />
+                </div>
+            }
             <div className='d-flex flex-wrap align-items-center justify-content-between mt-3 px-2'>
                 <div>
                     <div className={`${Style.tableTitle}`}>Purchase Requests<div style={{ fontSize: "10px" }}>Total Count: {dataList.length}</div></div>
@@ -244,10 +358,30 @@ const PRReport: FC<IPurchaseRequestFormProps> = (props) => {
                             className={`${Style.columnInput}`}
                         />
                     </div>
-                    <button className={`${Style.secondaryButton} text-nowrap`} onClick={handleExport}>
-                        <BsFileEarmarkSpreadsheetFill size={15} />
-                        Export to Excel
-                    </button>
+                    <div className="dropdown">
+                        <button
+                            className={`${Style.secondaryButton} dropdown-toggle text-decoration-none`}
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                            aria-haspopup="true"
+                        >
+                            Export
+                        </button>
+                        <ul className="dropdown-menu">
+                            <li>
+                                <button className="dropdown-item" onClick={handleExport}>
+                                    <BsFileEarmarkSpreadsheetFill size={18} className='me-2' />Export to Excel
+                                </button>
+                            </li>
+                            <li>
+                                <button className="dropdown-item" onClick={handlePrintPreview}>
+                                    <FaRegFilePdf size={17} className='me-2' />Export to PDF
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+
                 </div>
             </div>
             <div className='p-3'>
@@ -307,8 +441,8 @@ const PRReport: FC<IPurchaseRequestFormProps> = (props) => {
                                     <td >{data.RequestedDate}</td>
                                     <td >{data.PurchaseDetails}</td>
                                     <td >{data.Category}</td>
-                                    <td className={`text-center`}>{data.TotalCost}</td>
-                                    <td >{data.RecurringCost}</td>
+                                    <td >${data.TotalCost ? Number(data.TotalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}</td>
+                                    <td >${data.RecurringCost ? Number(data.RecurringCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}</td>
                                     <td >{data.PurchaseType}</td>
                                     <td >{data.UseCase}</td>
                                     <td className={`text-center`}>{data.ARRequired}</td>

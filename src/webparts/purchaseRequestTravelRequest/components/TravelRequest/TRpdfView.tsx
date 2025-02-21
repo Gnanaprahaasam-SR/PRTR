@@ -80,12 +80,9 @@ const TRDocument = forwardRef<HTMLDivElement, ITravelRequestProps>(({ context, c
         const service = new PurchaseRequestTravelRequestService(context);
         const logoUrl = await service.getPRTRLogo();
         setLogo(logoUrl?.document?.FileRef ?? "");
-
     }
 
-
     const [loading, setLoading] = useState<boolean>(true);
-
 
     const fetchTravelRequestDetails = async (travelRequestId: number): Promise<void> => {
         const service = new PurchaseRequestTravelRequestService(context);
@@ -170,7 +167,7 @@ const TRDocument = forwardRef<HTMLDivElement, ITravelRequestProps>(({ context, c
                 <div>
                     <img src={logo} alt="logo" width="100" />
                 </div>
-                <h5 className="text-center ms-4">
+                <h5 className="">
                     Travel Request Approval
                 </h5>
 
@@ -189,67 +186,67 @@ const TRDocument = forwardRef<HTMLDivElement, ITravelRequestProps>(({ context, c
             </div> */}
 
 
-            <div className="row mb-3 p-4 "  >
-                <div className='mb-2 col-12 col-sm-4 col-md-4'>
-                    <label className='form-label text-nowrap fw-bold'>Requestor Name</label>
-                    <div>{formData.Requester}</div>
+            <div className="row p-4 "  >
+                <div className='mb-3 col-12 col-sm-4 col-md-4'>
+                    <label className=' text-nowrap '>Requestor Name</label>
+                    <div className='fw-bold'>{formData.Requester}</div>
                 </div>
 
-                <div className='mb-2 col-12 col-sm-4 col-md-4'>
-                    <label className='form-label text-nowrap fw-bold'>Department </label>
-                    <div>{formData.Department}</div>
+                <div className='mb-3 col-12 col-sm-4 col-md-4'>
+                    <label className=' text-nowrap '>Department </label>
+                    <div className='fw-bold'>{formData.Department}</div>
                 </div>
 
                 {/* Requested Date */}
-                <div className='mb-2 col-12 col-sm-4 col-md-4'>
-                    <label className='form-label text-nowrap fw-bold'>Requested Date </label>
-                    <div>{format(new Date(formData.RequestedDate), "MM-dd-yyy")}</div>
+                <div className='mb-3 col-12 col-sm-4 col-md-4'>
+                    <label className='text-nowrap '>Requested Date </label>
+                    <div className='fw-bold'>{format(new Date(formData.RequestedDate), "MM-dd-yyy")}</div>
                 </div>
 
                 {/* Where */}
-                <div className='mb-2 col-12 col-sm-4 col-md-4'>
-                    <label className='form-label fw-bold'>Where</label>
-                    <div className='fst-italic'>{formData.Where}</div>
+                <div className='mb-3 col-12 col-sm-4 col-md-4'>
+                    <label className=''>Where</label>
+                    <div className='fst-italic fw-bold'>{formData.Where}</div>
                 </div>
 
                 {/* When */}
-                <div className='mb-2 col-12 col-sm-4 col-md-4'>
-                    <label className='form-label fw-bold'>When </label>
-                    <div className='fst-italic'>{formData.When ? format(new Date(formData.When), "MM-dd-yyy"):""}</div>
+                <div className='mb-3 col-12 col-sm-4 col-md-4'>
+                    <label className=''>When </label>
+                    <div className='fst-italic fw-bold'>{formData.When ? format(new Date(formData.When), "MM-dd-yyy") : ""}</div>
                 </div>
 
                 {/* Total Cost Estimate */}
-                <div className='mb-2 col-12 col-sm-4 col-md-4'>
-                    <label className='form-label fw-bold'>Total Cost Estimate </label>
-                    <div>$ {formData.TotalCostEstimate ? Number(formData.TotalCostEstimate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}</div>
+                <div className='mb-3 col-12 col-sm-4 col-md-4'>
+                    <label className='text-nowrap'>Total Estimate Cost</label>
+                    <div className='fw-bold'>${formData.TotalCostEstimate ? Number(formData.TotalCostEstimate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}</div>
                 </div>
 
                 {/* Strategic Project Related */}
                 <div className=" col-12 col-sm-4 col-md-4 d-flex align-items-center">
                     <div className="gap-2">
-
-                        <label className="form-label fw-bold">Strategic Project Related </label>
-                        <div>{formData?.StratigicProjectRelated ? "Yes" : "No"}</div>
+                        <label className="text-nowrap">Strategic Project Related </label>
+                        <div className='fw-bold'>{formData?.StratigicProjectRelated ? "Yes" : "No"}</div>
                     </div>
                 </div>
 
                 {/* Emergency related */}
                 <div className=" col-12 col-sm-4 col-md-4 d-flex align-items-center">
                     <div className="">
-                        <label className="form-label fw-bold">Emergency Related</label><div>{formData?.EmergencyRelated ? "Yes" : "No"}</div>
+                        <label className="text-nowrap">Emergency Related</label>
+                        <div className='fw-bold'>{formData?.EmergencyRelated ? "Yes" : "No"}</div>
                     </div>
                 </div>
 
                 {/* Status */}
-                <div className='mb-2 col-12 col-sm-4 col-md-4'>
+                <div className='mb-3 col-12 col-sm-4 col-md-4'>
                     <label className='form-label fw-bold'>Status </label>
                     <div className='text-nowrap'>{formData.Status}</div>
                 </div>
 
                 {/* Business Justification */}
-                <div className='mb-2 col-12 col-sm-12 col-md-4'>
-                    <label className='form-label fw-bold'>Business Justification </label>
-                    <div className='text-nowrap'>{formData.BusinessJustification}</div>
+                <div className='mb-3 col-12 col-sm-12 col-md-4'>
+                    <label className='text-nowrap'>Business Justification </label>
+                    <div className='text-wrap fw-bold'>{formData.BusinessJustification}</div>
                 </div>
             </div>
 

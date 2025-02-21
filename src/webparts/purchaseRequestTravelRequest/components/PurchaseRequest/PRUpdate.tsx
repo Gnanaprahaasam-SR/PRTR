@@ -296,14 +296,14 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
                     {/* Total Cost */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
                         <label className='form-label fw-bold'>Total Cost </label>
-                        <div className=''>$ {formData.totalCost ? Number(formData.totalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}</div>
+                        <div className=''>${formData.totalCost ? Number(formData.totalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}</div>
 
                     </div>
 
                     {/* Recurring Cost */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
                         <label className='form-label fw-bold'>Recurring Cost </label>
-                        <div className=''>$ {formData.recurringCost ? Number(formData.recurringCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}
+                        <div className=''>${formData.recurringCost ? Number(formData.recurringCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}
                         </div>
 
                     </div>

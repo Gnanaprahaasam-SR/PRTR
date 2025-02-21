@@ -12,6 +12,7 @@ import * as strings from 'PurchaseRequestTravelRequestWebPartStrings';
 import PurchaseRequestTravelRequest from './components/PurchaseRequestTravelRequest';
 import { IPurchaseRequestTravelRequestProps } from './components/IPurchaseRequestTravelRequestProps';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 export interface IPurchaseRequestTravelRequestWebPartProps {
   description: string;

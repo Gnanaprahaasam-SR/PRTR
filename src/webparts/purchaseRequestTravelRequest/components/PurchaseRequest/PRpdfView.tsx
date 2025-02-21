@@ -175,7 +175,7 @@ const PRDocument = forwardRef<HTMLDivElement, IPurchaseRequestDocument>(({ conte
                 <h5 className="">
                     Purchase Request Approval
                 </h5>
-                <div className="mt-2">
+                <div className="">
                     <div className="text-nowrap text-start" style={{ fontSize: "12px" }}>PR No: {formData.id}</div>
                     <div className="text-nowrap text-start" style={{ fontSize: "12px" }}>Created by: {formData.author ?? "N/A"}</div>
                     <div className="text-nowrap text-start" style={{ fontSize: "12px" }}>Date: {formData.createdDate?format(new Date(formData.createdDate), "MM-dd-yyy"):'N/A'}</div>
@@ -189,74 +189,74 @@ const PRDocument = forwardRef<HTMLDivElement, IPurchaseRequestDocument>(({ conte
                 </div>
             </div> */}
 
-            <div className="mb-3 row p-4">
-                <div className="mb-2 col-12 col-sm-4 col-md-4">
-                    <label className="form-label fw-bold">Requestor Name</label>
-                    <div>{formData.requester}</div>
+            <div className="row p-4">
+                <div className="mb-3 col-12 col-sm-4 col-md-4">
+                    <div className=" text-nowrap">Requestor Name</div>
+                    <div className="fw-bold">{formData.requester}</div>
+                </div>
+
+                <div className="mb-3 col-12 col-sm-4 col-md-4">
+                    <label className="">Department</label>
+                    <div className="fw-bold">{formData.department}</div>
                 </div>
 
                 <div className="mb-2 col-12 col-sm-4 col-md-4">
-                    <label className="form-label fw-bold">Department</label>
-                    <div>{formData.department}</div>
+                    <label className="text-nowrap">Requested Date</label>
+                    <div className="fw-bold">{formData.requestedDate ? format(new Date(formData?.requestedDate), "MM-dd-yyy") : ""}</div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-4 col-md-4">
-                    <label className="form-label fw-bold">Requested Date</label>
-                    <div>{formData.requestedDate ? format(new Date(formData?.requestedDate), "MM-dd-yyy") : ""}</div>
+                <div className="mb-3 col-12 col-sm-4 col-md-4">
+                    <label className="">Category</label>
+                    <div className="fw-bold">{formData.category}</div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-4 col-md-4">
-                    <label className="form-label fw-bold">Category</label>
-                    <div>{formData.category}</div>
-                </div>
-
-                <div className="mb-2 col-12 col-sm-4 col-md-4">
-                    <label className="form-label fw-bold">Total Cost</label>
-                    <div>
-                        {`$ ${formData.totalCost?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}`}
+                <div className="mb-3 col-12 col-sm-4 col-md-4">
+                    <label className="text-nowrap">Total Cost</label>
+                    <div className="fw-bold">
+                        {`$${formData.totalCost?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}`}
                     </div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-4 col-md-4">
-                    <label className="form-label fw-bold">Recurring Cost</label>
-                    <div>
-                        {`$ ${formData.recurringCost?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}`}
+                <div className="mb-3 col-12 col-sm-4 col-md-4">
+                    <label className="text-nowrap">Recurring Cost</label>
+                    <div className="fw-bold">
+                        {`$${formData.recurringCost?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}`}
                     </div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-4 col-md-4">
-                    <label className="form-label fw-bold">Use Case</label>
-                    <div>{formData.useCase}</div>
+                <div className="mb-3 col-12 col-sm-4 col-md-4">
+                    <label className="text-nowrap">Use Case</label>
+                    <div className="fw-bold">{formData.useCase}</div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-4 col-md-4">
-                    <label className="form-label fw-bold">Purchase Type</label>
-                    <div>{formData.purchaseType}</div>
+                <div className="mb-3 col-12 col-sm-4 col-md-4">
+                    <label className="text-nowrap">Purchase Type</label>
+                    <div className="fw-bold">{formData.purchaseType}</div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-4 col-md-4">
-                    <label className="form-label fw-bold">Purchase Details</label>
-                    <div>{formData.purchaseDetails}</div>
+                <div className="mb-3 col-12 col-sm-4 col-md-4">
+                    <label className="text-nowrap">Purchase Details</label>
+                    <div className="fw-bold">{formData.purchaseDetails}</div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-4 col-md-4">
-                    <label className="form-label fw-bold">Item / Service Description</label>
-                    <div>{formData.itemServiceDescription}</div>
+                <div className="mb-3 col-12 col-sm-4 col-md-4">
+                    <label className="">Item / Service Description</label>
+                    <div className="fw-bold">{formData.itemServiceDescription}</div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-4 col-md-4">
-                    <label className="form-label fw-bold">AR Required</label>
-                    <div>{formData.ARRequired ? "Yes" : "No"}</div>
+                <div className="mb-3 col-12 col-sm-4 col-md-4">
+                    <label className="text-nowrap">AR Required</label>
+                    <div className="fw-bold">{formData.ARRequired ? "Yes" : "No"}</div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-4 col-md-4">
-                    <label className="form-label fw-bold">Status</label>
-                    <div>{formData.status}</div>
+                <div className="mb-3 col-12 col-sm-4 col-md-4">
+                    <label className="">Status</label>
+                    <div className="fw-bold">{formData.status}</div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-12 col-md-4">
-                    <label className="form-label fw-bold">Business Justification</label>
-                    <div>{formData.businessJustification}</div>
+                <div className="mb-3 col-12 col-sm-12 col-md-4">
+                    <label className="text-nowrap">Business Justification</label>
+                    <div className="fw-bold">{formData.businessJustification}</div>
                 </div>
             </div>
             <hr />

@@ -416,7 +416,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
         setTimeout(() => {
             if (printRef.current) {
                 const printContent = printRef.current.innerHTML;
-                const printPreview = window.open("", "print_preview", "resizable=yes,scrollbars=yes,status=yes,toolbar=yes,width=800,height=600");
+                const printPreview = window.open("", "Purchase Request", "resizable=yes,scrollbars=yes,status=yes,toolbar=yes,width=800,height=600");
 
                 if (printPreview) {
                     const printDocument = printPreview.document;
@@ -424,7 +424,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                     printDocument.write(`
               <html>
               <head>
-                <title>Print Preview</title>
+                <title>Purchase Request</title>
                 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
                 <style>
                   @page {

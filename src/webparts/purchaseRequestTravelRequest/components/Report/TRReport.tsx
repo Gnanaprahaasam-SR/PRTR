@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useState, useRef } from 'react';
 import Style from '../PurchaseRequestTravelRequest.module.scss';
 import { FaSort, FaSortDown, FaSortUp } from "react-icons/fa6";
 import { MdOutlineCancel } from "react-icons/md";
@@ -10,6 +10,8 @@ import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
 import { PurchaseRequestTravelRequestService } from '../../Service/PurchaseRequestTravelRequest';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import styles from "./Report.module.scss";
+import TRReportPDF from './ReportTRPDF';
+import { FaRegFilePdf } from 'react-icons/fa';
 
 const columnsData: { label: string, field: string }[] = [
     { label: 'S.No', field: 'serialNumber' },
@@ -21,7 +23,7 @@ const columnsData: { label: string, field: string }[] = [
     { label: 'Requested Date', field: 'RequestedDate' },
     { label: 'Where', field: 'Where' },
     { label: 'When', field: 'When' },
-    { label: 'Total Cost Estimate', field: 'TotalCostEstimate' },
+    { label: 'Total Estimate Cost', field: 'TotalCostEstimate' },
     { label: 'Stratigic Project Related', field: 'StratigicProjectRelated' },
     { label: 'Emergency Related', field: 'EmergencyRelated' },
     { label: 'Business Justification', field: 'BusinessJustification' },
@@ -148,7 +150,7 @@ const TRReport: FC<ITravelRequestProps> = (props) => {
             "Requested Date": data.RequestedDate ?? "",
             "Where": data.Where ?? "",
             "When": data.When ?? "",
-            "Total Cost Estimate": data.TotalCostEstimate ?? "",
+            "Total Estimate Cost": `${data.TotalCostEstimate ? Number(data.TotalCostEstimate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}`,
             "Stratigic Project Related": data.StratigicProjectRelated ?? "",
             "Emergency Related": data.EmergencyRelated ?? "",
             "Business Justification": data.BusinessJustification ?? ""
@@ -166,7 +168,7 @@ const TRReport: FC<ITravelRequestProps> = (props) => {
         const day = String(date.getDate()).padStart(2, '0');
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const year = date.getFullYear();
-        return `${day}-${month}-${year}`;
+        return `${month}-${day}-${year}`;
     };
 
     const fetchPurchaseRequestData = async (status: string, userId: number | null): Promise<void> => {
@@ -205,11 +207,121 @@ const TRReport: FC<ITravelRequestProps> = (props) => {
     }, []);
 
 
+    const printRef = useRef<HTMLDivElement>(null);
+
+    const handlePrintPreview = (): void => {
+        if (printRef.current) {
+            const printContent = printRef.current.cloneNode(true) as HTMLElement;
+
+            // Extract styles and apply inline
+            const elements = printContent.querySelectorAll('*');
+            elements.forEach((element) => {
+                const computedStyle = window.getComputedStyle(element);
+                const styleString = Array.from(computedStyle)
+                    .map((property) => `${property}: ${computedStyle.getPropertyValue(property)};`)
+                    .join(' ');
+                element.setAttribute('style', styleString);
+            });
+
+            const printPreview = window.open("", "Travel Request", "resizable=yes,scrollbars=yes,status=yes,toolbar=yes,width=800,height=600");
+
+            if (printPreview) {
+                const printDocument = printPreview.document;
+                printDocument.open();
+                printDocument.write(`
+                      <html>
+                      <head>
+                        <title>Travel Request</title>
+                        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                        <style>
+                          @page {
+                            size: A4 landscape;
+                            margin: 10mm;
+                          }
+        
+                          @media print {
+                            body {
+                              font-family: Arial, sans-serif;
+                              margin: 0;
+                              padding: 0;
+                              font-size: 10px;
+                            }
+                            .container {
+                              width: 100%;
+                              max-width: 100%;
+                            }
+                              
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                border-spacing: 0;
+                                text-align: left;
+                            }
+        
+                            th {
+                                background: #2A3439 !important;
+                                color: white !important;
+                                text-align: left;
+                                vertical-align: middle;
+                                padding: 10px;
+                                font-weight: normal !important;
+                            }
+        
+                            td {
+                                text-align: left;
+                                border-bottom: 1px solid #F0F2F7;
+                                background: #ffff;
+                                text-align: left;
+                                vertical-align: middle;
+                                color: black !important;
+                                padding: 10px;
+                            }
+        
+                            .print-button {
+                              display: none !important;
+                            }
+                          }
+                         
+                          .print-button {
+                            padding: 10px 20px;
+                            font-size: 16px;
+                            margin: 20px;
+                            cursor: pointer;
+                          }
+                        </style>
+                      </head>
+                      <body onload="window.focus();">
+                        <div class="container">
+                          <div id="print-content">${printContent.innerHTML}</div>
+                          <div class="d-flex justify-content-center align-items-center">
+                            <button class="btn btn-primary print-button" onclick="window.print()">Print Form</button>
+                          </div>
+                        </div>
+                      </body>
+                      </html>
+                    `);
+                printDocument.close();
+
+                // Ensure styles are applied before printing
+                printPreview.onload = () => {
+                    printPreview.focus();
+                };
+            } else {
+                alert("Popup blocked! Please allow pop-ups for this site.");
+            }
+        }
+    };
+
 
     return (
         <section className='bg-white rounded-5'>
             {loading && <LoadingSpinner />}
 
+            {
+                <div style={{ display: "none" }}>
+                    <TRReportPDF context={props.context} tableData={paginatedData} ref={printRef} />
+                </div>
+            }
             <div className='d-flex flex-wrap align-items-center justify-content-between mt-3 px-2'>
                 <div>
                     <div className={`${Style.tableTitle}`}>Travel Requests<div style={{ fontSize: "10px" }}>Total Count: {dataList.length}</div></div>
@@ -236,10 +348,29 @@ const TRReport: FC<ITravelRequestProps> = (props) => {
                             className={`${Style.columnInput}`}
                         />
                     </div>
-                    <button className={`${Style.secondaryButton} text-nowrap`} onClick={handleExport}>
-                        <BsFileEarmarkSpreadsheetFill size={15} />
-                        Export to Excel
-                    </button>
+                    <div className="dropdown">
+                        <button
+                            className={`${Style.secondaryButton} dropdown-toggle text-decoration-none`}
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                            aria-haspopup="true"
+                        >
+                            Export
+                        </button>
+                        <ul className="dropdown-menu">
+                            <li>
+                                <button className="dropdown-item" onClick={handleExport}>
+                                    <BsFileEarmarkSpreadsheetFill size={18} className='me-2'/>Export to Excel
+                                </button>
+                            </li>
+                            <li>
+                                <button className="dropdown-item align-self-center" onClick={handlePrintPreview}>
+                                    <FaRegFilePdf size={17} className='me-2'/>Export to PDF
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             <div className='p-3'>
@@ -299,7 +430,7 @@ const TRReport: FC<ITravelRequestProps> = (props) => {
                                     <td>{data.RequestedDate}</td>
                                     <td>{data.Where}</td>
                                     <td>{data.When}</td>
-                                    <td>{data.TotalCostEstimate}</td>
+                                    <td>${data.TotalCostEstimate ? Number(data.TotalCostEstimate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}</td>
                                     <td className={`text-center`}>{data.StratigicProjectRelated}</td>
                                     <td className={`text-center`}>{data.EmergencyRelated}</td>
                                     <td style={{ minWidth: "200px", textWrap: "wrap" }}>{data.BusinessJustification}</td>

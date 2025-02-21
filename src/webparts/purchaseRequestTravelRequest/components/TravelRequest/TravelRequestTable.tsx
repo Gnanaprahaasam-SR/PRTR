@@ -209,7 +209,7 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
         setTimeout(() => {
             if (printRef.current) {
                 const printContent = printRef.current.innerHTML;
-                const printPreview = window.open("", "print_preview", "resizable=yes,scrollbars=yes,status=yes,toolbar=yes,width=800,height=600");
+                const printPreview = window.open("", "Travel Request", "resizable=yes,scrollbars=yes,status=yes,toolbar=yes,width=800,height=600");
 
                 if (printPreview) {
                     const printDocument = printPreview.document;
@@ -217,7 +217,7 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                     printDocument.write(`
                       <html>
                       <head>
-                        <title>Print Preview</title>
+                        <title>Travel Request</title>
                         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
                         <style>
                           @page {
