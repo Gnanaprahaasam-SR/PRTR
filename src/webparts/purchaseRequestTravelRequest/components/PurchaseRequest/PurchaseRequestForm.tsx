@@ -203,13 +203,8 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                 Comments: "",
                 ApprovedDate: ''
             }));
-            if (formData.status === "Draft") {
-                setApprovers(approver);
-            }
-            if (!PRId && !currentPRId) {
-                setApprovers(approver);
-            }
 
+            setApprovers(approver);
             setInitialApprove(approver);
             console.log(approver);
         } catch (error) {
@@ -276,26 +271,26 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
         }
     };
 
-    const fetchExistingApproverlist = async (purchaseRequestId: number): Promise<void> => {
-        const service = new PurchaseRequestTravelRequestService(props.context);
-        try {
-            const data = await service.getPurchaseRequestApprovals(purchaseRequestId);
-            // console.log(data);
-            const Approvers = data.map((item: any) => ({
-                Id: item.ID,
-                Approver: item.Approver?.Title,
-                ApproverId: item.Approver?.Id,
-                Role: item.Role,
-                Status: item.Status,
-                Hierarchy: item.Hierarchy,
-                Comments: item.Comments,
-                ApprovedDate: item.ApprovedDate ? dateFormate(item.ApprovedDate) : ""
-            })).sort((a, b) => (a.Hierarchy || 0) - (b.Hierarchy || 0));
-            setApprovers(Approvers);
-        } catch (error) {
-            console.error('Error fetching departments:', error);
-        }
-    };
+    // const fetchExistingApproverlist = async (purchaseRequestId: number): Promise<void> => {
+    //     const service = new PurchaseRequestTravelRequestService(props.context);
+    //     try {
+    //         const data = await service.getPurchaseRequestApprovals(purchaseRequestId);
+    //         // console.log(data);
+    //         const Approvers = data.map((item: any) => ({
+    //             Id: item.ID,
+    //             Approver: item.Approver?.Title,
+    //             ApproverId: item.Approver?.Id,
+    //             Role: item.Role,
+    //             Status: item.Status,
+    //             Hierarchy: item.Hierarchy,
+    //             Comments: item.Comments,
+    //             ApprovedDate: item.ApprovedDate ? dateFormate(item.ApprovedDate) : ""
+    //         })).sort((a, b) => (a.Hierarchy || 0) - (b.Hierarchy || 0));
+    //         setApprovers(Approvers);
+    //     } catch (error) {
+    //         console.error('Error fetching departments:', error);
+    //     }
+    // };
 
     const fetchPRDocuments = async (PRNumber: number): Promise<void> => {
         const service = new PurchaseRequestTravelRequestService(props.context);
@@ -317,22 +312,11 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
 
 
     useEffect(() => {
-        if (currentPRId && formData.status === "Draft") {
+        if (currentPRId) {
             fetchPurchaseRequestDetails(currentPRId);
-            if (formData.requesterId) {
-                const currentTeam = team?.find(teamMember => teamMember.userId === formData.requesterId);
-                if (currentTeam) {
-                    getApprover(currentTeam.team);
-                }
-            }
             fetchPRDocuments(currentPRId);
         }
-        else if (currentPRId) {
-            fetchPurchaseRequestDetails(currentPRId);
-            fetchExistingApproverlist(currentPRId);
-            fetchPRDocuments(currentPRId);
-        }
-    }, [PRId, formData.status, formData.requesterId]);
+    }, [PRId]);
 
 
     const peoplePickerContext: IPeoplePickerContext = {
@@ -635,7 +619,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                             resolveDelay={1000}
                             placeholder='Search for users...'
                             defaultSelectedUsers={formData.requester ? [formData.requester] : []}
-                            onChange={(items: any[]): void => handlePeoplePickerChange('Requester', items)}
+                            onChange={(items: any[]): void => handlePeoplePickerChange('requester', items)}
                             styles={{
                                 text: {
                                     color: 'black',
@@ -844,23 +828,23 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                 {/* AR Required */}
                 <div className=" mb-2 col-12 col-sm-6 col-md-6 d-flex align-items-center">
                     <div className='d-flex flex-column'>
-                    <div className="form-check  form-switch gap-2">
-                        <input className={`form-check-input ${Style.inputStyle} ${Style.checkBox}`} type="checkbox" id="AR" checked={formData?.ARRequired} onChange={(e) => handleTaxToggle(e.target.checked)} />
-                        <label className="form-check-label" id='AR'>AR Required</label>
-                    </div>
-                    {formData?.ARRequired &&
-                        <div>
-                            {/* <label className='form-label'>AR Details</label> */}
-                            <input
-                                type='text'
-                                className={`${Style.inputStyle}`}
-                                name='ARDetails'
-                                placeholder='AR Details'
-                                value={formData.ARDetails}
-                                onChange={(e) => handleFormDataChange('ARDetails', e.target.value)}
-                            />
-                        </div>}
+                        <div className="form-check  form-switch gap-2">
+                            <input className={`form-check-input ${Style.inputStyle} ${Style.checkBox}`} type="checkbox" id="AR" checked={formData?.ARRequired} onChange={(e) => handleTaxToggle(e.target.checked)} />
+                            <label className="form-check-label" id='AR'>AR Required</label>
                         </div>
+                        {formData?.ARRequired &&
+                            <div>
+                                {/* <label className='form-label'>AR Details</label> */}
+                                <input
+                                    type='text'
+                                    className={`${Style.inputStyle}`}
+                                    name='ARDetails'
+                                    placeholder='AR Details'
+                                    value={formData.ARDetails}
+                                    onChange={(e) => handleFormDataChange('ARDetails', e.target.value)}
+                                />
+                            </div>}
+                    </div>
                 </div>
 
                 {/* Purchase Details */}

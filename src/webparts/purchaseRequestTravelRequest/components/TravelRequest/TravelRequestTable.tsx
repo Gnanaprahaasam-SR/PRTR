@@ -512,15 +512,23 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                                             ) : (
                                                 <>
                                                     {data.RequesterId !== props.userId && data.Status === "Rejected" ?
-                                                        <Link to={`/travelRequestUpdate/${data.TRNumber}`}>
-                                                            <IconButton iconProps={{ iconName: "View" }} title="View" className={Style.iconButton} />
-                                                        </Link>
+                                                        <>
+                                                            <Link to={`/travelRequestUpdate/${data.TRNumber}`}>
+                                                                <IconButton iconProps={{ iconName: "View" }} title="View" className={Style.iconButton} />
+                                                            </Link>
+                                                            <IconButton iconProps={{ iconName: 'PDF' }} title="PDF" className={Style.iconButton} disabled onClick={() => { handlePrintPreview(Number(data.TRNumber)); }} />
+                                                        </>
                                                         :
-                                                        <Link to={`/travelRequest/${data.TRNumber}`}>
-                                                            <IconButton iconProps={{ iconName: "Edit" }} title="Edit" className={Style.iconButton} />
-                                                        </Link>
+                                                        <>
+                                                            <Link to={`/travelRequest/${data.TRNumber}`}>
+                                                                <IconButton iconProps={{ iconName: "Edit" }} title="Edit" className={Style.iconButton} />
+                                                            </Link>
+                                                            <Link to={`/travelRequestUpdate/${data.TRNumber}`}>
+                                                                <IconButton iconProps={{ iconName: "View" }} title="View" className={Style.iconButton} />
+                                                            </Link>
+                                                        </>
                                                     }
-                                                    <IconButton iconProps={{ iconName: 'PDF' }} title="PDF" className={Style.iconButton} disabled={data.Status !== "Approved"} onClick={() => { handlePrintPreview(Number(data.TRNumber)); }} />
+
                                                 </>
                                             )
                                         ) : (

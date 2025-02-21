@@ -170,13 +170,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                 Comments: "",
                 ApprovedDate: "",
             }));
-
-            if (!TRId && !currentTRId) {
-                setApprovers(Approvers);
-            }
-            if (formData.Status === "Draft") {
-                setApprovers(Approvers);
-            }
+            setApprovers(Approvers);
             setInitialApprove(Approvers);
 
         } catch (error) {
@@ -240,28 +234,28 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
     };
 
 
-    const fetchExistingApproverlist = async (travelRequestId: number): Promise<void> => {
-        const service = new PurchaseRequestTravelRequestService(props.context);
-        try {
-            setLoading(true);
-            const data = await service.getTravelRequestApprovals(travelRequestId);
-            console.log(data);
-            const Approvers = data.map((item: any) => ({
-                Id: item.ID,
-                Approver: item.Approver?.Title,
-                ApproverId: item.Approver?.Id,
-                Role: item.Role,
-                Status: item.Status,
-                Hierarchy: item.Hierarchy,
-                Comments: item.Comments,
-                ApprovedDate: item.ApprovedDate ? dateFormate(item.ApprovedDate) : ""
-            })).sort((a, b) => (a.Hierarchy || 0) - (b.Hierarchy || 0));;
-            setApprovers(Approvers);
-            setLoading(false);
-        } catch (error) {
-            console.error('Error fetching departments:', error);
-        }
-    };
+    // const fetchExistingApproverlist = async (travelRequestId: number): Promise<void> => {
+    //     const service = new PurchaseRequestTravelRequestService(props.context);
+    //     try {
+    //         setLoading(true);
+    //         const data = await service.getTravelRequestApprovals(travelRequestId);
+    //         console.log(data);
+    //         const Approvers = data.map((item: any) => ({
+    //             Id: item.ID,
+    //             Approver: item.Approver?.Title,
+    //             ApproverId: item.Approver?.Id,
+    //             Role: item.Role,
+    //             Status: item.Status,
+    //             Hierarchy: item.Hierarchy,
+    //             Comments: item.Comments,
+    //             ApprovedDate: item.ApprovedDate ? dateFormate(item.ApprovedDate) : ""
+    //         })).sort((a, b) => (a.Hierarchy || 0) - (b.Hierarchy || 0));;
+    //         setApprovers(Approvers);
+    //         setLoading(false);
+    //     } catch (error) {
+    //         console.error('Error fetching departments:', error);
+    //     }
+    // };
 
 
     const fetchTRDocuments = async (TRNumber: number): Promise<void> => {
@@ -283,22 +277,11 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
     };
 
     useEffect(() => {
-        if (currentTRId && formData.Status === "Draft") {
+        if (currentTRId) {
             fetchTravelRequestDetails(currentTRId);
-            if (formData.RequesterId) {
-                const currentTeam = team?.find(teamMember => teamMember.userId === formData.RequesterId);
-                if (currentTeam) {
-                    fetchApproverlist(currentTeam.team);
-                }
-            }
             fetchTRDocuments(currentTRId);
         }
-        else if (currentTRId) {
-            fetchTravelRequestDetails(currentTRId);
-            fetchExistingApproverlist(currentTRId);
-            fetchTRDocuments(currentTRId);
-        }
-    }, [TRId, formData.Status, formData.RequesterId]);
+    }, [TRId]);
 
     const onSelectDate = (date: Date | null, field: string) => {
         if (date) {

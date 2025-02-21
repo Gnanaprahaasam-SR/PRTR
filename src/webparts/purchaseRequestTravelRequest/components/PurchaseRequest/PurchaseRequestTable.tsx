@@ -718,16 +718,25 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                                                 </>
                                             ) : (
                                                 <>
+
                                                     {data.RequesterId === props.userId && data.Status === "Rejected" ?
-                                                        <Link to={`/purchaseRequest/${data.PRNumber}`}>
-                                                            <IconButton iconProps={{ iconName: 'Edit' }} title="Edit" className={Style.iconButton} />
-                                                        </Link>
+                                                        <>
+                                                            <Link to={`/purchaseRequest/${data.PRNumber}`}>
+                                                                <IconButton iconProps={{ iconName: 'Edit' }} title="Edit" className={Style.iconButton} />
+                                                            </Link>
+                                                            <Link to={`/purchaseRequestUpdate/${data.PRNumber}`}>
+                                                                <IconButton iconProps={{ iconName: 'View' }} title="View" className={Style.iconButton} />
+                                                            </Link>
+                                                        </>
                                                         :
-                                                        <Link to={`/purchaseRequestUpdate/${data.PRNumber}`}>
-                                                            <IconButton iconProps={{ iconName: 'View' }} title="View" className={Style.iconButton} />
-                                                        </Link>
+                                                        <>
+                                                            <Link to={`/purchaseRequestUpdate/${data.PRNumber}`}>
+                                                                <IconButton iconProps={{ iconName: 'View' }} title="View" className={Style.iconButton} />
+                                                            </Link>
+                                                            <IconButton iconProps={{ iconName: 'PDF' }} title="PDF" className={Style.iconButton} disabled={data.Status !== "Approved"} onClick={() => { handlePrintPreview(Number(data.PRNumber)); }} />
+                                                        </>
                                                     }
-                                                    <IconButton iconProps={{ iconName: 'PDF' }} title="PDF" className={Style.iconButton} disabled={data.Status !== "Approved"} onClick={() => { handlePrintPreview(Number(data.PRNumber)); }} />
+
                                                 </>
                                             )
                                         ) : (
