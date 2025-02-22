@@ -283,13 +283,24 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
         }
     }, [TRId]);
 
-    const onSelectDate = (date: Date | null, field: string) => {
+    const onRequestedDate = (date: Date | null) => {
+
         if (date) {
             const formattedDate = format(date, "MM-dd-yyyy");
-            setFormData((prev) => ({
-                ...prev,
-                [field]: formattedDate,
-            }));
+            setFormData((prev) => {
+                return { ...prev, requestedDate: dateFormate(formattedDate) };
+            });
+        }
+    };
+    const onWhenDate = (date: Date | null) => {
+        if (date) {
+            const formattedDate = format(date, "MM-dd-yyyy");
+            setFormData((prev) => {
+                return {
+                    ...prev,
+                    When: dateFormate(formattedDate)
+                };
+            });
         }
     };
 
@@ -304,8 +315,8 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
         if (files) {
             const newFiles = Array.from(files);
             setAttachment(prev => [...prev, ...newFiles]);
-            setDialogMessage(`Success`);
-            setDialogTitle(`File uploaded successfully`);
+            setDialogMessage(`File uploaded successfully`);
+            setDialogTitle(`Success`);
             setIsDialogOpen(true);
         }
     };
@@ -598,7 +609,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                                 month: "2-digit",
                                 day: "2-digit"
                             }).replace(/\//g, "-")} // Format as MM/DD/YYYY
-                            onSelectDate={(date) => onSelectDate(date ? date : null, "RequestedDate")}
+                            onSelectDate={onRequestedDate}
 
                             styles={{
                                 textField: {
@@ -645,7 +656,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                                 month: "2-digit",
                                 day: "2-digit"
                             }).replace(/\//g, "-")} // Format as MM/DD/YYYY
-                            onSelectDate={(date) => onSelectDate(date ? date : null, "When")}
+                            onSelectDate={onWhenDate}
 
                             styles={{
                                 textField: {

@@ -334,7 +334,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
         if (date) {
             const formattedDate = format(date, "MM-dd-yyyy");
             setFormData((prev) => {
-                return { ...prev, requestedDate: formattedDate };
+                return { ...prev, requestedDate: dateFormate(formattedDate) };
             });
         }
     };

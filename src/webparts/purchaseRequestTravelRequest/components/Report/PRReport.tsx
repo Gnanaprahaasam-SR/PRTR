@@ -26,8 +26,9 @@ const columnsData: { label: string, field: string }[] = [
     { label: 'Total Cost', field: 'TotalCost' },
     { label: 'Recurring Cost', field: 'RecurringCost' },
     { label: 'Purchase Type', field: 'PurchaseType' },
-    { label: 'Use case', field: 'UseCase' },
+    { label: 'Use Case', field: 'UseCase' },
     { label: 'AR Required', field: 'ARRequired' },
+    { label: 'AR Details', field: 'ARDetails' },
     { label: 'Business Justification', field: 'BusinessJustification' },
 ];
 
@@ -448,6 +449,7 @@ const PRReport: FC<IPurchaseRequestFormProps> = (props) => {
                                     <td >{data.PurchaseType}</td>
                                     <td >{data.UseCase}</td>
                                     <td className={`text-center`}>{data.ARRequired}</td>
+                                    <td >{data.ARDetails}</td>
                                     <td style={{ minWidth: "200px", textWrap: "wrap" }}>{data.BusinessJustification}</td>
                                 </tr>
                             ))}
