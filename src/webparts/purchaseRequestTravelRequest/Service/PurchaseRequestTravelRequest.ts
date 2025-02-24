@@ -24,55 +24,6 @@ export class PurchaseRequestTravelRequestService {
         this.context = context;
     }
 
-    // public async getPOIMCompanyDetails(): Promise<{ logo: string, companyName: string, companyAddress: string, companyPhoneNumber: string, powerBIDashboardLink: string }> {
-    //     const sp = getSP(this.context);
-    //     const web = sp?.web;
-
-    //     if (!web) {
-    //         throw new Error("Unable to access SharePoint web object.");
-    //     }
-
-    //     const documentsLibrary = web.lists.getByTitle("POIMCompanyDetails");
-
-    //     try {
-    //         // Select the required fields including the CompanyName, CompanyAddress, and CompanyPhoneNumber
-    //         const documents = await documentsLibrary.items.select(
-    //             "FileLeafRef", "FileRef", "Id", "Modified", "CompanyName", "CompanyAddress", "CompanyPhoneNumber", "PowerBIDashboardLink"
-    //         )
-    //             .orderBy("Modified", false) // Order by Modified date in descending order
-    //             .top(1)(); // Get only the top (latest) item
-
-    //         if (documents.length > 0) {
-    //             const { FileRef, CompanyName, CompanyAddress, CompanyPhoneNumber, PowerBIDashboardLink } = documents[0];
-
-    //             // Fetch the file (logo)
-    //             const response = await fetch(FileRef);
-    //             const blob = await response.blob();
-    //             const reader = new FileReader();
-
-    //             // Return the logo (as Data URL), company name, address, and phone number
-    //             return new Promise((resolve, reject) => {
-    //                 reader.onloadend = () => {
-    //                     resolve({
-    //                         logo: reader.result as string,
-    //                         companyName: CompanyName,
-    //                         companyAddress: CompanyAddress,
-    //                         companyPhoneNumber: CompanyPhoneNumber,
-    //                         powerBIDashboardLink: PowerBIDashboardLink
-    //                     });
-    //                 };
-    //                 reader.onerror = reject;
-    //                 reader.readAsDataURL(blob);
-    //             });
-    //         } else {
-    //             throw new Error("No company details found.");
-    //         }
-    //     } catch (error) {
-    //         console.error("Error retrieving POIMCompanyDetails:", error);
-    //         throw error;
-    //     }
-    // }
-
 
 
     public async getPRTRLogo(): Promise<any> {
@@ -670,7 +621,6 @@ export class PurchaseRequestTravelRequestService {
         }
     }
 
-
     public async getTravelRequestDocuments(TravelRequestId: number): Promise<any[]> {
         const sp = getSP(this.context);
         const web = sp?.web;
@@ -704,7 +654,35 @@ export class PurchaseRequestTravelRequestService {
         }
     }
 
+    public async deleteTravelRequest(TRId: number): Promise<void> {
+        try {
+            const sp = getSP(this.context);
+            const web = sp?.web;
+            const TRList = web?.lists?.getByTitle("PRTRTravelRequestDetails");
+            const ApprovalList = sp?.web?.lists?.getByTitle("PRTRTravelRequestApprovals");
+            const TRDocument = sp?.web?.lists?.getByTitle("PRTRTravelRequestAttachment");
+            await TRList.items.getById(TRId).delete();
+            console.log(`Travel Request with ID ${TRId} deleted successfully.`);
+            // Delete existing approvals
+            const existingApprovals = await ApprovalList.items.filter(`TravelRequestId/Id eq '${TRId}'`)();
+            for (const approval of existingApprovals) {
+                await ApprovalList.items.getById(approval.ID).delete();
+            }
 
+            console.log(`Deleted ${existingApprovals.length} approvals for TR ID ${TRId}`);
+
+            const existingDocuments = await TRDocument.items.filter(`TravelRequestId/Id eq '${TRId}'`)();
+            for (const document of existingDocuments) {
+                await TRDocument.items.getById(document.ID).delete();
+            }
+            console.log(`Deleted ${existingDocuments.length} documents for TR ID ${TRId}`);
+
+
+        } catch (error) {
+            console.error(`Error deleting Travel Request with ID ${TRId}:`, error);
+            throw error;
+        }
+    }
 
     public async getPurchaseRequestApprovals(PRId: number): Promise<any[]> {
         try {
@@ -802,7 +780,7 @@ export class PurchaseRequestTravelRequestService {
     }
 
     public async deletePRTRPurchaseRequestDocument(documentId: number): Promise<void> {
-        console.log(documentId);
+        // console.log(documentId);
         try {
             const sp = getSP(this.context);
             const web = sp?.web;
@@ -812,6 +790,38 @@ export class PurchaseRequestTravelRequestService {
             console.log(`Document with ID ${documentId} deleted successfully from PRTRPurchaseRequest Attachment.`);
         } catch (error) {
             console.error(`Error deleting document with ID ${documentId}:`, error);
+            throw error;
+        }
+    }
+
+
+    public async deletePurchaseRequest(PRId: number): Promise<void> {
+        try {
+            const sp = getSP(this.context);
+            const web = sp?.web;
+            const PRList = web?.lists?.getByTitle("PRTRPurchaseRequestDetails");
+            const PRDocument = web?.lists?.getByTitle("PRTRPurchaseRequestAttachment");
+
+            const ApprovalsTranstion = web?.lists?.getByTitle("PRTRPurchaseRequestApprovals");
+            await PRList.items.getById(PRId).delete();
+            console.log(`Purchase Request with ID ${PRId} deleted successfully.`);
+
+            // Delete existing approvals
+            const existingApprovals = await ApprovalsTranstion.items.filter(`PurchaseRequestId/Id eq '${PRId}'`)();
+            for (const approval of existingApprovals) {
+                await ApprovalsTranstion.items.getById(approval.ID).delete();
+            }
+
+            console.log(`Deleted ${existingApprovals.length} approvals for PR ID ${PRId}`);
+
+            const existingDocuments = await PRDocument.items.filter(`PurchaseRequestId/Id eq '${PRId}'`)();
+            for (const document of existingDocuments) {
+                await PRDocument.items.getById(document.ID).delete();
+            }
+            console.log(`Deleted ${existingDocuments.length} documents for PR ID ${PRId}`);
+
+        } catch (error) {
+            console.error(`Error deleting Purchase Request with ID ${PRId}:`, error);
             throw error;
         }
     }

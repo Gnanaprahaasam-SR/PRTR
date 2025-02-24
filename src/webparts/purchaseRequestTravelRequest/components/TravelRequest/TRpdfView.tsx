@@ -198,21 +198,21 @@ const TRDocument = forwardRef<HTMLDivElement, ITravelRequestProps>(({ context, c
                 </div>
 
                 {/* Requested Date */}
-                <div className='mb-3 col-12 col-sm-4 col-md-4'>
+                {/* <div className='mb-3 col-12 col-sm-4 col-md-4'>
                     <label className='text-nowrap '>Requested Date </label>
                     <div className='fw-bold'>{format(new Date(formData.RequestedDate), "MM-dd-yyy")}</div>
-                </div>
+                </div> */}
 
                 {/* Where */}
                 <div className='mb-3 col-12 col-sm-4 col-md-4'>
-                    <label className=''>Where</label>
-                    <div className='fst-italic fw-bold'>{formData.Where}</div>
+                    <label className=''>Travel To (Destination)</label>
+                    <div className=' fw-bold'>{formData.Where}</div>
                 </div>
 
                 {/* When */}
                 <div className='mb-3 col-12 col-sm-4 col-md-4'>
-                    <label className=''>When </label>
-                    <div className='fst-italic fw-bold'>{formData.When ? format(new Date(formData.When), "MM-dd-yyy") : ""}</div>
+                    <label className=''>Travel Date </label>
+                    <div className=' fw-bold'>{formData.When ? format(new Date(formData.When), "MM-dd-yyy") : ""}</div>
                 </div>
 
                 {/* Total Cost Estimate */}
@@ -222,7 +222,7 @@ const TRDocument = forwardRef<HTMLDivElement, ITravelRequestProps>(({ context, c
                 </div>
 
                 {/* Strategic Project Related */}
-                <div className=" col-12 col-sm-4 col-md-4 d-flex align-items-center">
+                <div className=" col-12 col-sm-4 col-md-4 ">
                     <div className="gap-2">
                         <label className="text-nowrap">Strategic Project Related </label>
                         <div className='fw-bold'>{formData?.StratigicProjectRelated ? "Yes" : "No"}</div>
@@ -230,7 +230,7 @@ const TRDocument = forwardRef<HTMLDivElement, ITravelRequestProps>(({ context, c
                 </div>
 
                 {/* Emergency related */}
-                <div className=" col-12 col-sm-4 col-md-4 d-flex align-items-center">
+                <div className=" col-12 col-sm-4 col-md-4">
                     <div className="">
                         <label className="text-nowrap">Emergency Related</label>
                         <div className='fw-bold'>{formData?.EmergencyRelated ? "Yes" : "No"}</div>
@@ -239,12 +239,12 @@ const TRDocument = forwardRef<HTMLDivElement, ITravelRequestProps>(({ context, c
 
                 {/* Status */}
                 <div className='mb-3 col-12 col-sm-4 col-md-4'>
-                    <label className='form-label fw-bold'>Status </label>
-                    <div className='text-nowrap'>{formData.Status}</div>
+                    <label className='text-nowrap '>Status </label>
+                    <div className=' fw-bold'>{formData.Status}</div>
                 </div>
 
                 {/* Business Justification */}
-                <div className='mb-3 col-12 col-sm-12 col-md-4'>
+                <div className='mb-3 col-12 col-sm-4 col-md-4'>
                     <label className='text-nowrap'>Business Justification </label>
                     <div className='text-wrap fw-bold'>{formData.BusinessJustification}</div>
                 </div>

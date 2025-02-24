@@ -126,6 +126,21 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
         setCurrentPage(1);
     };
 
+        const handleTRDelete = async (TRId: number): Promise<void> => {
+            
+            const service = new PurchaseRequestTravelRequestService(props.context);
+            setLoading(true);
+            try {
+                await service.deleteTravelRequest(TRId);
+                setCurrentTR(null);
+                fetchPurchaseRequestData(table === 'PR'? 'All' : 'Draft', props.userId);
+            } catch (error) {
+                console.error('Error deleting PR:', error);
+            } finally {
+                setLoading(false);
+            }
+        }
+
     const paginatedData = React.useMemo(() => {
         const start = (currentPage - 1) * pageSize;
         const end = start + pageSize;
@@ -141,7 +156,7 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
         const dataToExport = filteredData.map(data => ({
             "TR Number": data.TRNumber,
             "Status": data.Status,
-            "Requester": data.Requester,
+            "Requestor": data.Requester,
             "Department": data.Department,
             "Requested Date": data.RequestedDate,
 
@@ -324,11 +339,9 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                     ))}
                 </div>
             </div>
-            <div className='d-flex flex-wrap align-items-center justify-content-between mt-3 px-2'>
-                <div>
-                    <div className={`${Style.tableTitle}`}>Travel Requests<div style={{ fontSize: "10px" }}>Total Count: {dataList.length}</div></div>
-                </div>
-                <div className='d-flex justify-content-end gap-2'>
+            <div className='d-flex justify-content-between align-items-center w-100 gap-2 mt-3 px-2'>
+                <div className='d-flex flex-wrap gap-2 align-items-center'>
+                    <label><b>Filter By:</b></label>
                     <div className={`${styles.searchInput}`}>
                         <select
                             value={selectedColumn}
@@ -350,6 +363,10 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                             className={`${styles.columnInput}`}
                         />
                     </div>
+
+                </div>
+
+                <div className='d-flex align-items-center gap-2'>
                     <Link to="/travelRequest" className='text-decoration-none'>
                         <button className={`${Style.primaryButton}`}>
                             <HiPlusCircle size={20} />
@@ -532,9 +549,12 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                                                 </>
                                             )
                                         ) : (
-                                            <Link to={`/travelRequest/${data.TRNumber}`}>
-                                                <IconButton iconProps={{ iconName: "Edit" }} title="Edit" className={Style.iconButton} />
-                                            </Link>
+                                            <>
+                                                <Link to={`/travelRequest/${data.TRNumber}`}>
+                                                    <IconButton iconProps={{ iconName: "Edit" }} title="Edit" className={Style.iconButton} />
+                                                </Link>
+                                                <IconButton iconProps={{ iconName: 'Delete' }} title="Delete" onClick={() => { handleTRDelete(Number(data.TRNumber)); }} className={Style.iconButton} />
+                                            </>
                                         )}
                                     </td>
 
@@ -572,6 +592,8 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                             <option value={50}>50</option>
                         </select>
                     </div>
+
+                    <div style={{ fontSize: "12px" }}>Total Count: <b>{dataList.length}</b></div>
                     <div className='d-flex align-items-center gap-1'>
                         <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className={`${Style.paginationButton}`}>
                             <FiArrowLeftCircle size={20} />

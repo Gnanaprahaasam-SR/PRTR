@@ -16,7 +16,6 @@ import { FiShoppingCart } from 'react-icons/fi';
 import { GrAttachment } from 'react-icons/gr';
 import { format } from "date-fns";
 
-
 interface IPurchaseRequestDataProps {
     id: number | null;
     requester: string;
@@ -248,7 +247,6 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
     const pendingApprovers = approvers.filter(a => a.Status === "Pending");
     const minHierarchy = pendingApprovers.length > 0 ? Math.min(...pendingApprovers.map(a => a.Hierarchy || Infinity)) : null;
 
-
     return (
         <div className=' p-3 bg-light  rounded-3'>
             {loading && <LoadingSpinner />}
@@ -312,32 +310,36 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
                         <label className='form-label text-nowrap fw-bold'>Use Case </label>
                         <div className=''>{formData.useCase}</div>
-
                     </div>
 
                     {/* PurchaseType */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
                         <label className='form-label text-nowrap fw-bold'>Purchase Type </label>
                         <div className=' '>{formData.purchaseType}</div>
-
                     </div>
 
                     {/* Purchase Details */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
                         <label className='form-label fw-bold'>Purchase Details</label>
                         <div className=' text-wrap'>{formData.purchaseDetails}</div>
-
                     </div>
 
                     {/* Item/Service Description */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
                         <label className='form-label fw-bold'>Item / Service Description</label>
                         <div className=' text-wrap'>{formData.itemServiceDescription}</div>
-
                     </div>
 
-                    {/* AR Required */}
-                    <div className=" mb-2 col-12 col-sm-6 col-md-4 ">
+                   
+
+                    {/* Business Justification */}
+                    <div className='mb-2 col-12 col-sm-6 col-md-4'>
+                        <label className='form-label fw-bold'>Business Justification</label>
+                        <div className='label text-wrap'>{formData.businessJustification}</div>
+                    </div>
+
+                     {/* AR Required */}
+                     <div className=" mb-2 col-12 col-sm-6 col-md-4 ">
                         <div className="gap-2">
                             <label className="form-check-label fw-bold">AR Required</label>
                             <div>{formData?.ARRequired ? "Yes" : "No"}</div>
@@ -345,8 +347,7 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
                     </div>
 
                     {/* ARDetails */}
-                    {
-                        formData?.ARRequired &&
+                    {formData?.ARRequired &&
                         <div className=" mb-2 col-12 col-sm-6 col-md-4 ">
                             <div className="gap-2">
                                 <label className="form-check-label fw-bold">AR Details</label>
@@ -354,12 +355,6 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
                             </div>
                         </div>
                     }
-
-                    {/* Business Justification */}
-                    <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                        <label className='form-label fw-bold'>Business Justification</label>
-                        <div className='label text-wrap'>{formData.businessJustification}</div>
-                    </div>
                 </div>
                 <div className='col my-2'>
                     <label className='form-label fw-bold'><GrAttachment /> Attached files</label>
@@ -399,8 +394,8 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
                                     </div>
                                     <div className='col-12 col-sm-6 col-md-3'>
                                         {approver.ApproverId === props.userId && approver.Hierarchy === minHierarchy && formData.status === "In Progress"? (
-                                            <div className='gap-3 d-flex'>
-                                                <button className={`${Style.secondaryButton} px-3`} onClick={() => handleApprovals("Approved", approver.Id)}> Approve</button>
+                                            <div className='gap-2 d-flex'>
+                                                <button className={`${Style.secondaryButton} px-3`} onClick={() => handleApprovals("Approved", approver.Id)}>Approve</button>
                                                 <button className={`${Style.rejecteButton} px-3 `} onClick={() => handleApprovals("Rejected", approver.Id)}>Reject</button>
                                             </div>
                                         ) : (

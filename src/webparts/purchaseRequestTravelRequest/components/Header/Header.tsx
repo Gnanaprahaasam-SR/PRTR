@@ -90,12 +90,12 @@ const Header: FC<IHeaderProps> = (props) => {
   return (
     <header className={styles.header}>
       <div className={styles.headerContainer}>
-        <div style={{ maxWidth: "250px", maxHeight: "50px", display: "flex", gap: "5px", alignItems: "center" }}>
-          <div className='d-flex gap-1 justify-content-between align-items-center h-100 pe-2'>
+        <div style={{ maxWidth: "230px", maxHeight: "50px", display: "flex", gap: "5px", alignItems: "center" }}>
+          <div className='d-flex gap-2 align-items-center h-100 pe-2'>
             <img src={logo?.fileRef} alt='logo' className='rounded' width="auto" height="60px" />
           </div>
           <div className={styles.appName}>
-            Purchase Request & <br /> Travel Request
+            Purchase and Travel Requisition App
           </div>
         </div>
 

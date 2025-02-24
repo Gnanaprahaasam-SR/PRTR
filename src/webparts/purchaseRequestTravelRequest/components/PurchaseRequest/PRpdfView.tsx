@@ -200,10 +200,10 @@ const PRDocument = forwardRef<HTMLDivElement, IPurchaseRequestDocument>(({ conte
                     <div className="fw-bold">{formData.department}</div>
                 </div>
 
-                <div className="mb-2 col-12 col-sm-4 col-md-4">
+                {/* <div className="mb-2 col-12 col-sm-4 col-md-4">
                     <label className="text-nowrap">Requested Date</label>
                     <div className="fw-bold">{formData.requestedDate ? format(new Date(formData?.requestedDate), "MM-dd-yyy") : ""}</div>
-                </div>
+                </div> */}
 
                 <div className="mb-3 col-12 col-sm-4 col-md-4">
                     <label className="">Category</label>
@@ -254,7 +254,7 @@ const PRDocument = forwardRef<HTMLDivElement, IPurchaseRequestDocument>(({ conte
                     <div className="fw-bold">{formData.status}</div>
                 </div>
 
-                <div className="mb-3 col-12 col-sm-12 col-md-4">
+                <div className="mb-3 col-12 col-sm-4 col-md-4">
                     <label className="text-nowrap">Business Justification</label>
                     <div className="fw-bold">{formData.businessJustification}</div>
                 </div>

@@ -2,7 +2,6 @@ import React, { FC, useEffect, useRef, useState } from 'react'
 import Style from '../PurchaseRequestTravelRequest.module.scss';
 import Select, { SingleValue } from 'react-select';
 import { IPeoplePickerContext, PeoplePicker, PrincipalType } from "@pnp/spfx-controls-react/lib/PeoplePicker";
-import { DatePicker, } from "@fluentui/react";
 import { format } from "date-fns";
 import { RiArrowUpCircleFill } from 'react-icons/ri';
 import { BsBoxArrowLeft } from "react-icons/bs";
@@ -310,14 +309,12 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
         }
     };
 
-
     useEffect(() => {
         if (currentPRId) {
             fetchPurchaseRequestDetails(currentPRId);
             fetchPRDocuments(currentPRId);
         }
     }, [PRId]);
-
 
     const peoplePickerContext: IPeoplePickerContext = {
         absoluteUrl: props.context.pageContext.web.absoluteUrl,
@@ -327,16 +324,6 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
 
     const handleFormDataChange = (field: keyof IPurchaseRequestDataProps, value: string): void => {
         setFormData({ ...formData, [field]: value });
-
-    };
-
-    const onSelectDate = (date: Date | null) => {
-        if (date) {
-            const formattedDate = format(date, "MM-dd-yyyy");
-            setFormData((prev) => {
-                return { ...prev, requestedDate: dateFormate(formattedDate) };
-            });
-        }
     };
 
     const handleAttachment = (): void => {
@@ -418,7 +405,6 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                     navigate("/PurchaseRequestTable/PR")
                 }, 3000);
             }
-
         } catch (error) {
             console.error('Error updating purchaseRequestForm:', error);
         }
@@ -449,7 +435,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
         const service = new PurchaseRequestTravelRequestService(props.context);
         try {
             const data = await service.addPurchaseRequestForm(newPRData, approvers, PR, attachment);
-            console.log(data);
+            // console.log(data);
             if (data) {
                 setIsDialogOpen(true);
                 setDialogMessage('Form Saved as Draft Successfully');
@@ -464,9 +450,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
         } catch (error) {
             console.error('Error updating purchaseRequestForm:', error);
         }
-
     }
-
 
     const handleCategory = (selectedOption: SingleValue<{ value: string; label: string }>): void => {
         setFormData({
@@ -504,7 +488,6 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
             ...prevFormData,
             ARRequired: newTaxStatus
         }));
-
     };
 
     const handlePeoplePickerChange = (fieldName: string, items: any[]): void => {
@@ -535,15 +518,6 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
     const handleConfirmFormSubmit = (formStatus: string): void => {
         console.log("Current Form Data:", formData); // Debugging line
 
-        // if (formStatus === "In Progress") {
-        //     if (!formData.requester || !formData.department || !formData.requestedDate) {
-        //         setIsDialogOpen(true);
-        //         setDialogMessage("Please fill all mandatory fields!");
-        //         setDialogTitle("Form Validation");
-        //         return;
-        //     }
-        // }
-
         // Ensure state update is reflected
         setFormData(prev => ({
             ...prev,
@@ -552,7 +526,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
 
         setConfirmSubmit(true);
         setDialogTitle("Form Submission");
-        setDialogMessage("Are you sure you want to submit the form?");
+        setDialogMessage("Would you like to proceed with submitting the form?");
     };
 
 
@@ -577,6 +551,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
             ARDetails: "",
         })
         setAttachment([]);
+        setDocument([]);
     }
 
 
@@ -593,10 +568,10 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                 </div>
 
                 <div className='d-flex flex-wrap gap-2'>
-                    <button className={`${Style.primaryButton} text-wrap`} onClick={() => handleConfirmFormSubmit("In Progress")}  ><RiArrowUpCircleFill size={20} /> Submit</button>
+                    <button className={`${Style.closeButton} text-wrap`} onClick={() => handleConfirmFormSubmit("In Progress")}  ><RiArrowUpCircleFill size={20} /> Submit</button>
 
                     <>
-                        <button className={`${Style.ternaryButton} text-wrap`} onClick={() => setConfirmDraft(true)}><BsHourglassSplit size={18} /> Save as Draft</button>
+                        <button className={`${Style.closeButton} text-wrap`} onClick={() => setConfirmDraft(true)}><BsHourglassSplit size={18} /> Save as Draft</button>
                         <button className={`${Style.closeButton} text-wrap`} onClick={handleFormReset}><GrPowerReset size={19} /> Reset Form</button>
                     </>
 
@@ -653,48 +628,6 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                     />
                 </div>
 
-                {/* Requested Date */}
-                <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                    <label className='form-label text-nowrap'>Requested Date</label>
-                    {/* <input
-                        type="date"
-                        className={`${Style.inputStyle}`}
-                        name="requestedDate"
-                        value={formData.requestedDate}
-                        onChange={(e) => handleFormDataChange('requestedDate', e.target.value)}
-                    /> */}
-                    <DatePicker
-                        value={new Date(formData.requestedDate)}
-                        formatDate={(date: Date) => date?.toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "2-digit",
-                            day: "2-digit"
-                        }).replace(/\//g, "-")} // Format as MM/DD/YYYY
-                        onSelectDate={onSelectDate}
-
-                        styles={{
-                            textField: {
-                                selectors: {
-                                    color: 'black',
-                                    border: "1px solid #E3E3E3 !important",
-                                    background: "white",
-                                    padding: "3.5px",
-                                    width: "100%",
-                                }
-                            },
-                            root: {
-                                selectors: {
-                                    color: 'black',
-                                    border: "1px solid #E3E3E3 !important",
-                                    background: "white",
-                                    padding: "3.5px",
-                                    width: "100%",
-                                }
-                            }
-                        }}
-                    />
-                </div>
-
                 <div className='mb-2 col-12 col-sm-6 col-md-4'>
                     <label className='form-label text-nowrap'>Category </label>
                     <Select
@@ -724,17 +657,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                         value={formData.totalCost ?? ""}
                         onChange={(e) => handleFormDataChange('totalCost', e.target.value)}
                     />
-                    {/* <CurrencyInput
-                        prefix='$'
-                        id="totalCost"
-                        name="totalCost"
-                        className={`${Style.inputStyle}`}
-                        allowDecimals
-                        allowNegativeValue={false}
-                        defaultValue={formData.totalCost ?? ''}
-                        decimalsLimit={2}
-                        onValueChange={(value) => handleCurrencyChange( value, 'totalCost' )}
-                    /> */}
+
                 </div>
 
                 {/* Recurring Cost */}
@@ -797,9 +720,11 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                         className={`${Style.inputStyle}`}
                         name='purchaseDetails'
                         value={formData.purchaseDetails}
+                        maxLength={255} // Restricts input to 255 characters
                         onChange={(e) => handleFormDataChange('purchaseDetails', e.target.value)}
                     />
                 </div>
+
 
                 {/* Item/Service Description */}
                 <div className='mb-2 col-12 col-md-6 '>
@@ -826,26 +751,27 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                 </div>
 
                 {/* AR Required */}
-                <div className=" mb-2 col-12 col-sm-6 col-md-6 d-flex align-items-center">
+                <div className="d-flex flex-wrap gap-2 align-items-center">
                     <div className='d-flex flex-column'>
                         <div className="form-check  form-switch gap-2">
                             <input className={`form-check-input ${Style.inputStyle} ${Style.checkBox}`} type="checkbox" id="AR" checked={formData?.ARRequired} onChange={(e) => handleTaxToggle(e.target.checked)} />
                             <label className="form-check-label" id='AR'>AR Required</label>
                         </div>
-                        {formData?.ARRequired &&
-                            <div>
-                                {/* <label className='form-label'>AR Details</label> */}
-                                <input
-                                    type='text'
-                                    className={`${Style.inputStyle}`}
-                                    name='ARDetails'
-                                    placeholder='AR Details'
-                                    value={formData.ARDetails}
-                                    onChange={(e) => handleFormDataChange('ARDetails', e.target.value)}
-                                />
-                            </div>}
                     </div>
+                    {formData?.ARRequired &&
+                        <div className=' mb-2 col-12 col-md-4'>
+                            {/* <label className='form-label'>AR Details</label> */}
+                            <input
+                                type='text'
+                                className={`${Style.inputStyle}`}
+                                name='ARDetails'
+                                placeholder='AR Description'
+                                value={formData.ARDetails}
+                                onChange={(e) => handleFormDataChange('ARDetails', e.target.value)}
+                            />
+                        </div>}
                 </div>
+
 
                 {/* Purchase Details */}
 
@@ -878,6 +804,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                             </div>
                         </div>
                     ))}
+
                     {document.map((file: any, index) => (
                         <div className='d-flex align-items-center' key={index}>
                             <a href={file.fileRef} download={file.fileName.split("_")[1]}><p className='mb-0 me-1'>{attachment.length + index + 1}. {file.fileName.split("_")[1]}</p></a>
@@ -892,7 +819,6 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                         </div>
                     ))}
                 </div>
-
                 <>
                     <hr />
                     <div>
@@ -952,7 +878,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                 onDismiss={() => setConfirmSubmit(false)}
                 dialogContentProps={{
                     type: DialogType.normal,
-                    subText: "Are you sure, You want to submit the PR?",
+                    subText: "Would you like to proceed with submitting the form?",
                 }}
 
             >
@@ -968,7 +894,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                 onDismiss={() => setConfirmDraft(false)}
                 dialogContentProps={{
                     type: DialogType.normal,
-                    subText: "Are you sure you want to save the form as a Draft?",
+                    subText: "Would you like to save this form as a draft?",
                 }}
 
             >

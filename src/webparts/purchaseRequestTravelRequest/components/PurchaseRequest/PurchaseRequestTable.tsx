@@ -147,7 +147,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
         const dataToExport = filteredData.map(data => ({
             "PR Number": data.PRNumber,
             "Status": data.Status,
-            "Requester": data.Requester,
+            "Requestor": data.Requester,
             "Department": data.Department,
             "Requested Date": data.RequestedDate,
 
@@ -199,6 +199,22 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
         }
     };
 
+    const handlePRDelete = async (PRId: number): Promise<void> => {
+        
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        setLoading(true);
+        try {
+            await service.deletePurchaseRequest(PRId);
+            setCurrentPR(null);
+            fetchPurchaseRequestData(table === 'PR'? 'All' : 'Draft', props.userId);
+        } catch (error) {
+            console.error('Error deleting PR:', error);
+        } 
+        finally {
+            setLoading(false);
+        }
+    }
+
     useEffect(() => {
 
         if (table === 'PR') {
@@ -224,190 +240,6 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
             link: '/purchaseRequestTable/MyDraft',
         }
     ];
-
-
-    // const handlePdfGenerator = async (purchaseRequestId: number) => {
-    //     const service = new PurchaseRequestTravelRequestService(props.context);
-
-    //     try {
-    //         const pdfData = await service.getPurchaseRequestDetails(null, "All", purchaseRequestId);
-    //         const PRDetails = pdfData.PRDetails[0];
-
-    //         const dataApprover = await service.getPurchaseRequestApprovals(purchaseRequestId);
-    //         const Approvers = dataApprover.map((item: any) => ({
-    //             Id: item.ID,
-    //             PRId: item.PurchaseRequestId?.Id,
-    //             Approver: item.Approver?.Title,
-    //             ApproverId: item.Approver?.Id,
-    //             Role: item.Role,
-    //             Status: item.Status,
-    //             Hierarchy: item.Hierarchy,
-    //             Comments: item.Comments,
-    //             ApprovedDate: item.ApprovedDate ? formatDate(item.ApprovedDate) : "N/A"
-    //         })).sort((a, b) => (a.Hierarchy || 0) - (b.Hierarchy || 0));
-
-    //         const logoUrl = await service.getPRTRLogo();
-    //         const fullLogoUrl = logoUrl?.document?.FileRef ?? "";
-
-    //         const doc = new jsPDF("p", "mm", "a4");
-    //         const pageHeight = doc.internal.pageSize.height;
-    //         const pageWidth = doc.internal.pageSize.width;
-    //         const pagePadding = 10;
-    //         const defaultFontSize = 8;
-    //         let currentY = 20;
-
-    //         // **Add Logo**
-    //         if (fullLogoUrl) {
-    //             try {
-    //                 doc.addImage(fullLogoUrl, "PNG", pagePadding, 10, 20, 20);
-    //             } catch (error) {
-    //                 console.error("Error adding logo:", error);
-    //                 alert("Failed to load logo image. Please check the image URL.");
-    //                 return;
-    //             }
-    //         }
-
-    //         // **Title**
-    //         doc.setFontSize(12).setFont("helvetica", "bold");
-    //         doc.text("Purchase Request Details", pageWidth / 2, currentY, { align: "center" });
-    //         currentY += 8;
-
-    //         // **General Details**
-    //         doc.setFontSize(defaultFontSize).setFont("helvetica", "normal");
-    //         const details = [
-    //             `PR#: ${PRDetails?.Id ?? "N/A"}`,
-    //             `Created By: ${PRDetails?.Author?.Title ?? "N/A"}`
-    //         ];
-
-    //         details.forEach((detail) => {
-    //             doc.text(detail, pageWidth - pagePadding, currentY, { align: "right" });
-    //             currentY += 6;
-    //         });
-
-    //         // **Draw Horizontal Line**
-    //         doc.setLineWidth(0.5).line(pagePadding, currentY, pageWidth - pagePadding, currentY);
-    //         currentY += 10;
-
-    //         // **Purchase Request Details**
-    //         const titles = [
-    //             "Requestor Name", "Department", "Requested Date",
-    //             "Category", "Purchase Details", "Purchase Type",
-    //             "Item / Service Description", "Total Cost", "Recurring Cost",
-    //             "Use Case", "AR Required", "Status", "Business Justification"
-    //         ];
-
-    //         const values = [
-    //             PRDetails?.Requester?.Title ?? "N/A",
-    //             PRDetails?.Department?.Department ?? "N/A",
-    //             formatDate(PRDetails?.RequestedDate) ?? "N/A",
-    //             PRDetails?.Category ?? "N/A",
-    //             PRDetails?.PurchaseDetails ?? "N/A",
-    //             PRDetails?.PurchaseType ?? "N/A",
-    //             PRDetails?.ItemServiceDescription ?? "N/A",
-    //             `$ ${PRDetails.TotalCost ? Number(PRDetails.TotalCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 0.00}`,
-    //             `$ ${PRDetails.RecurringCost ? Number(PRDetails.RecurringCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 0.00}`,
-    //             PRDetails?.UseCase ?? "N/A",
-    //             PRDetails?.ARRequired ? "Yes" : "No",
-    //             PRDetails?.Status ?? "N/A",
-    //             PRDetails?.BusinessJustification ?? "N/A",
-    //         ];
-
-    //         // **Display in Table Format (3 Columns Per Row)**
-    //         const itemsPerRow = 3;
-    //         const itemWidth = (pageWidth - pagePadding * 2) / itemsPerRow;
-    //         const lineHeight = 6;
-
-    //         for (let i = 0; i < titles.length; i++) {
-    //             if (currentY + lineHeight > pageHeight - pagePadding) {
-    //                 doc.addPage();
-    //                 currentY = 10;
-    //             }
-
-    //             const currentColumn = i % itemsPerRow;
-    //             const xPosition = pagePadding + currentColumn * itemWidth;
-
-    //             if (currentColumn === 0 && i !== 0) {
-    //                 currentY += lineHeight;
-    //             }
-
-    //             doc.setFont("helvetica", "bold").text(titles[i], xPosition, currentY);
-    //             doc.setFont("helvetica", "normal");
-
-    //             const wrappedText = doc.splitTextToSize(values[i], itemWidth - 5);
-    //             wrappedText.forEach((line: any, index: any) => {
-    //                 if (currentY + lineHeight > pageHeight - pagePadding) {
-    //                     doc.addPage();
-    //                     currentY = 10;
-    //                 }
-    //                 doc.text(line, xPosition, currentY + lineHeight * (index + 1));
-    //             });
-
-    //             if (currentColumn === itemsPerRow - 1) {
-    //                 currentY += lineHeight * wrappedText.length;
-    //             }
-    //         }
-
-    //         currentY += 15;
-    //         // **Draw Horizontal Line**
-    //         doc.setLineWidth(0.5).line(pagePadding, currentY, pageWidth - pagePadding, currentY);
-    //         currentY += 10;
-
-    //         // **Approver Details**
-    //         doc.setFont("helvetica", "bold").text("Approval Details:", pagePadding, currentY);
-    //         currentY += 6;
-
-    //         Approvers.forEach((approver, index) => {
-    //             if (currentY + 20 > pageHeight - pagePadding) {
-    //                 doc.addPage();
-    //                 currentY = 10;
-    //             }
-
-    //             doc.setFont("helvetica", "bold");
-    //             doc.text(`Approver ${index + 1}:`, pagePadding, currentY);
-    //             currentY += 5;
-
-    //             doc.setFont("helvetica", "bold");
-    //             doc.text(`Name: `, pagePadding, currentY);
-    //             doc.setFont("helvetica", "normal");
-    //             doc.text(`${approver.Approver ?? "N/A"}`, 40, currentY);
-    //             currentY += 5;
-
-    //             doc.setFont("helvetica", "bold");
-    //             doc.text(`Role: `, pagePadding, currentY);
-    //             doc.setFont("helvetica", "normal");
-    //             doc.text(`${approver.Role ?? "N/A"}`, 40, currentY);
-    //             currentY += 5;
-
-    //             doc.setFont("helvetica", "bold");
-    //             doc.text(`Approved Date:`, pagePadding, currentY);
-    //             doc.setFont("helvetica", "normal");
-    //             doc.text(`${approver.ApprovedDate ?? "N/A"}`, 40, currentY);
-    //             currentY += 5;
-
-    //             doc.setFont("helvetica", "bold");
-    //             doc.text("Comments:", pagePadding, currentY);
-    //             doc.setFont("helvetica", "normal");
-
-    //             const wrappedComments = doc.splitTextToSize(approver.Comments || "N/A", pageWidth - 4 * pagePadding, currentY);
-    //             wrappedComments.forEach((line: any) => {
-    //                 if (currentY + 6 > pageHeight - pagePadding) {
-    //                     doc.addPage();
-    //                     currentY = 10;
-    //                 }
-    //                 doc.text(line, 40, currentY);
-    //                 currentY += 5;
-    //             });
-
-    //             currentY += 5; // Add spacing after each approver
-    //         });
-
-    //         // **Save PDF**
-    //         doc.save(`PurchaseRequisition_${PRDetails?.Id ?? "N/A"}.pdf`);
-
-    //     } catch (error) {
-    //         console.error("Error generating PDF:", error);
-    //     }
-    // };
 
     const printRef = useRef<HTMLDivElement>(null);
 
@@ -487,6 +319,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
 
 
     };
+   
 
 
 
@@ -520,18 +353,17 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                     ))}
                 </div>
             </div>
-            <div className='d-flex flex-wrap align-items-center justify-content-between mt-3 px-2'>
-                <div>
-                    <div className={`${Style.tableTitle}`}>Purchase Requests<div style={{ fontSize: "10px" }}>Total Count: {dataList.length}</div></div>
-                </div>
-                <div className='d-flex justify-content-end gap-2'>
+
+            <div className='d-flex justify-content-between align-items-center w-100 gap-2 mt-3 px-2'>
+                <div className='d-flex flex-wrap gap-2 align-items-center'>
+                    <label><b>Filter By:</b></label>
                     <div className={`${styles.searchInput}`}>
                         <select
                             value={selectedColumn}
                             onChange={(e) => setSelectedColumn(e.target.value)}
                             className={`${styles.selectColumn}`}
                         >
-                            <option value="">All Columns</option>
+                            <option value="">All</option>
                             <option value="PRNumber">PR Number</option>
                             <option value="Status">Status</option>
                             <option value="Requester">Requestor Name</option>
@@ -546,10 +378,13 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                             className={`${styles.columnInput}`}
                         />
                     </div>
+                </div>
+
+                <div className='d-flex align-items-center gap-2'>
                     <Link to="/purchaseRequest" className='text-decoration-none'>
                         <button className={`${Style.primaryButton}`}>
                             <HiPlusCircle size={20} />
-                            Add Purchase
+                            Create Purchase
                         </button>
                     </Link>
                     <button className={`${Style.secondaryButton} text-nowrap`} onClick={handleExport}>
@@ -744,8 +579,10 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                                                 <Link to={`/purchaseRequest/${data.PRNumber}`}>
                                                     <IconButton iconProps={{ iconName: 'Edit' }} title="Edit" className={Style.iconButton} />
                                                 </Link>
+                                                <IconButton iconProps={{ iconName: 'Delete' }} title="Delete" onClick={() => { handlePRDelete(Number(data.PRNumber)); }} className={Style.iconButton} />
                                             </>
                                         )}
+                                        
                                     </td>
                                     <td className={``}>{data.PRNumber}</td>
                                     <td className=''>
@@ -781,6 +618,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                             <option value={50}>50</option>
                         </select>
                     </div>
+                    <div style={{ fontSize: "12px" }}>Total Count: <b>{dataList.length}</b></div>
                     <div className='d-flex align-items-center gap-1'>
                         <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className={`${Style.paginationButton}`}>
                             <FiArrowLeftCircle size={20} />

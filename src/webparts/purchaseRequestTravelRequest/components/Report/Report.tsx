@@ -15,13 +15,13 @@ const Reports: React.FC<IReportsProps> = (props) => {
     const tabs = [
         {
             key: 'PR',
-            label: 'PR Report',
+            label: 'Purchase Report',
             icon: <BiPurchaseTagAlt size={18} />,
             component: <PRReport context={props.context} />,
         },
         {
             key: 'TR',
-            label: 'TR Report',
+            label: 'Travel Report',
             icon: <MdCardTravel size={18} />,
             component: <TRReport context={props.context} />,
         },

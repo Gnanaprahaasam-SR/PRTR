@@ -234,30 +234,6 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
     };
 
 
-    // const fetchExistingApproverlist = async (travelRequestId: number): Promise<void> => {
-    //     const service = new PurchaseRequestTravelRequestService(props.context);
-    //     try {
-    //         setLoading(true);
-    //         const data = await service.getTravelRequestApprovals(travelRequestId);
-    //         console.log(data);
-    //         const Approvers = data.map((item: any) => ({
-    //             Id: item.ID,
-    //             Approver: item.Approver?.Title,
-    //             ApproverId: item.Approver?.Id,
-    //             Role: item.Role,
-    //             Status: item.Status,
-    //             Hierarchy: item.Hierarchy,
-    //             Comments: item.Comments,
-    //             ApprovedDate: item.ApprovedDate ? dateFormate(item.ApprovedDate) : ""
-    //         })).sort((a, b) => (a.Hierarchy || 0) - (b.Hierarchy || 0));;
-    //         setApprovers(Approvers);
-    //         setLoading(false);
-    //     } catch (error) {
-    //         console.error('Error fetching departments:', error);
-    //     }
-    // };
-
-
     const fetchTRDocuments = async (TRNumber: number): Promise<void> => {
         const service = new PurchaseRequestTravelRequestService(props.context);
         try {
@@ -283,15 +259,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
         }
     }, [TRId]);
 
-    const onRequestedDate = (date: Date | null) => {
 
-        if (date) {
-            const formattedDate = format(date, "MM-dd-yyyy");
-            setFormData((prev) => {
-                return { ...prev, requestedDate: dateFormate(formattedDate) };
-            });
-        }
-    };
     const onWhenDate = (date: Date | null) => {
         if (date) {
             const formattedDate = format(date, "MM-dd-yyyy");
@@ -362,10 +330,11 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
     };
 
 
-    const handleTaxToggle = (field: string, checked: boolean): void => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: checked
+    const handleTaxToggle = (key: string, value: boolean) => {
+        setFormData((prevData) => ({
+            ...prevData,
+            StratigicProjectRelated: key === "StratigicProjectRelated" ? value : false,
+            EmergencyRelated: key === "EmergencyRelated" ? value : false,
         }));
     };
 
@@ -398,8 +367,8 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
     const handleReset = (): void => {
         setFormData({
             Id: null,
-            Requester: props.userName,
-            RequesterId: props.userId,
+            Requester: '',
+            RequesterId: undefined,
             Department: "",
             DepartmentId: undefined,
             RequestedDate: currentDate,
@@ -412,6 +381,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
             Status: "In Progress",
         });
         setAttachment([]);
+        setDocument([]);
     };
 
 
@@ -457,7 +427,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
     }
 
     const handleSaveAsDraft = async (): Promise<any> => {
-        setConfirmSubmit(false);
+        setConfirmDraft(false);
         setLoading(true);
         console.log(formData, approvers)
         const newTR = {
@@ -486,7 +456,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                     setLoading(false);
                     handleReset();
                     setTimeout(() => {
-                        navigate("/travelRequestTable/TR")
+                        navigate("/travelRequestTable/MyDraft")
                     }, 3000);
                 }
             }
@@ -499,14 +469,6 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
 
     const handleConfirmFormSubmit = (formStatus: string,): void => {
 
-        // if (formStatus === "In Progress") {
-        //     if (!formData.Department || !formData.RequestedDate || !formData.Requester) {
-        //         setIsDialogOpen(true);
-        //         setDialogMessage('Please fill all mandatory field!');
-        //         setDialogTitle('Form Validation');
-        //         return;
-        //     }
-        // }
         setFormData(prev => ({
             ...prev,
             Status: formStatus
@@ -514,7 +476,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
 
         setConfirmSubmit(true);
         setDialogTitle("Form Submission");
-        setDialogMessage("Are you sure, You want to submit the TR?");
+        setDialogMessage("Would you like to proceed with submitting the form?");
     }
 
     return (
@@ -530,8 +492,8 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                 </div>
 
                 <div className='d-flex flex-wrap gap-2'>
-                    <button className={`${Style.primaryButton} text-wrap`} onClick={() => handleConfirmFormSubmit("In Progress")}><RiArrowUpCircleFill size={20} /> Submit</button>
-                    <button className={`${Style.ternaryButton} text-wrap`} onClick={() => setConfirmDraft(true)}><BsHourglassSplit size={18} /> Save as Draft</button>
+                    <button className={`${Style.closeButton} text-wrap`} onClick={() => handleConfirmFormSubmit("In Progress")}><RiArrowUpCircleFill size={20} /> Submit</button>
+                    <button className={`${Style.closeButton} text-wrap`} onClick={() => setConfirmDraft(true)}><BsHourglassSplit size={18} /> Save as Draft</button>
                     <button className={`${Style.closeButton} text-wrap`} onClick={handleReset}><GrPowerReset size={19} /> Reset Form</button>
                     <button className={Style.closeButton} onClick={handleBackClick} ><BsBoxArrowLeft size={15} /> Back</button>
                 </div>
@@ -592,51 +554,11 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                         />
                     </div>
 
-                    {/* Requested Date */}
-                    <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                        <label className='form-label text-nowrap'>Requested Date </label>
-                        {/* <input
-                            type="date"
-                            className={`${Style.inputStyle}`}
-                            name="RequestedDate"
-                            value={formData.RequestedDate}
-                            onChange={handleFormDataChange}
-                        /> */}
-                        <DatePicker
-                            value={new Date(formData.RequestedDate)}
-                            formatDate={(date: Date) => date?.toLocaleDateString("en-US", {
-                                year: "numeric",
-                                month: "2-digit",
-                                day: "2-digit"
-                            }).replace(/\//g, "-")} // Format as MM/DD/YYYY
-                            onSelectDate={onRequestedDate}
 
-                            styles={{
-                                textField: {
-                                    selectors: {
-                                        color: 'black',
-                                        border: "1px solid #E3E3E3 !important",
-                                        background: "white",
-                                        padding: "3.5px",
-                                        width: "100%",
-                                    }
-                                },
-                                root: {
-                                    selectors: {
-                                        color: 'black',
-                                        border: "1px solid #E3E3E3 !important",
-                                        background: "white",
-                                        padding: "3.5px",
-                                        width: "100%",
-                                    }
-                                }
-                            }}
-                        />
-                    </div>
 
                     {/* Where */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                        <label className='form-label'>Where </label>
+                        <label className='form-label'>Travel To (Destination) </label>
                         <input
                             type='text'
                             className={`${Style.inputStyle}`}
@@ -648,7 +570,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
 
                     {/* When */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                        <label className='form-label'>When </label>
+                        <label className='form-label'>Travel Date </label>
                         <DatePicker
                             value={formData.When ? new Date(formData.When) : undefined}
                             formatDate={(date: Date) => date?.toLocaleDateString("en-US", {
@@ -657,6 +579,8 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                                 day: "2-digit"
                             }).replace(/\//g, "-")} // Format as MM/DD/YYYY
                             onSelectDate={onWhenDate}
+
+                            minDate={new Date()} // Prevent selecting past dates
 
                             styles={{
                                 textField: {
@@ -693,22 +617,6 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                         />
                     </div>
 
-                    {/* Strategic Project Related */}
-                    <div className=" col-12 col-sm-6 col-md-4 d-flex align-items-center">
-                        <div className="form-check form-switch gap-2">
-                            <input className={`form-check-input ${Style.checkBox} ${Style.inputStyle}`} type="checkbox" id="tax" checked={formData?.StratigicProjectRelated ?? false} onChange={(e) => handleTaxToggle("StratigicProjectRelated", e.target.checked)} />
-                            <label className="form-check-label" id="tax">Strategic Project Related </label>
-                        </div>
-                    </div>
-
-                    {/* Emergency related */}
-                    <div className=" col-12 col-sm-6 col-md-4 d-flex align-items-center">
-                        <div className="form-check form-switch gap-2">
-                            <input className={`form-check-input  ${Style.inputStyle} ${Style.checkBox}`} type="checkbox" id="emergency" checked={formData?.EmergencyRelated ?? false} onChange={(e) => handleTaxToggle("EmergencyRelated", e.target.checked)} />
-                            <label className="form-check-label" id="emergency">Emergency Related</label>
-                        </div>
-                    </div>
-
                     {/* Business Justification */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
                         <label className='form-label'>Business Justification </label>
@@ -720,6 +628,35 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                             onChange={handleFormDataChange}
                         />
                     </div>
+
+                    {/* Strategic Project Related */}
+                    <div className="col-12 col-sm-6 col-md-4 d-flex align-items-center">
+                        <div className="form-check form-switch gap-2   mb-3">
+                            <input
+                                className={`form-check-input ${Style.checkBox} ${Style.inputStyle}`}
+                                type="checkbox"
+                                id="tax"
+                                checked={formData?.StratigicProjectRelated ?? false}
+                                onChange={(e) => handleTaxToggle("StratigicProjectRelated", e.target.checked)}
+                            />
+                            <label className="form-check-label" htmlFor="tax">Strategic Project Related</label>
+                        </div>
+                    </div>
+
+                    {/* Emergency Related */}
+                    <div className="col-12 col-sm-6 col-md-4 d-flex align-items-center">
+                        <div className="form-check form-switch gap-2 mb-3">
+                            <input
+                                className={`form-check-input ${Style.inputStyle} ${Style.checkBox}`}
+                                type="checkbox"
+                                id="emergency"
+                                checked={formData?.EmergencyRelated ?? false}
+                                onChange={(e) => handleTaxToggle("EmergencyRelated", e.target.checked)}
+                            />
+                            <label className="form-check-label" htmlFor="emergency">Emergency Related</label>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div className='mb-2'>
@@ -826,18 +763,16 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                     title: dialogTitle,
                     subText: dialogMessage,
                 }}
-
             >
                 <div className="float-end m-3">
                     <button className={`${Style.closeButton} px-3`} onClick={closeDialog} > OK </button>
                 </div>
             </Dialog >
 
-
             {/* form submit confirmation */}
             <Dialog
                 hidden={!confirmSubmit}
-                onDismiss={() => { closeDialog(); setConfirmSubmit(false); }}
+                onDismiss={() => setConfirmSubmit(false)}
                 dialogContentProps={{
                     type: DialogType.normal,
                     title: dialogTitle,
@@ -857,9 +792,8 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                 onDismiss={() => setConfirmDraft(false)}
                 dialogContentProps={{
                     type: DialogType.normal,
-                    subText: "Are you sure you want to save the form as a Draft?",
+                    subText: "Would you like to save this form as a draft?",
                 }}
-
             >
                 <div className=" d-flex gap-2 flex-nowrap align-items-center justify-content-end">
                     <button className={`${Style.secondaryButton} px-3`} onClick={handleSaveAsDraft} > Confirm</button>

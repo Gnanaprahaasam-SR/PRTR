@@ -271,13 +271,13 @@ const TRUpdate: FC<ITravelRequestProps> = (props) => {
 
                     {/* Where */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                        <label className='form-label fw-bold'>Where</label>
+                        <label className='form-label fw-bold'>Travel To (Destination)</label>
                         <div>{formData.Where}</div>
                     </div>
 
                     {/* When */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                        <label className='form-label fw-bold'>When </label>
+                        <label className='form-label fw-bold'>Travel Date </label>
                         <div>{formData.When? format(new Date(formData.When), "MM-dd-yyyy"):""}</div>
                     </div>
 
@@ -288,7 +288,7 @@ const TRUpdate: FC<ITravelRequestProps> = (props) => {
                     </div>
 
                     {/* Strategic Project Related */}
-                    <div className=" col-12 col-sm-6 col-md-4 d-flex align-items-center">
+                    <div className=" col-12 col-sm-6 col-md-4">
                         <div className="gap-2">
 
                             <label className="form-label fw-bold">Strategic Project Related </label>
@@ -297,7 +297,7 @@ const TRUpdate: FC<ITravelRequestProps> = (props) => {
                     </div>
 
                     {/* Emergency related */}
-                    <div className=" col-12 col-sm-6 col-md-4 d-flex align-items-center">
+                    <div className=" col-12 col-sm-6 col-md-4">
                         <div className="">
                             <label className="form-label fw-bold">Emergency Related</label><div>{formData?.EmergencyRelated ? "Yes" : "No"}</div>
                         </div>
@@ -306,7 +306,7 @@ const TRUpdate: FC<ITravelRequestProps> = (props) => {
                     {/* Business Justification */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
                         <label className='form-label fw-bold'>Business Justification </label>
-                        <div className='text-nowrap'>{formData.BusinessJustification}</div>
+                        <div className='text-wrap'>{formData.BusinessJustification}</div>
                     </div>
                 </div>
                 <div className='col my-2'>
@@ -348,12 +348,12 @@ const TRUpdate: FC<ITravelRequestProps> = (props) => {
                                     </div>
                                     <div className='col-12 col-sm-6 col-md-3'>
                                         {approver.ApproverId === props.userId && approver.Hierarchy === minHierarchy && formData.Status === "In Progress"? (
-                                            <div className='d-flex justify-content-evenly align-items-center'>
+                                            <div className='d-flex gap-2'>
                                                 <button className={`${Style.secondaryButton} px-3 `} onClick={() => handleApprovals("Approved", approver.Id)}> Approve</button>
                                                 <button className={`${Style.rejecteButton} px-3 `} onClick={() => handleApprovals("Rejected", approver.Id)}>Reject</button>
                                             </div>
                                         ) : (
-                                            <span>
+                                            <span>  
                                                 {approver.Status === "Pending" ? <FaClock size={18} className=' me-1' style={{ color: "#FF8008" }} /> : approver.Status === "Approved" ? <FaRegCircleCheck size={18} className='text-success me-1' />
                                                     : <TbCancel className='text-danger me-1' size={20} />}
                                                 <b className={
