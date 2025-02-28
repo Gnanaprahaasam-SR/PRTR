@@ -39,7 +39,7 @@ const statusColors = [
 const PieChartData: React.FC<IPieChartProps & IPieChartDataProps> = (props) => {
     const [dataList, setDataList] = useState<IPurchaseRequestDataProps[]>([]);
     const dateFormate = (date: string): string => {
-        // console.log(date)
+      
         const existingDate = new Date(date).toISOString().split('T')[0];
         return existingDate;
     };
@@ -51,7 +51,7 @@ const PieChartData: React.FC<IPieChartProps & IPieChartDataProps> = (props) => {
 
         try {
             const existingPR = await service.getPurchaseRequestDetails(props.userId, "All", purchaseRequestId);
-            console.log("Fetched Purchase Request Details:", existingPR);
+            
 
             // Ensure PRDetails is an array before using map
             const PRDetailsArray = existingPR?.PRDetails;
@@ -59,7 +59,6 @@ const PieChartData: React.FC<IPieChartProps & IPieChartDataProps> = (props) => {
                 console.warn("PRDetails is not an array or is undefined.");
                 return;
             }
-            // console.log(PRDetailsArray)
             const data: IPurchaseRequestDataProps[] = PRDetailsArray.map((PR: any) => ({
                 id: PR.Id,
                 requester: PR.Requester?.Title ?? "",

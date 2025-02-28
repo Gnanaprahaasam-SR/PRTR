@@ -11,8 +11,8 @@ const columnsData: { label: string, field: string }[] = [
     { label: 'Requestor Name', field: 'Requester' },
     { label: 'Department', field: 'Department' },
     { label: 'Requested Date', field: 'RequestedDate' },
-    { label: 'Where', field: 'Where' },
-    { label: 'When', field: 'When' },
+    { label: 'Travel From', field: 'Where' },
+    { label: 'Start Date', field: 'When' },
     { label: 'Total Estimate Cost', field: 'TotalCostEstimate' },
     { label: 'Stratigic Project Related', field: 'StratigicProjectRelated' },
     { label: 'Emergency Related', field: 'EmergencyRelated' },
@@ -26,8 +26,8 @@ export interface ITRTableDataProps {
     Department: string;
     DepartmentId: number;
     RequestedDate: string;
-    Where: string;
-    When: string;
+    TravelTo: string;
+    StartDate: string;
     TotalCostEstimate: number;
     BusinessJustification: string;
     StratigicProjectRelated: string;
@@ -85,8 +85,8 @@ const TRReportPDF = forwardRef<HTMLDivElement, ITableDataProps>(({ tableData }, 
                                         <td style={{fontSize:"10px"}}>{data.Requester}</td>
                                         <td style={{fontSize:"10px"}}>{data.Department}</td>
                                         <td style={{fontSize:"10px"}}>{formatDate(data.RequestedDate)}</td>
-                                        <td style={{fontSize:"10px"}}>{data.Where}</td>
-                                        <td style={{fontSize:"10px"}}>{formatDate(data.When)}</td>
+                                        <td style={{fontSize:"10px"}}>{data.TravelTo}</td>
+                                        <td style={{fontSize:"10px"}}>{formatDate(data.StartDate)}</td>
                                         <td style={{fontSize:"10px"}}>${data.TotalCostEstimate ? Number(data.TotalCostEstimate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}</td>
                                         <td style={{fontSize:"10px"}}>{data.StratigicProjectRelated}</td>
                                         <td style={{fontSize:"10px"}}>{data.EmergencyRelated}</td>

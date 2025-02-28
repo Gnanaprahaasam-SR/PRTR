@@ -73,7 +73,6 @@
 //     const ActiveStatus = true;
 //     try {
 //       const data = await service.getPRTRDepartment(ActiveStatus);
-//       // console.log(data); 
 //       const formattedDepartments = data.map((item, index) => ({
 //         id: item.ID,
 //         department: item?.Department,
@@ -161,7 +160,6 @@
 //     const updatedDepartments = departments.map(department =>
 //       department.id === id ? { ...department, ...updates } : department
 //     );
-//     // console.log(updatedDepartments);
 //     setDepartments(updatedDepartments);
 
 //     const updatedSortedDepartments = sortedDepartments.map(department =>
@@ -259,7 +257,7 @@
 //     setIsEditable(prevState => ({ ...prevState, [id]: false }));
 
 //     const updatedDepartment = departments.find(department => department.id === id);
-//     console.log(updatedDepartment);
+
 //     if (updatedDepartment) {
 //       if (id === 0) {
 //         await addNewDepartmentToService(updatedDepartment);

@@ -93,7 +93,6 @@ interface ITeamsProps {
 
 const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
     const dateFormate = (date: string): string => {
-        // console.log(date)
         const existingDate = new Date(date).toISOString().split('T')[0];
         return existingDate;
     };
@@ -162,7 +161,6 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                 team: item.Team,
             }));
             setTeam(teams);
-            console.log(teams)
         } catch (error) {
             console.error('Error fetching Departments:', error);
         }
@@ -205,7 +203,6 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
 
             setApprovers(approver);
             setInitialApprove(approver);
-            console.log(approver);
         } catch (error) {
             console.error('Error fetching Approvers:', error);
         }
@@ -234,15 +231,13 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
 
         try {
             const existingPR = await service.getPurchaseRequestDetails(props.userId, "All", purchaseRequestId);
-            console.log("Fetched Purchase Request Details:", existingPR);
-
+         
             // Ensure PRDetails is an array before using map
             const PRDetailsArray = existingPR?.PRDetails;
             if (!Array.isArray(PRDetailsArray)) {
                 console.warn("PRDetails is not an array or is undefined.");
                 return;
             }
-            // console.log(PRDetailsArray)
             const data: IPurchaseRequestDataProps[] = PRDetailsArray.map((PR: any) => ({
                 id: PR.Id,
                 requester: PR.Requester?.Title ?? "",
@@ -274,7 +269,6 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
     //     const service = new PurchaseRequestTravelRequestService(props.context);
     //     try {
     //         const data = await service.getPurchaseRequestApprovals(purchaseRequestId);
-    //         // console.log(data);
     //         const Approvers = data.map((item: any) => ({
     //             Id: item.ID,
     //             Approver: item.Approver?.Title,
@@ -394,7 +388,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
         const service = new PurchaseRequestTravelRequestService(props.context);
         try {
             const data = await service.addPurchaseRequestForm(newPRData, initialApprove, PR, attachment);
-            console.log(data);
+      
             if (data) {
                 setIsDialogOpen(true);
                 setDialogMessage('Form Submitted Successfully');
@@ -435,7 +429,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
         const service = new PurchaseRequestTravelRequestService(props.context);
         try {
             const data = await service.addPurchaseRequestForm(newPRData, approvers, PR, attachment);
-            // console.log(data);
+       
             if (data) {
                 setIsDialogOpen(true);
                 setDialogMessage('Form Saved as Draft Successfully');
@@ -460,7 +454,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
     };
 
     const handleDepartment = (selectedOption: SingleValue<Department>): void => {
-        // console.log(selectedOption)
+     
         setFormData({
             ...formData,
             department: selectedOption?.value || '',
@@ -516,8 +510,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
     }
 
     const handleConfirmFormSubmit = (formStatus: string): void => {
-        console.log("Current Form Data:", formData); // Debugging line
-
+    
         // Ensure state update is reflected
         setFormData(prev => ({
             ...prev,

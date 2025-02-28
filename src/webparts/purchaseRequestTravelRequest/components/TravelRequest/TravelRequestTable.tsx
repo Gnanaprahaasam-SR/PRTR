@@ -36,14 +36,16 @@ export interface ITRTableDataProps {
     Department: string;
     DepartmentId: number;
     RequestedDate: string;
-    Where: string;
-    When: string;
+    TravelFrom: string;
+    TravelTo: string;
+    StartDate: string;
+    EndDate: string;
     TotalCostEstimate: number;
     BusinessJustification: string;
 }
 
 const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
-    const { table } = useParams();
+    const { table, status } = useParams();
     const [dataList, setDataList] = useState<ITRTableDataProps[]>([]);
     const [filters, setFilters] = useState<Partial<ITRTableDataProps>>({});
     const [sortConfig, setSortConfig] = useState<{ key: keyof ITRTableDataProps; direction: 'ascending' | 'descending'; dataType: string } | null>(null);
@@ -178,7 +180,7 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
     };
 
     const fetchPurchaseRequestData = async (status: string, userId: number): Promise<void> => {
-        console.log(status, userId);
+       
         setLoading(true);
         const service = new PurchaseRequestTravelRequestService(props.context);
         try {
@@ -191,13 +193,14 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                 Department: item.Department?.Department,
                 DepartmentId: item.Department?.Id,
                 RequestedDate: formatDate(item?.RequestedDate),
-                Where: item.Where ?? "",
-                When: item.When ? formatDate(item.When) : "",
+                TravelFrom: item.TravelFrom ?? "",
+                TravelTo: item.TravelTo ?? "",
+                StartDate: item.StartDate ? formatDate(item.StartDate) : "",
+                EndDate: item.EndDate ? formatDate(item.EndDate) : "",
                 TotalCostEstimate: item.TotalCostEstimate ?? 0,
                 BusinessJustification: item.BusinessJustification ?? "",
                 Status: item.Status ?? "",
             }));
-            console.log(TRData)
             setDataList(TRData);
         } catch (error) {
             console.error('Error fetching PR data:', error);
@@ -205,6 +208,12 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
             setLoading(false);
         }
     };
+
+      useEffect(()=>{
+            if(status && dataList.length > 0){
+                handleGlobalFilterChange(status);
+            }
+        },[dataList])
 
     useEffect(() => {
 
@@ -348,7 +357,7 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                             onChange={(e) => setSelectedColumn(e.target.value)}
                             className={`${styles.selectColumn}`}
                         >
-                            <option value="">All Columns</option>
+                            <option value="">All</option>
                             <option value="TRNumber">TR Number</option>
                             <option value="Status">Status</option>
                             <option value="Requester">Requestor Name</option>

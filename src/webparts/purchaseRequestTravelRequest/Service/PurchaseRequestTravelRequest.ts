@@ -70,7 +70,6 @@ export class PurchaseRequestTravelRequestService {
             }
 
             const departmentData = await query();
-            console.log("Fetched Department items:", departmentData);
             return departmentData;
         } catch (error) {
             console.error("Error retrieving PRTR Departments:", error);
@@ -92,8 +91,7 @@ export class PurchaseRequestTravelRequestService {
 
 
             const departmentData = await query();
-            console.log("Fetched Department items:", departmentData);
-            return departmentData;
+           return departmentData;
         } catch (error) {
             console.error("Error retrieving PRTR Departments:", error);
             throw error;
@@ -145,9 +143,7 @@ export class PurchaseRequestTravelRequestService {
                 rejected: purchaseRequest.filter(item => item.Status === "Rejected").length,
             };
 
-            console.log("Fetched PurchaseRequest items:", purchaseRequest);
-            console.log("Status Counts:", statusCounts);
-
+         
             return { ...statusCounts };
         } catch (error) {
             console.error("Error retrieving PRTR Purchase Request:", error);
@@ -196,9 +192,6 @@ export class PurchaseRequestTravelRequestService {
                 rejected: TravelRequest.filter(item => item.Status === "Rejected").length,
             };
 
-            console.log("Fetched PurchaseRequest items:", TravelRequest);
-            console.log("Status Counts:", statusCounts);
-
             return { ...statusCounts };
         } catch (error) {
             console.error("Error retrieving PRTR Travel Request:", error);
@@ -222,8 +215,7 @@ export class PurchaseRequestTravelRequestService {
                 .filter(`Team eq '${Team}'`)
                 .orderBy("Hierarchy", true);
             const approversData = await query();
-            console.log("Fetched Approvers:", approversData);
-            return approversData;
+           return approversData;
 
         } catch (error) {
             console.error("Error retrieving PRTR Approvers:", error);
@@ -245,8 +237,7 @@ export class PurchaseRequestTravelRequestService {
                 .select("ID", "User/Id", "User/Title", "User/EMail", "Team")
                 .expand("User")
             const TeamsData = await query();
-            console.log("Fetched Teams:", TeamsData);
-            return TeamsData;
+           return TeamsData;
 
         } catch (error) {
             console.error("Error retrieving PRTR Teams:", error);
@@ -279,8 +270,7 @@ export class PurchaseRequestTravelRequestService {
             throw new Error("List 'PRTRTravelRequestApprovals' or 'PRTRTravelRequestDetails' not found.");
         }
 
-        console.log(newTR, approver, TRId);
-
+      
         try {
             let newTRId: number;
             let newTRDetails: any;
@@ -290,7 +280,6 @@ export class PurchaseRequestTravelRequestService {
                     const existingTR = await TravelRequestList.items.getById(TRId)();
                     if (existingTR) {
                         const updatedTR = await TravelRequestList.items.getById(TRId).update(newTR);
-                        console.log("Updated existing TR:", updatedTR);
                         newTRDetails = updatedTR;
                     }
                     newTRId = TRId;
@@ -302,7 +291,6 @@ export class PurchaseRequestTravelRequestService {
                     for (const approval of existingApprovals) {
                         await ApprovalList.items.getById(approval.ID).delete();
                     }
-                    console.log(`Deleted ${existingApprovals.length} old approvals for TR ID ${TRId}`);
                 } else {
                     const newTRDetail = await TravelRequestList.items.add(newTR);
                     newTRDetails = newTRDetail;
@@ -323,7 +311,6 @@ export class PurchaseRequestTravelRequestService {
                                 ? new Date(Approver.ApprovedDate).toISOString() // Ensure correct DateTime format
                                 : null,
                         };
-                        console.log("Adding Approval:", formattedDetail);
                         return await ApprovalList.items.add(formattedDetail);
                     })
                 );
@@ -340,13 +327,10 @@ export class PurchaseRequestTravelRequestService {
                     }
                     const fileId = items[0].Id;
 
-                    // console.log("fileId", fileId)
-
                     const DocumentItem = await TRDocument.items.getById(fileId).update({
                         TravelRequestIdId: newTRId
                     });
                     newDocument = DocumentItem
-                    console.log(`File ${fileName} uploaded   ${DocumentItem} to TRUploadDocuments library and associated with PRGeneralDetailID ${newTRId}.`);
                 }
 
                 return { TRDetails: newTRDetails, ApprovalDetails: newApprovals, Documents: newDocument };
@@ -355,7 +339,6 @@ export class PurchaseRequestTravelRequestService {
                     const existingTR = await TravelRequestList.items.getById(TRId)();
                     if (existingTR) {
                         const updatedTR = await TravelRequestList.items.getById(TRId).update(newTR);
-                        console.log("Updated existing TR:", updatedTR);
                         newTRDetails = updatedTR;
                     }
                     newTRId = TRId;
@@ -366,8 +349,7 @@ export class PurchaseRequestTravelRequestService {
                     for (const approval of existingApprovals) {
                         await ApprovalList.items.getById(approval.ID).delete();
                     }
-                    console.log(`Deleted ${existingApprovals.length} old approvals for TR ID ${TRId}`);
-
+               
 
                 } else {
                     const newTRDetail = await TravelRequestList.items.add(newTR);
@@ -388,13 +370,10 @@ export class PurchaseRequestTravelRequestService {
                     }
                     const fileId = items[0].Id;
 
-                    // console.log("fileId", fileId)
-
                     const DocumentItem = await TRDocument.items.getById(fileId).update({
                         TravelRequestIdId: newTRId
                     });
                     newDocument = DocumentItem
-                    console.log(`File ${fileName} uploaded   ${DocumentItem} to TRUploadDocuments library and associated with PRGeneralDetailID ${newTRId}.`);
                 }
 
                 return { TRDetails: newTRDetails, Documents: newDocument };
@@ -425,7 +404,7 @@ export class PurchaseRequestTravelRequestService {
                 filterCondition = `Status ne 'Draft'`; // If a specific status is provided
             }
 
-            let query = list.items.select("ID", "Requester/Id", "Requester/Title", "Requester/EMail", "RequestedDate", "Department/Department", "Department/Id", "Where", "When", "TotalCostEstimate", "StratigicProjectRelated", "EmergencyRelated", "Status", "BusinessJustification", "Author/Title", "Created")
+            let query = list.items.select("ID", "Requester/Id", "Requester/Title", "Requester/EMail", "RequestedDate", "Department/Department", "Department/Id", "TravelFrom", "TravelTo", "StartDate", "EndDate", "TotalCostEstimate", "StratigicProjectRelated", "EmergencyRelated", "Status", "BusinessJustification", "Author/Title", "Created")
                 .expand("Requester", "Department", "Author",);
 
             // Apply filter only if a condition exists
@@ -438,7 +417,6 @@ export class PurchaseRequestTravelRequestService {
             // Get total count
             const totalCount = TRDetails.length;
 
-            console.log("Filtered TRDetails:", TRDetails);
             return { TRDetails, totalCount };
 
         } catch (error) {
@@ -475,9 +453,7 @@ export class PurchaseRequestTravelRequestService {
                 .filter(`TravelRequestId/Id eq ${TRId}`)
                 .orderBy("Hierarchy", true)();
 
-            console.log("Fetched Approvers with details for TRId:", TRId, approversData);
             return approversData;
-
 
         } catch (error) {
             console.error("Error retrieving PRTR Approvers:", error);
@@ -493,8 +469,7 @@ export class PurchaseRequestTravelRequestService {
         const ApprovalsTranstion = web?.lists?.getByTitle("PRTRPurchaseRequestApprovals");
         const PRDocument = web?.lists?.getByTitle("PRTRPurchaseRequestAttachment");
         const Status = newPRData?.Status;
-        console.log("Input Data:", newPRData, approvers, PRId);
-
+       
         try {
             let newPRId: number;
             let newPRDetails: any;
@@ -504,8 +479,7 @@ export class PurchaseRequestTravelRequestService {
                     const existingPR = await PurchaseRequestList.items.getById(PRId)();
                     if (existingPR) {
                         const updatedPR = await PurchaseRequestList.items.getById(PRId).update(newPRData);
-                        console.log("Updated existing PR:", updatedPR);
-                        newPRDetails = updatedPR;
+                       newPRDetails = updatedPR;
                     }
                     newPRId = PRId;
 
@@ -514,17 +488,14 @@ export class PurchaseRequestTravelRequestService {
                     for (const approval of existingApprovals) {
                         await ApprovalsTranstion.items.getById(approval.ID).delete();
                     }
-                    console.log(`Deleted ${existingApprovals.length} old approvals for PR ID ${PRId}`);
-
-
+             
                 } else {
                     const newPRDetail = await PurchaseRequestList.items.add(newPRData);
                     newPRDetails = newPRDetail;
                     newPRId = newPRDetail.ID;
                 }
 
-                console.log("New PR ID:", newPRId);
-
+               
                 // Insert new approvals
                 const newApprovals = await Promise.all(
                     approvers.map(async (Approver) => {
@@ -537,8 +508,7 @@ export class PurchaseRequestTravelRequestService {
                             Status: Approver.Status ?? "Pending",
                             ApprovedDate: Approver.ApprovedDate ? Approver.ApprovedDate : null,
                         };
-                        console.log("Adding Approval:", formattedDetail);
-                        return await ApprovalsTranstion.items.add(formattedDetail);
+                       return await ApprovalsTranstion.items.add(formattedDetail);
                     })
                 );
 
@@ -555,13 +525,11 @@ export class PurchaseRequestTravelRequestService {
                     }
                     const fileId = items[0].Id;
 
-                    // console.log("fileId", fileId)
-
+                    
                     const DocumentItem = await PRDocument.items.getById(fileId).update({
                         PurchaseRequestIdId: newPRId
                     });
                     newDocument = DocumentItem
-                    console.log(`File ${fileName} uploaded   ${DocumentItem} to PRUploadDocuments library and associated with PRGeneralDetailID ${newPRId}.`);
                 }
 
                 return { PRDetails: newPRDetails, ApprovalDetails: newApprovals, document: newDocument };
@@ -572,8 +540,7 @@ export class PurchaseRequestTravelRequestService {
                     const existingPR = await PurchaseRequestList.items.getById(PRId)();
                     if (existingPR) {
                         const updatedPR = await PurchaseRequestList.items.getById(PRId).update(newPRData);
-                        console.log("Updated existing PR:", updatedPR);
-                        newPRDetails = updatedPR;
+                      newPRDetails = updatedPR;
                     }
                     newPRId = PRId;
 
@@ -582,8 +549,7 @@ export class PurchaseRequestTravelRequestService {
                     for (const approval of existingApprovals) {
                         await ApprovalsTranstion.items.getById(approval.ID).delete();
                     }
-                    console.log(`Deleted ${existingApprovals.length} old approvals for PR ID ${PRId}`);
-
+              
 
                 } else {
                     const newPRDetail = await PurchaseRequestList.items.add(newPRData);
@@ -604,14 +570,12 @@ export class PurchaseRequestTravelRequestService {
                     }
                     const fileId = items[0].Id;
 
-                    // console.log("fileId", fileId)
-
+                    
                     const DocumentItem = await PRDocument.items.getById(fileId).update({
                         PurchaseRequestIdId: newPRId
                     });
                     newDocument = DocumentItem;
-                    console.log(`File ${fileName} uploaded   ${DocumentItem} to PRUploadDocuments library and associated with PRGeneralDetailID ${PRId}.`);
-                }
+               }
                 return { PRDetails: newPRDetails, document: newDocument };
             }
 
@@ -631,7 +595,6 @@ export class PurchaseRequestTravelRequestService {
                 .select("FileLeafRef", "FileRef", "Id")
                 .filter(`TravelRequestId eq '${TravelRequestId}'`)();
 
-            console.log("Fetched PRTRTravelRequestAttachment:", TravelDocument);
             return TravelDocument;
         } catch (error) {
             console.error("Error retrieving PRTRTravelRequestAttachment:", error);
@@ -640,14 +603,11 @@ export class PurchaseRequestTravelRequestService {
     }
 
     public async deletePRTRTravelRequestDocument(documentId: number): Promise<void> {
-        console.log(documentId);
-        try {
+      try {
             const sp = getSP(this.context);
             const web = sp?.web;
             const documentsLibrary = web.lists.getByTitle("PRTRTravelRequestAttachment");
             await documentsLibrary.items.getById(documentId).delete();
-
-            console.log(`Document with ID ${documentId} deleted successfully from PRTRTravelRequest Attachment.`);
         } catch (error) {
             console.error(`Error deleting document with ID ${documentId}:`, error);
             throw error;
@@ -662,21 +622,18 @@ export class PurchaseRequestTravelRequestService {
             const ApprovalList = sp?.web?.lists?.getByTitle("PRTRTravelRequestApprovals");
             const TRDocument = sp?.web?.lists?.getByTitle("PRTRTravelRequestAttachment");
             await TRList.items.getById(TRId).delete();
-            console.log(`Travel Request with ID ${TRId} deleted successfully.`);
-            // Delete existing approvals
+          // Delete existing approvals
             const existingApprovals = await ApprovalList.items.filter(`TravelRequestId/Id eq '${TRId}'`)();
             for (const approval of existingApprovals) {
                 await ApprovalList.items.getById(approval.ID).delete();
             }
 
-            console.log(`Deleted ${existingApprovals.length} approvals for TR ID ${TRId}`);
-
+        
             const existingDocuments = await TRDocument.items.filter(`TravelRequestId/Id eq '${TRId}'`)();
             for (const document of existingDocuments) {
                 await TRDocument.items.getById(document.ID).delete();
             }
-            console.log(`Deleted ${existingDocuments.length} documents for TR ID ${TRId}`);
-
+         
 
         } catch (error) {
             console.error(`Error deleting Travel Request with ID ${TRId}:`, error);
@@ -710,7 +667,6 @@ export class PurchaseRequestTravelRequestService {
                 .filter(`PurchaseRequestId/Id eq ${PRId}`)
                 .orderBy("Hierarchy", true)();
 
-            console.log("Fetched Approvers with details for TRId:", PRId, approversData);
             return approversData;
 
 
@@ -752,7 +708,6 @@ export class PurchaseRequestTravelRequestService {
             // Get total count
             const totalCount = PRDetails.length;
 
-            console.log("Filtered PRDetails:", PRDetails);
             return { PRDetails, totalCount };
 
         } catch (error) {
@@ -771,7 +726,6 @@ export class PurchaseRequestTravelRequestService {
                 .select("FileLeafRef", "FileRef", "Id")
                 .filter(`PurchaseRequestId eq '${PurchaseRequestId}'`)();
 
-            console.log("Fetched PRTRPurchaseRequestAttachment:", PurchaseDocument);
             return PurchaseDocument;
         } catch (error) {
             console.error("Error retrieving PRTRPurchaseRequestAttachment:", error);
@@ -780,15 +734,14 @@ export class PurchaseRequestTravelRequestService {
     }
 
     public async deletePRTRPurchaseRequestDocument(documentId: number): Promise<void> {
-        // console.log(documentId);
+    
         try {
             const sp = getSP(this.context);
             const web = sp?.web;
             const documentsLibrary = web.lists.getByTitle("PRTRPurchaseRequestAttachment");
             await documentsLibrary.items.getById(documentId).delete();
 
-            console.log(`Document with ID ${documentId} deleted successfully from PRTRPurchaseRequest Attachment.`);
-        } catch (error) {
+       } catch (error) {
             console.error(`Error deleting document with ID ${documentId}:`, error);
             throw error;
         }
@@ -804,22 +757,18 @@ export class PurchaseRequestTravelRequestService {
 
             const ApprovalsTranstion = web?.lists?.getByTitle("PRTRPurchaseRequestApprovals");
             await PRList.items.getById(PRId).delete();
-            console.log(`Purchase Request with ID ${PRId} deleted successfully.`);
-
+           
             // Delete existing approvals
             const existingApprovals = await ApprovalsTranstion.items.filter(`PurchaseRequestId/Id eq '${PRId}'`)();
             for (const approval of existingApprovals) {
                 await ApprovalsTranstion.items.getById(approval.ID).delete();
             }
 
-            console.log(`Deleted ${existingApprovals.length} approvals for PR ID ${PRId}`);
-
             const existingDocuments = await PRDocument.items.filter(`PurchaseRequestId/Id eq '${PRId}'`)();
             for (const document of existingDocuments) {
                 await PRDocument.items.getById(document.ID).delete();
             }
-            console.log(`Deleted ${existingDocuments.length} documents for PR ID ${PRId}`);
-
+           
         } catch (error) {
             console.error(`Error deleting Purchase Request with ID ${PRId}:`, error);
             throw error;
@@ -831,8 +780,7 @@ export class PurchaseRequestTravelRequestService {
         const web = sp?.web;
         const ApprovalsTranstion = web?.lists?.getByTitle("PRTRPurchaseRequestApprovals");
         const PurchaseRequestList = web?.lists?.getByTitle("PRTRPurchaseRequestDetails");
-        console.log("Input Data:", approver);
-
+     
         try {
 
             const existingPRApproval = await ApprovalsTranstion.items.select("ID",
@@ -843,24 +791,23 @@ export class PurchaseRequestTravelRequestService {
                 "Comments",
                 "Status",
                 "ApprovedDate").expand('PurchaseRequestId', 'Approver').filter(`PurchaseRequestId/Id eq ${approver.PRId} and Approver/Id eq ${approver.ApproverId} and ID eq ${approver.Id}`)();
-            console.log(existingPRApproval);
-
+           
             if (existingPRApproval.length > 0) {
                 if (approver.Status === "Rejected") {
-                    const UpdatePurchaseRequest = await PurchaseRequestList.items.getById(approver.PRId).update({ Status: "Rejected" });
-                    console.log("Updated existing PRstatus:", UpdatePurchaseRequest);
+                  await PurchaseRequestList.items.getById(approver.PRId).update({ Status: "Rejected" }); 
                 }
 
                 if (approver.Status === "Approved" && approver.Hierarchy === approverCount) {
-                    const UpdatePurchaseRequest = await PurchaseRequestList.items.getById(approver.PRId).update({ Status: "Approved" });
-                    console.log("Updated existing PRstatus:", UpdatePurchaseRequest);
+                  await PurchaseRequestList.items.getById(approver.PRId).update({ Status: "Approved" }); 
+                }  else if(approver.Status === "Approved" && approver.Hierarchy !== approverCount) {
+                    await PurchaseRequestList.items.getById(approver.PRId).update({ Status: "Pending" });  
                 }
+
                 const updatedPRApproval = await ApprovalsTranstion.items.getById(existingPRApproval[0].ID).update({
                     Comments: approver.Comments,
                     Status: approver.Status,
                     ApprovedDate: approver.ApprovedDate,
                 });
-                console.log("Updated existing PRApproval:", updatedPRApproval);
                 return updatedPRApproval;
             }
 
@@ -876,7 +823,7 @@ export class PurchaseRequestTravelRequestService {
         const web = sp?.web;
         const ApprovalsTranstion = web?.lists?.getByTitle("PRTRTravelRequestApprovals");
         const TravelRequestList = web?.lists?.getByTitle("PRTRTravelRequestDetails");
-        console.log("Input Data:", approver);
+      
 
         try {
 
@@ -888,25 +835,25 @@ export class PurchaseRequestTravelRequestService {
                 "Comments",
                 "Status",
                 "ApprovedDate").expand('TravelRequestId', 'Approver').filter(`TravelRequestId/Id eq ${approver.TRId} and Approver/Id eq ${approver.ApproverId} and ID eq ${approver.Id}`)();
-            console.log(existingPRApproval);
+         
 
             if (existingPRApproval.length > 0) {
                 if (approver.Status === "Rejected") {
-                    const UpdatePurchaseRequest = await TravelRequestList.items.getById(approver.TRId).update({ Status: "Rejected" });
-                    console.log("Updated existing TRstatus:", UpdatePurchaseRequest);
-                }
+                    await TravelRequestList.items.getById(approver.TRId).update({ Status: "Rejected" });
+               }
 
                 if (approver.Status === "Approved" && approver.Hierarchy === approverCount) {
-                    const UpdatePurchaseRequest = await TravelRequestList.items.getById(approver.TRId).update({ Status: "Approved" });
-                    console.log("Updated existing TRstatus:", UpdatePurchaseRequest);
+                     await TravelRequestList.items.getById(approver.TRId).update({ Status: "Approved" });  
+                } else if(approver.Status === "Approved" && approver.Hierarchy !== approverCount) {
+                    await TravelRequestList.items.getById(approver.TRId).update({ Status: "Pending" });  
                 }
+
                 const updatedPRApproval = await ApprovalsTranstion.items.getById(existingPRApproval[0].ID).update({
                     Comments: approver.Comments,
                     Status: approver.Status,
                     ApprovedDate: approver.ApprovedDate,
                 });
-                console.log("Updated existing TRApproval:", updatedPRApproval);
-                return updatedPRApproval;
+               return updatedPRApproval;
             }
 
         }

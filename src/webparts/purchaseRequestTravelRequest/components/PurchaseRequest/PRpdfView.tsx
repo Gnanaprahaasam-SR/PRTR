@@ -92,8 +92,7 @@ const PRDocument = forwardRef<HTMLDivElement, IPurchaseRequestDocument>(({ conte
 
         try {
             const existingPR = await service.getPurchaseRequestDetails(null, "All", purchaseRequestId);
-            console.log("Fetched Purchase Request Details:", existingPR);
-
+          
             const PRDetailsArray = existingPR?.PRDetails;
             if (!Array.isArray(PRDetailsArray) || PRDetailsArray.length === 0) {
                 console.warn("PRDetails is not an array or is undefined.");
@@ -131,8 +130,7 @@ const PRDocument = forwardRef<HTMLDivElement, IPurchaseRequestDocument>(({ conte
         const service = new PurchaseRequestTravelRequestService(context);
         try {
             const data = await service.getPurchaseRequestApprovals(purchaseRequestId);
-            console.log("Fetched Approvers:", data);
-
+      
             if (!data) return;
 
             setApprovers(

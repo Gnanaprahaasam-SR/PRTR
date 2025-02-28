@@ -56,7 +56,6 @@ interface DocumentState {
 
 const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
     // const dateFormate = (date: string): string => {
-    //     console.log(date)
     //     const existingDate = new Date(date).toISOString().split('T')[0];
     //     return existingDate;
     // };
@@ -112,15 +111,13 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
 
         try {
             const existingPR = await service.getPurchaseRequestDetails(null, "All", purchaseRequestId);
-            console.log("Fetched Purchase Request Details:", existingPR);
-
+          
             // Ensure PRDetails is an array before using map
             const PRDetailsArray = existingPR?.PRDetails;
             if (!Array.isArray(PRDetailsArray)) {
                 console.warn("PRDetails is not an array or is undefined.");
                 return;
             }
-            console.log(PRDetailsArray)
             const data: IPurchaseRequestDataProps[] = PRDetailsArray.map((PR: any) => ({
                 id: PR.Id,
                 requester: PR.Requester?.Title ?? "",
@@ -152,7 +149,7 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
         const service = new PurchaseRequestTravelRequestService(props.context);
         try {
             const data = await service.getPurchaseRequestApprovals(purchaseRequestId);
-            console.log("Fetched Approvers:", data);
+            
             if (data) {
                 setLoading(false);
                 const Approvers = data.map((item: any) => ({
@@ -201,7 +198,6 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
         }
     }, [currentPRId]);
 
-
     const handleApprovals = (status: string, id: number,): void => {
         setApprovalStatus(status);
         const selectedApprover = approvers.find((approver) => approver.Id === id);
@@ -210,7 +206,6 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
             setApprovalDialog(true);
         }
     };
-
 
     const handleConfirmApproval = async (status: string): Promise<void> => {
         if (status === 'confirm') {
@@ -221,7 +216,7 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
             const service = new PurchaseRequestTravelRequestService(props.context);
             try {
                 const updateApproval = await service.UpdatePurchaseRequestApproval(updateApprovalData, approvers?.length);
-                console.log(updateApproval);
+                
                 if (updateApproval) {
                     setLoading(false);
                     setUpdateApprovalData(null);
@@ -243,12 +238,11 @@ const PRUpdate: FC<IPurchaseRequestFormProps> = (props) => {
         }
     }
 
-
     const pendingApprovers = approvers.filter(a => a.Status === "Pending");
     const minHierarchy = pendingApprovers.length > 0 ? Math.min(...pendingApprovers.map(a => a.Hierarchy || Infinity)) : null;
 
     return (
-        <div className=' p-3 bg-light  rounded-3'>
+        <div className=' p-3 bg-light rounded-3'>
             {loading && <LoadingSpinner />}
 
             <div className='d-flex justify-content-between align-items-center'>

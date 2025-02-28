@@ -37,7 +37,6 @@ const HorizontalBarChartView: React.FC<IHorizontalBarChartDataProps> = (props) =
 
         try {
             const result = await service.getPRTRTravelRequest();
-            console.log("Fetched Data:", result);
 
             const data = result;
 

@@ -21,8 +21,10 @@ const columnsData: { label: string, field: string }[] = [
     { label: 'Requestor Name', field: 'Requester' },
     { label: 'Department', field: 'Department' },
     // { label: 'Requested Date', field: 'RequestedDate' },
-    { label: 'Travel To(Destination)', field: 'Where' },
-    { label: 'Travel Date', field: 'When' },
+    { label: 'Travel From', field: 'TravelFrom' },
+    { label: 'Travel To', field: 'TravelTo' },
+    { label: 'Start Date', field: 'StartDate' },
+    { label: 'End Date', field: 'ToWhen' },
     { label: 'Total Estimate Cost', field: 'TotalCostEstimate' },
     { label: 'Strategic Project Related', field: 'StrategicProjectRelated' },
     { label: 'Emergency Related', field: 'EmergencyRelated' },
@@ -37,8 +39,10 @@ export interface ITRTableDataProps {
     Department: string;
     DepartmentId: number;
     RequestedDate: string;
-    Where: string;
-    When: string;
+    TravelFrom: string;
+    TravelTo: string;
+    StartDate: string;
+    EndDate: string;
     TotalCostEstimate: number;
     BusinessJustification: string;
     StratigicProjectRelated: string;
@@ -148,8 +152,10 @@ const TRReport: FC<ITravelRequestProps> = (props) => {
             "Requestor Name": data.Requester ?? "",
             "Department": data.Department ?? "",
             // "Requested Date": data.RequestedDate ?? "",
-            "Where": data.Where ?? "",
-            "When": data.When ?? "",
+            "Travel From": data.TravelFrom ?? "",
+            "Travel To": data.TravelTo ?? "",
+            "Start Date": data.StartDate ?? "",
+            "End Date": data.EndDate ?? "",
             "Total Estimate Cost": `${data.TotalCostEstimate ? Number(data.TotalCostEstimate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}`,
             "Stratigic Project Related": data.StratigicProjectRelated ?? "",
             "Emergency Related": data.EmergencyRelated ?? "",
@@ -172,7 +178,7 @@ const TRReport: FC<ITravelRequestProps> = (props) => {
     };
 
     const fetchPurchaseRequestData = async (status: string, userId: number | null): Promise<void> => {
-        console.log(status, userId);
+        
         setLoading(true);
         const service = new PurchaseRequestTravelRequestService(props.context);
         try {
@@ -185,15 +191,16 @@ const TRReport: FC<ITravelRequestProps> = (props) => {
                 Department: item.Department?.Department,
                 DepartmentId: item.Department?.Id,
                 RequestedDate: formatDate(item?.RequestedDate),
-                Where: item.Where ?? "",
-                When: item.When ? formatDate(item.When) : "",
+                TravelFrom: item.TravelFrom ?? "",
+                TravelTo: item.TravelTo ?? "",
+                StartDate: item.StartDate ? formatDate(item.StartDate) : "",
+                EndDate: item.EndDate ? formatDate(item.EndDate) : "",
                 TotalCostEstimate: item.TotalCostEstimate ?? 0,
                 BusinessJustification: item.BusinessJustification ?? "",
                 Status: item.Status ?? "",
                 StratigicProjectRelated: item.StratigicProjectRelated ? "Yes" : "No",
                 EmergencyRelated: item.EmergencyRelated ? "Yes" : "No",
             }));
-            console.log(TRData)
             setDataList(TRData);
         } catch (error) {
             console.error('Error fetching PR data:', error);
@@ -411,8 +418,10 @@ const TRReport: FC<ITravelRequestProps> = (props) => {
                                         <td >{data.Requester}</td>
                                         <td>{data.Department}</td>
                                         {/* <td>{data.RequestedDate}</td> */}
-                                        <td>{data.Where}</td>
-                                        <td>{data.When}</td>
+                                        <td>{data.TravelFrom}</td>
+                                        <td>{data.TravelTo}</td>
+                                        <td>{data.StartDate}</td>
+                                        <td>{data.EndDate}</td>
                                         <td>${data.TotalCostEstimate ? Number(data.TotalCostEstimate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00"}</td>
                                         <td className={`text-center`}>{data.StratigicProjectRelated}</td>
                                         <td className={`text-center`}>{data.EmergencyRelated}</td>

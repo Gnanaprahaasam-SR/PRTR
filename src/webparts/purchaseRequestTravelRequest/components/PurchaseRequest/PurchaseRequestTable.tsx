@@ -49,7 +49,7 @@ export interface IPRTableDataProps {
 
 
 const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
-    const { table } = useParams();
+    const { table, status } = useParams();
     const [dataList, setDataList] = useState<IPRTableDataProps[]>([]);
     const [filters, setFilters] = useState<Partial<IPRTableDataProps>>({});
     const [sortConfig, setSortConfig] = useState<{ key: keyof IPRTableDataProps; direction: 'ascending' | 'descending'; dataType: string } | null>(null);
@@ -60,6 +60,8 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
     const [globalFilter, setGlobalFilter] = useState<string>('');
     const [selectedColumn, setSelectedColumn] = useState('');
     const [currentPR, setCurrentPR] = useState<number | null>(null);
+
+   
 
     const handleGlobalFilterChange = (value: string) => {
         setGlobalFilter(value);
@@ -169,7 +171,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
     };
 
     const fetchPurchaseRequestData = async (status: string, userId: number): Promise<void> => {
-        console.log(status, userId);
+        
         setLoading(true);
         const service = new PurchaseRequestTravelRequestService(props.context);
         try {
@@ -192,6 +194,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                 UseCase: item.UseCase,
             }));
             setDataList(PRData);
+            
         } catch (error) {
             console.error('Error fetching PR data:', error);
         } finally {
@@ -215,10 +218,17 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
         }
     }
 
+    useEffect(()=>{
+        if(status && dataList.length > 0){
+            handleGlobalFilterChange(status);
+        }
+    },[dataList])
+
     useEffect(() => {
 
         if (table === 'PR') {
             fetchPurchaseRequestData("All", props.userId);
+            
             handlePageChange(1);
         } else if (table === 'MyDraft') {
             fetchPurchaseRequestData("Draft", props.userId);

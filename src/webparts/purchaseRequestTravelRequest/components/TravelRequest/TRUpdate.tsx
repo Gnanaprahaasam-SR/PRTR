@@ -25,8 +25,10 @@ interface ITravelRequestFormProps {
     Department: string;
     DepartmentId?: number;
     RequestedDate: string;
-    Where: string;
-    When: string;
+    TravelFrom: string;
+    TravelTo: string;
+    StartDate: string;
+    EndDate: string;
     TotalCostEstimate?: number;
     BusinessJustification: string;
     StratigicProjectRelated: boolean;
@@ -55,7 +57,6 @@ interface DocumentState {
 
 const TRUpdate: FC<ITravelRequestProps> = (props) => {
     // const dateFormate = (date: string): string => {
-    //     // console.log(date)
     //     const existingDate = new Date(date).toISOString().split('T')[0];
     //     return existingDate;
     // };
@@ -72,8 +73,10 @@ const TRUpdate: FC<ITravelRequestProps> = (props) => {
         Department: "",
         DepartmentId: undefined,
         RequestedDate: currentDate,
-        Where: "",
-        When: "",
+        TravelFrom: "",
+        TravelTo: "",
+        StartDate: "",
+        EndDate:"",
         TotalCostEstimate: undefined,
         BusinessJustification: "",
         StratigicProjectRelated: false,
@@ -106,8 +109,7 @@ const TRUpdate: FC<ITravelRequestProps> = (props) => {
         setLoading(true);
         try {
             const existingTR = await service.getTravelRequestDetails(props.userId, "All", travelRequestId);
-            console.log("Fetched Travel Request Details:", existingTR);
-
+          
             // Ensure TRDetails is an array before using map
             const TRDetailsArray = existingTR?.TRDetails;
             if (!Array.isArray(TRDetailsArray)) {
@@ -122,8 +124,10 @@ const TRUpdate: FC<ITravelRequestProps> = (props) => {
                 Department: TR.Department?.Department ?? "",
                 DepartmentId: TR.Department?.Id ?? undefined,
                 RequestedDate: TR.RequestedDate ?? "",
-                Where: TR.Where ?? "",
-                When: TR.When ?? "",
+                TravelFrom: TR.TravelFrom ?? "",
+                TravelTo: TR.TravelTo ?? "",
+                StartDate: TR.StartDate ?? "",
+                EndDate: TR.EndDate ?? "",
                 TotalCostEstimate: TR.TotalCostEstimate ?? undefined,
                 BusinessJustification: TR.BusinessJustification ?? "",
                 StratigicProjectRelated: TR.StratigicProjectRelated ?? false,
@@ -145,7 +149,7 @@ const TRUpdate: FC<ITravelRequestProps> = (props) => {
         setLoading(true);
         try {
             const data = await service.getTravelRequestApprovals(travelRequestId);
-            console.log(data);
+           
             const Approvers = data.map((item: any) => ({
                 Id: item.ID,
                 TRId: item.TravelRequestId.Id,
@@ -209,7 +213,7 @@ const TRUpdate: FC<ITravelRequestProps> = (props) => {
             const service = new PurchaseRequestTravelRequestService(props.context);
             try {
                 const updateApproval = await service.UpdateTravelRequestApproval(updateApprovalData, approvers?.length);
-                console.log(updateApproval);
+               
                 if (updateApproval) {
                     setLoading(false);
                     setUpdateApprovalData(null);
@@ -270,15 +274,25 @@ const TRUpdate: FC<ITravelRequestProps> = (props) => {
                     </div>
 
                     {/* Where */}
+
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                        <label className='form-label fw-bold'>Travel To (Destination)</label>
-                        <div>{formData.Where}</div>
+                        <label className='form-label fw-bold'>Travel From</label>
+                        <div>{formData.TravelFrom}</div>
+                    </div>
+                    <div className='mb-2 col-12 col-sm-6 col-md-4'>
+                        <label className='form-label fw-bold'>Travel To</label>
+                        <div>{formData.TravelTo}</div>
                     </div>
 
                     {/* When */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                        <label className='form-label fw-bold'>Travel Date </label>
-                        <div>{formData.When? format(new Date(formData.When), "MM-dd-yyyy"):""}</div>
+                        <label className='form-label fw-bold'>Start Date</label>
+                        <div>{formData.StartDate? format(new Date(formData.StartDate), "MM-dd-yyyy"):""}</div>
+                    </div>
+
+                    <div className='mb-2 col-12 col-sm-6 col-md-4'>
+                        <label className='form-label fw-bold'>End Date</label>
+                        <div>{formData.EndDate? format(new Date(formData.EndDate), "MM-dd-yyyy"):""}</div>
                     </div>
 
                     {/* Total Cost Estimate */}

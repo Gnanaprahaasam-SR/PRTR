@@ -15,8 +15,10 @@ interface ITravelRequestFormProps {
     Department: string;
     DepartmentId?: number;
     RequestedDate: string;
-    Where: string;
-    When: string;
+    TravelFrom: string;
+    TravelTo: string;
+    StartDate: string;
+    EndDate: string;
     TotalCostEstimate?: number;
     BusinessJustification: string;
     StratigicProjectRelated: boolean;
@@ -49,7 +51,7 @@ interface ITravelRequestProps {
 
 const TRDocument = forwardRef<HTMLDivElement, ITravelRequestProps>(({ context, currentTRId }, ref) => {
     const dateFormate = (date: string): string => {
-        // console.log(date)
+      
         const existingDate = new Date(date).toISOString().split('T')[0];
         return existingDate;
     };
@@ -62,8 +64,10 @@ const TRDocument = forwardRef<HTMLDivElement, ITravelRequestProps>(({ context, c
         Department: "",
         DepartmentId: undefined,
         RequestedDate: currentDate,
-        Where: "",
-        When: "",
+        TravelFrom: "",
+        TravelTo: "",
+        StartDate: "",
+        EndDate: "",
         TotalCostEstimate: undefined,
         BusinessJustification: "",
         StratigicProjectRelated: false,
@@ -89,8 +93,7 @@ const TRDocument = forwardRef<HTMLDivElement, ITravelRequestProps>(({ context, c
         setLoading(true);
         try {
             const existingTR = await service.getTravelRequestDetails(null, "All", travelRequestId);
-            console.log("Fetched Travel Request Details:", existingTR);
-
+          
             // Ensure TRDetails is an array before using map
             const TRDetailsArray = existingTR?.TRDetails;
             if (!Array.isArray(TRDetailsArray)) {
@@ -105,8 +108,10 @@ const TRDocument = forwardRef<HTMLDivElement, ITravelRequestProps>(({ context, c
                 Department: TR.Department?.Department ?? "",
                 DepartmentId: TR.Department?.Id ?? undefined,
                 RequestedDate: TR.RequestedDate ?? "",
-                Where: TR.Where ?? "",
-                When: TR.When ?? "",
+                TravelFrom: TR.TravelFrom ?? "",
+                TravelTo: TR.TravelTo ?? "",
+                StartDate: TR.StartDate ?? "",
+                EndDate: TR.EndDate ?? "",
                 TotalCostEstimate: TR.TotalCostEstimate ?? undefined,
                 BusinessJustification: TR.BusinessJustification ?? "",
                 StratigicProjectRelated: TR.StratigicProjectRelated ?? false,
@@ -130,7 +135,7 @@ const TRDocument = forwardRef<HTMLDivElement, ITravelRequestProps>(({ context, c
         setLoading(true);
         try {
             const data = await service.getTravelRequestApprovals(travelRequestId);
-            console.log(data);
+          
             const Approvers = data.map((item: any) => ({
                 Id: item.ID,
                 TRId: item.TravelRequestId.Id,
@@ -162,7 +167,7 @@ const TRDocument = forwardRef<HTMLDivElement, ITravelRequestProps>(({ context, c
     return (
         <div className='  p-3 bg-light  rounded-3' ref={ref}>
             {loading && <LoadingSpinner />}
-
+            
             <div className="d-flex align-items-center justify-content-between">
                 <div>
                     <img src={logo} alt="logo" width="100" />
@@ -177,6 +182,7 @@ const TRDocument = forwardRef<HTMLDivElement, ITravelRequestProps>(({ context, c
                     <div className="text-start text-wrap" style={{ fontSize: "14px" }}>Date: {formData.CreatedDate ? format(new Date(formData.CreatedDate), "MM-dd-yyy") : 'N/A'}</div>
                 </div>
             </div>
+
             {/* <div className=" clearfix">
                 <div className=" float-end">
                     <div className="text-start text-wrap" style={{ fontSize: "12px" }}>TR#:{formData.Id}</div>
@@ -184,7 +190,6 @@ const TRDocument = forwardRef<HTMLDivElement, ITravelRequestProps>(({ context, c
                     <div className="text-start text-wrap" style={{ fontSize: "12px" }}>Date: {formData.CreatedDate ?? "N/A"}</div>
                 </div>
             </div> */}
-
 
             <div className="row p-4 "  >
                 <div className='mb-3 col-12 col-sm-4 col-md-4'>
@@ -205,14 +210,24 @@ const TRDocument = forwardRef<HTMLDivElement, ITravelRequestProps>(({ context, c
 
                 {/* Where */}
                 <div className='mb-3 col-12 col-sm-4 col-md-4'>
-                    <label className=''>Travel To (Destination)</label>
-                    <div className=' fw-bold'>{formData.Where}</div>
+                    <label className=''>Travel From</label>
+                    <div className=' fw-bold'>{formData.TravelFrom}</div>
+                </div>
+
+                <div className='mb-3 col-12 col-sm-4 col-md-4'>
+                    <label className=''>Travel To</label>
+                    <div className=' fw-bold'>{formData.TravelTo}</div>
                 </div>
 
                 {/* When */}
                 <div className='mb-3 col-12 col-sm-4 col-md-4'>
-                    <label className=''>Travel Date </label>
-                    <div className=' fw-bold'>{formData.When ? format(new Date(formData.When), "MM-dd-yyy") : ""}</div>
+                    <label className=''>Start Date</label>
+                    <div className=' fw-bold'>{formData.StartDate ? format(new Date(formData.StartDate), "MM-dd-yyy") : ""}</div>
+                </div>
+
+                <div className='mb-3 col-12 col-sm-4 col-md-4'>
+                    <label className=''>End Date</label>
+                    <div className=' fw-bold'>{formData.EndDate ? format(new Date(formData.EndDate), "MM-dd-yyy") : ""}</div>
                 </div>
 
                 {/* Total Cost Estimate */}
@@ -222,7 +237,7 @@ const TRDocument = forwardRef<HTMLDivElement, ITravelRequestProps>(({ context, c
                 </div>
 
                 {/* Strategic Project Related */}
-                <div className=" col-12 col-sm-4 col-md-4 ">
+                <div className="col-12 col-sm-4 col-md-4">
                     <div className="gap-2">
                         <label className="text-nowrap">Strategic Project Related </label>
                         <div className='fw-bold'>{formData?.StratigicProjectRelated ? "Yes" : "No"}</div>

@@ -19,7 +19,7 @@ import { FaRegCircleCheck } from "react-icons/fa6";
 import { TbCancel } from "react-icons/tb";
 import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
 import { DatePicker, } from "@fluentui/react";
-import { format } from "date-fns";
+// import { format } from "date-fns";
 
 interface ITravelRequestFormProps {
     Id: number | null;
@@ -28,8 +28,10 @@ interface ITravelRequestFormProps {
     Department: string;
     DepartmentId?: number;
     RequestedDate: string;
-    Where: string;
-    When: string;
+    TravelFrom: string;
+    TravelTo: string;
+    StartDate: string;
+    EndDate: string;
     TotalCostEstimate?: number;
     BusinessJustification: string;
     StratigicProjectRelated: boolean;
@@ -70,7 +72,7 @@ interface ITeamsProps {
 
 const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
     const dateFormate = (date: string): string => {
-        console.log(date)
+
         const existingDate = new Date(date).toISOString().split('T')[0];
         return existingDate;
     };
@@ -89,8 +91,10 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
         Department: "",
         DepartmentId: undefined,
         RequestedDate: currentDate,
-        Where: "",
-        When: "",
+        TravelFrom: "",
+        TravelTo: "",
+        StartDate: "",
+        EndDate: "",
         TotalCostEstimate: undefined,
         BusinessJustification: "",
         StratigicProjectRelated: false,
@@ -133,7 +137,6 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                 team: item.Team,
             }));
             setTeam(teams);
-            console.log(teams)
         } catch (error) {
             console.error('Error fetching Departments:', error);
         }
@@ -151,7 +154,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
             }));
             setDepartmentData(Department);
         } catch (error) {
-            console.log('Error fetching departments:', error);
+            console.error('Error fetching departments:', error);
         }
     };
 
@@ -201,7 +204,6 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
 
         try {
             const existingTR = await service.getTravelRequestDetails(props.userId, "All", travelRequestId);
-            console.log("Fetched Travel Request Details:", existingTR);
 
             // Ensure TRDetails is an array before using map
             const TRDetailsArray = existingTR?.TRDetails;
@@ -217,8 +219,10 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                 Department: TR.Department?.Department ?? "",
                 DepartmentId: TR.Department?.Id ?? undefined,
                 RequestedDate: TR.RequestedDate ? dateFormate(TR.RequestedDate) : "",
-                Where: TR.Where ?? "",
-                When: TR.When ? dateFormate(TR.When) : "",
+                TravelFrom: TR.TravelFrom ?? "",
+                TravelTo: TR.TravelTo ?? "",
+                StartDate: TR.StartDate ? dateFormate(TR.StartDate) : "",
+                EndDate: TR.EndDate ? dateFormate(TR.EndDate) : "",
                 TotalCostEstimate: TR.TotalCostEstimate ?? undefined,
                 BusinessJustification: TR.BusinessJustification ?? "",
                 StratigicProjectRelated: TR.StratigicProjectRelated ?? false,
@@ -260,17 +264,22 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
     }, [TRId]);
 
 
-    const onWhenDate = (date: Date | null) => {
+    const onStartDateDate = (date: Date | null | undefined) => {
         if (date) {
-            const formattedDate = format(date, "MM-dd-yyyy");
-            setFormData((prev) => {
-                return {
-                    ...prev,
-                    When: dateFormate(formattedDate)
-                };
-            });
+            const localDate = new Date(date);
+            localDate.setHours(12, 0, 0, 0); // Set a neutral time to avoid time zone shifts
+            setFormData(prev => ({ ...prev, StartDate: localDate.toISOString() }));
         }
     };
+
+    const onEndDateDate = (date: Date | null | undefined) => {
+        if (date) {
+            const localDate = new Date(date);
+            localDate.setHours(12, 0, 0, 0); // Set neutral time
+            setFormData(prev => ({ ...prev, EndDate: localDate.toISOString() }));
+        }
+    };
+
 
     const handleAttachment = (): void => {
         if (fileInputRef.current) {
@@ -372,8 +381,10 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
             Department: "",
             DepartmentId: undefined,
             RequestedDate: currentDate,
-            Where: "",
-            When: "",
+            TravelTo: "",
+            TravelFrom: "",
+            EndDate: "",
+            StartDate: "",
             TotalCostEstimate: undefined,
             BusinessJustification: "",
             StratigicProjectRelated: false,
@@ -388,13 +399,14 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
     const handleFormSubmit = async (): Promise<any> => {
         setConfirmSubmit(false);
         setLoading(true);
-        console.log(formData, approvers)
         const newTR = {
             RequesterId: formData.RequesterId,
             DepartmentId: formData.DepartmentId,
             RequestedDate: formData.RequestedDate,
-            Where: formData.Where,
-            When: formData.When ? formData.When : null,
+            TravelTo: formData.TravelTo,
+            TravelFrom: formData.TravelFrom,
+            StartDate: formData.StartDate ? formData.StartDate : null,
+            EndDate: formData.StartDate ? formData.EndDate : null,
             TotalCostEstimate: formData.TotalCostEstimate,
             BusinessJustification: formData.BusinessJustification ? formData.BusinessJustification : "",
             StratigicProjectRelated: formData.StratigicProjectRelated,
@@ -406,7 +418,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
         try {
 
             const data = await service.addTravelRequestDetail(newTR, initialApprove, currentTRId, attachment);
-            console.log(data)
+
             if (data) {
                 if (data) {
                     setIsDialogOpen(true);
@@ -429,13 +441,14 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
     const handleSaveAsDraft = async (): Promise<any> => {
         setConfirmDraft(false);
         setLoading(true);
-        console.log(formData, approvers)
         const newTR = {
             RequesterId: formData.RequesterId,
             DepartmentId: formData.DepartmentId,
             RequestedDate: formData.RequestedDate,
-            Where: formData.Where,
-            When: formData.When ? formData.When : null,
+            TravelTo: formData.TravelTo,
+            TravelFrom: formData.TravelFrom,
+            EndDate: formData.EndDate ? formData.EndDate : null,
+            StartDate: formData.StartDate ? formData.StartDate : null,
             TotalCostEstimate: formData.TotalCostEstimate,
             BusinessJustification: formData.BusinessJustification ? formData.BusinessJustification : "",
             StratigicProjectRelated: formData.StratigicProjectRelated,
@@ -447,7 +460,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
         try {
             setConfirmSubmit(false);
             const data = await service.addTravelRequestDetail(newTR, approvers, currentTRId, attachment);
-            console.log(data)
+
             if (data) {
                 if (data) {
                     setIsDialogOpen(true);
@@ -555,30 +568,41 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                     </div>
 
 
-
                     {/* Where */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                        <label className='form-label'>Travel To (Destination) </label>
+                        <label className='form-label'>Travel From</label>
                         <input
                             type='text'
                             className={`${Style.inputStyle}`}
-                            name='Where'
-                            value={formData.Where ?? ""}
+                            name='TravelFrom'
+                            value={formData.TravelFrom ?? ""}
+                            onChange={handleFormDataChange}
+                        />
+                    </div>
+
+                    {/* Where */}
+                    <div className='mb-2 col-12 col-sm-6 col-md-4'>
+                        <label className='form-label'>Travel To</label>
+                        <input
+                            type='text'
+                            className={`${Style.inputStyle}`}
+                            name='TravelTo'
+                            value={formData.TravelTo ?? ""}
                             onChange={handleFormDataChange}
                         />
                     </div>
 
                     {/* When */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
-                        <label className='form-label'>Travel Date </label>
+                        <label className='form-label'>Start Date</label>
                         <DatePicker
-                            value={formData.When ? new Date(formData.When) : undefined}
+                            value={formData.StartDate ? new Date(formData.StartDate) : undefined}
                             formatDate={(date: Date) => date?.toLocaleDateString("en-US", {
                                 year: "numeric",
                                 month: "2-digit",
                                 day: "2-digit"
                             }).replace(/\//g, "-")} // Format as MM/DD/YYYY
-                            onSelectDate={onWhenDate}
+                            onSelectDate={onStartDateDate}
 
                             minDate={new Date()} // Prevent selecting past dates
 
@@ -605,6 +629,43 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                         />
                     </div>
 
+                    <div className='mb-2 col-12 col-sm-6 col-md-4'>
+                        <label className='form-label'>End Date</label>
+                        <DatePicker
+                            value={formData.EndDate ? new Date(formData.EndDate) : undefined}
+                            formatDate={(date: Date) => date?.toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "2-digit",
+                                day: "2-digit"
+                            }).replace(/\//g, "-")} // Format as MM/DD/YYYY
+                            onSelectDate={onEndDateDate}
+
+                            minDate={new Date()} // Prevent selecting past dates
+
+                            styles={{
+                                textField: {
+                                    selectors: {
+                                        color: 'black',
+                                        border: "1px solid #E3E3E3 !important",
+                                        background: "white",
+                                        padding: "3.5px",
+                                        width: "100%",
+                                    }
+                                },
+                                root: {
+                                    selectors: {
+                                        color: 'black',
+                                        border: "1px solid #E3E3E3 !important",
+                                        background: "white",
+                                        padding: "3.5px",
+                                        width: "100%",
+                                    }
+                                }
+                            }}
+                        />
+                    </div>
+
+
                     {/* Total Cost Estimate */}
                     <div className='mb-2 col-12 col-sm-6 col-md-4'>
                         <label className='form-label'>Total Estimate Cost</label>
@@ -627,6 +688,10 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                             value={formData.BusinessJustification ?? ""}
                             onChange={handleFormDataChange}
                         />
+                    </div>
+
+                    <div className='mb-2 col-12 col-sm-6 col-md-4'>
+
                     </div>
 
                     {/* Strategic Project Related */}

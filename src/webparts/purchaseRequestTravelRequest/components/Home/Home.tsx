@@ -9,6 +9,7 @@ import { IPRTableDataProps } from '../PurchaseRequest/PurchaseRequestTable';
 import LoadingSpinner from '../LoadingSpinner/LoadingSpinner';
 import { ITRTableDataProps } from '../TravelRequest/TravelRequestTable';
 import mainStyles from '../PurchaseRequestTravelRequest.module.scss';
+import { Link } from 'react-router-dom';
 // import DonutChartComponent from '../DonutChart/DonutChart';
 
 interface IChartData {
@@ -67,7 +68,7 @@ const Home: FC<IHomeProps> = (props) => {
   };
 
   const fetchPurchaseRequestData = async (status: string, userId: number): Promise<void> => {
-    console.log(status, userId);
+    
     setLoading(true);
     const service = new PurchaseRequestTravelRequestService(props.context);
     try {
@@ -108,7 +109,7 @@ const Home: FC<IHomeProps> = (props) => {
   };
 
   const fetchTravelRequestData = async (status: string, userId: number): Promise<void> => {
-    console.log(status, userId);
+   
     setLoading(true);
     const service = new PurchaseRequestTravelRequestService(props.context);
     try {
@@ -121,13 +122,14 @@ const Home: FC<IHomeProps> = (props) => {
         Department: item.Department?.Department,
         DepartmentId: item.Department?.Id,
         RequestedDate: formatDate(item?.RequestedDate),
-        Where: item.Where ?? "",
-        When: item.When ? formatDate(item.When) : "",
+        TravelFrom: item.TravelFrom ?? "",
+        TravelTo: item.TravelTo ?? "",
+        StartDate: item.StartDate ? formatDate(item.StartDate) : "",
+        EndDate: item.StartDate ? formatDate(item.EndDate) : "",
         TotalCostEstimate: item.TotalCostEstimate ?? 0,
         BusinessJustification: item.BusinessJustification ?? "",
         Status: item.Status ?? "",
       }));
-      // console.log(TRData)
       setTravelRequestData(TRData);
       
       setTRCounts({
@@ -217,7 +219,6 @@ const Home: FC<IHomeProps> = (props) => {
     }));
 
     setPRChartData(finalChartData); // Update the state with the processed data
-    // console.log(finalChartData); // Output the structured data
     return finalChartData; // Return the processed data for chart rendering
   };
 
@@ -292,7 +293,6 @@ const Home: FC<IHomeProps> = (props) => {
     }));
 
     setTRChartData(finalChartData); // Update the state with the processed data
-    // console.log(finalChartData); // Output the structured data
     return finalChartData; // Return the processed data for chart rendering
   };
 
@@ -305,17 +305,17 @@ const Home: FC<IHomeProps> = (props) => {
 
 
   const PRCardData = [
-    { title: "Total PR", count: PRCounts.total, color: "#004b87" },
-    { title: "In Progress PR", count: PRCounts.inProgress, color: "#FF8008" },
-    { title: "Approved PR", count: PRCounts.approved, color: "#1D8843" },
-    { title: "Rejected PR", count: PRCounts.rejected, color: "#ff3149" }
+    { title: "Total PR", count: PRCounts.total, color: "#004b87", status: "" },
+    { title: "In Progress PR", count: PRCounts.inProgress, color: "#FF8008", status: "In Progress" },
+    { title: "Approved PR", count: PRCounts.approved, color: "#1D8843", status: "Approved" },
+    { title: "Rejected PR", count: PRCounts.rejected, color: "#ff3149", status: "Rejected" }
   ];
 
   const TRCardData = [
-    { title: "Total TR", count: TRCounts.total, color: "#004b87" },
-    { title: "In Progress TR", count: TRCounts.inProgress, color: "#FF8008" },
-    { title: "Approved TR", count: TRCounts.approved, color: "#1D8843" },
-    { title: "Rejected TR", count: TRCounts.rejected, color: "#ff3149" }
+    { title: "Total TR", count: TRCounts.total, color: "#004b87", status: "" },
+    { title: "In Progress TR", count: TRCounts.inProgress, color: "#FF8008", status: "In Progress" },
+    { title: "Approved TR", count: TRCounts.approved, color: "#1D8843", status: "Approved" },
+    { title: "Rejected TR", count: TRCounts.rejected, color: "#ff3149", status: "Rejected" }
   ];
 
   return (
@@ -332,10 +332,12 @@ const Home: FC<IHomeProps> = (props) => {
             <div className='row'>
               {PRCardData.map((card, index) => (
                 <div className='col-lg-3 col-md-4 col-6' key={index}>
+                  <Link to={`/purchaseRequestTable/PR/${card.status}`} className='w-100 text-decoration-none'>
                   <div className={styles.card} style={{ backgroundColor: card.color }}>
                     <div className={styles.cardTitle}>{card.title}</div>
                     <div className={styles.cardItemCount}>{card.count}</div>
                   </div>
+                  </Link>
                 </div>
               ))}
             </div>
@@ -355,10 +357,12 @@ const Home: FC<IHomeProps> = (props) => {
             <div className='row'>
               {TRCardData.map((card, index) => (
                 <div className='col-lg-3 col-md-4 col-6' key={index}>
+                  <Link to={`/travelRequestTable/TR/${card.status}`} className='w-100 text-decoration-none'>
                   <div className={styles.card} style={{ backgroundColor: card.color }}>
                     <div className={styles.cardTitle}>{card.title}</div>
                     <div className={styles.cardItemCount}>{card.count}</div>
                   </div>
+                  </Link>
                 </div>
               ))}
             </div>

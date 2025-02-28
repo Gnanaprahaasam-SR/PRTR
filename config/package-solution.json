@@ -3,7 +3,7 @@
   "solution": {
     "name": "purchase-request-travel-request-client-side-solution",
     "id": "4547696a-186c-4496-8787-ff07eb779ae8",
-    "version": "1.0.0.9",
+    "version": "1.0.0.13",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,
@@ -30,7 +30,7 @@
         "title": "purchase-request-travel-request Feature",
         "description": "The feature that activates elements of the purchase-request-travel-request solution.",
         "id": "fb0de069-afe1-42fa-9de2-2e0fcd7f3d84",
-        "version": "1.0.0.9"
+        "version": "1.0.0.13"
       }
     ]
   },

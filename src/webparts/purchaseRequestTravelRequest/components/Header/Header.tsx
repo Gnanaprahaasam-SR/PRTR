@@ -31,14 +31,12 @@ const Header: FC<IHeaderProps> = (props) => {
     } else {
       setIsMenuActive(true);
     }
-    // console.log(isMenuActive);
   }
 
   const fetchPRTRLogo = async () => {
     const service = new PurchaseRequestTravelRequestService(props.context);
     try {
       const data = await service.getPRTRLogo();
-      console.log("fetch PRTR LOGO:", data);
       const document = data.document;
       const formattedDocument = {
         id: document.Id,
