@@ -24,8 +24,6 @@ export class PurchaseRequestTravelRequestService {
         this.context = context;
     }
 
-
-
     public async getPRTRLogo(): Promise<any> {
         const sp = getSP(this.context);
         const web = sp?.web;
@@ -91,7 +89,7 @@ export class PurchaseRequestTravelRequestService {
 
 
             const departmentData = await query();
-           return departmentData;
+            return departmentData;
         } catch (error) {
             console.error("Error retrieving PRTR Departments:", error);
             throw error;
@@ -143,7 +141,7 @@ export class PurchaseRequestTravelRequestService {
                 rejected: purchaseRequest.filter(item => item.Status === "Rejected").length,
             };
 
-         
+
             return { ...statusCounts };
         } catch (error) {
             console.error("Error retrieving PRTR Purchase Request:", error);
@@ -215,7 +213,7 @@ export class PurchaseRequestTravelRequestService {
                 .filter(`Team eq '${Team}'`)
                 .orderBy("Hierarchy", true);
             const approversData = await query();
-           return approversData;
+            return approversData;
 
         } catch (error) {
             console.error("Error retrieving PRTR Approvers:", error);
@@ -237,7 +235,7 @@ export class PurchaseRequestTravelRequestService {
                 .select("ID", "User/Id", "User/Title", "User/EMail", "Team")
                 .expand("User")
             const TeamsData = await query();
-           return TeamsData;
+            return TeamsData;
 
         } catch (error) {
             console.error("Error retrieving PRTR Teams:", error);
@@ -270,7 +268,7 @@ export class PurchaseRequestTravelRequestService {
             throw new Error("List 'PRTRTravelRequestApprovals' or 'PRTRTravelRequestDetails' not found.");
         }
 
-      
+
         try {
             let newTRId: number;
             let newTRDetails: any;
@@ -349,7 +347,7 @@ export class PurchaseRequestTravelRequestService {
                     for (const approval of existingApprovals) {
                         await ApprovalList.items.getById(approval.ID).delete();
                     }
-               
+
 
                 } else {
                     const newTRDetail = await TravelRequestList.items.add(newTR);
@@ -404,7 +402,7 @@ export class PurchaseRequestTravelRequestService {
                 filterCondition = `Status ne 'Draft'`; // If a specific status is provided
             }
 
-            let query = list.items.select("ID", "Requester/Id", "Requester/Title", "Requester/EMail", "RequestedDate", "Department/Department", "Department/Id", "TravelFrom", "TravelTo", "StartDate", "EndDate", "TotalCostEstimate", "StratigicProjectRelated", "EmergencyRelated", "Status", "BusinessJustification", "Author/Title", "Created")
+            let query = list.items.select("ID", "Requester/Id", "Requester/Title", "Requester/EMail", "RequestedDate", "Department/Department", "Department/Id", "TravelFrom", "TravelTo", "StartDate", "EndDate", "TotalCostEstimate", "StratigicProjectRelated", "EmergencyRelated", "Status", "BusinessJustification", "Author/Id", "Author/Title", "Created")
                 .expand("Requester", "Department", "Author",);
 
             // Apply filter only if a condition exists
@@ -469,7 +467,7 @@ export class PurchaseRequestTravelRequestService {
         const ApprovalsTranstion = web?.lists?.getByTitle("PRTRPurchaseRequestApprovals");
         const PRDocument = web?.lists?.getByTitle("PRTRPurchaseRequestAttachment");
         const Status = newPRData?.Status;
-       
+
         try {
             let newPRId: number;
             let newPRDetails: any;
@@ -479,7 +477,7 @@ export class PurchaseRequestTravelRequestService {
                     const existingPR = await PurchaseRequestList.items.getById(PRId)();
                     if (existingPR) {
                         const updatedPR = await PurchaseRequestList.items.getById(PRId).update(newPRData);
-                       newPRDetails = updatedPR;
+                        newPRDetails = updatedPR;
                     }
                     newPRId = PRId;
 
@@ -488,14 +486,14 @@ export class PurchaseRequestTravelRequestService {
                     for (const approval of existingApprovals) {
                         await ApprovalsTranstion.items.getById(approval.ID).delete();
                     }
-             
+
                 } else {
                     const newPRDetail = await PurchaseRequestList.items.add(newPRData);
                     newPRDetails = newPRDetail;
                     newPRId = newPRDetail.ID;
                 }
 
-               
+
                 // Insert new approvals
                 const newApprovals = await Promise.all(
                     approvers.map(async (Approver) => {
@@ -508,7 +506,7 @@ export class PurchaseRequestTravelRequestService {
                             Status: Approver.Status ?? "Pending",
                             ApprovedDate: Approver.ApprovedDate ? Approver.ApprovedDate : null,
                         };
-                       return await ApprovalsTranstion.items.add(formattedDetail);
+                        return await ApprovalsTranstion.items.add(formattedDetail);
                     })
                 );
 
@@ -525,7 +523,7 @@ export class PurchaseRequestTravelRequestService {
                     }
                     const fileId = items[0].Id;
 
-                    
+
                     const DocumentItem = await PRDocument.items.getById(fileId).update({
                         PurchaseRequestIdId: newPRId
                     });
@@ -540,7 +538,7 @@ export class PurchaseRequestTravelRequestService {
                     const existingPR = await PurchaseRequestList.items.getById(PRId)();
                     if (existingPR) {
                         const updatedPR = await PurchaseRequestList.items.getById(PRId).update(newPRData);
-                      newPRDetails = updatedPR;
+                        newPRDetails = updatedPR;
                     }
                     newPRId = PRId;
 
@@ -549,7 +547,7 @@ export class PurchaseRequestTravelRequestService {
                     for (const approval of existingApprovals) {
                         await ApprovalsTranstion.items.getById(approval.ID).delete();
                     }
-              
+
 
                 } else {
                     const newPRDetail = await PurchaseRequestList.items.add(newPRData);
@@ -570,12 +568,12 @@ export class PurchaseRequestTravelRequestService {
                     }
                     const fileId = items[0].Id;
 
-                    
+
                     const DocumentItem = await PRDocument.items.getById(fileId).update({
                         PurchaseRequestIdId: newPRId
                     });
                     newDocument = DocumentItem;
-               }
+                }
                 return { PRDetails: newPRDetails, document: newDocument };
             }
 
@@ -603,7 +601,7 @@ export class PurchaseRequestTravelRequestService {
     }
 
     public async deletePRTRTravelRequestDocument(documentId: number): Promise<void> {
-      try {
+        try {
             const sp = getSP(this.context);
             const web = sp?.web;
             const documentsLibrary = web.lists.getByTitle("PRTRTravelRequestAttachment");
@@ -622,18 +620,18 @@ export class PurchaseRequestTravelRequestService {
             const ApprovalList = sp?.web?.lists?.getByTitle("PRTRTravelRequestApprovals");
             const TRDocument = sp?.web?.lists?.getByTitle("PRTRTravelRequestAttachment");
             await TRList.items.getById(TRId).delete();
-          // Delete existing approvals
+            // Delete existing approvals
             const existingApprovals = await ApprovalList.items.filter(`TravelRequestId/Id eq '${TRId}'`)();
             for (const approval of existingApprovals) {
                 await ApprovalList.items.getById(approval.ID).delete();
             }
 
-        
+
             const existingDocuments = await TRDocument.items.filter(`TravelRequestId/Id eq '${TRId}'`)();
             for (const document of existingDocuments) {
                 await TRDocument.items.getById(document.ID).delete();
             }
-         
+
 
         } catch (error) {
             console.error(`Error deleting Travel Request with ID ${TRId}:`, error);
@@ -695,7 +693,7 @@ export class PurchaseRequestTravelRequestService {
                 filterCondition = `Status ne 'Draft'`; // If a specific status is provided
             }
 
-            let query = list.items.select("ID", "Requester/Id", "Requester/Title", "Requester/EMail", "RequestedDate", "Department/Department", "Department/Id", "PurchaseDetails", "PurchaseType", "Category", "TotalCost", "RecurringCost", "ItemServiceDescription", "UseCase", "Status", "BusinessJustification", "ARRequired", "Author/Title", "Created", "ARDetails")
+            let query = list.items.select("ID", "Requester/Id", "Requester/Title", "Requester/EMail", "RequestedDate", "Department/Department", "Department/Id", "PurchaseDetails", "PurchaseType", "Category", "TotalCost", "RecurringCost", "ItemServiceDescription", "UseCase", "Status", "BusinessJustification", "ARRequired", "Author/Id", "Author/Title", "Created", "ARDetails")
                 .expand("Requester", "Department", "Author");
 
             // Apply filter only if a condition exists
@@ -734,14 +732,14 @@ export class PurchaseRequestTravelRequestService {
     }
 
     public async deletePRTRPurchaseRequestDocument(documentId: number): Promise<void> {
-    
+
         try {
             const sp = getSP(this.context);
             const web = sp?.web;
             const documentsLibrary = web.lists.getByTitle("PRTRPurchaseRequestAttachment");
             await documentsLibrary.items.getById(documentId).delete();
 
-       } catch (error) {
+        } catch (error) {
             console.error(`Error deleting document with ID ${documentId}:`, error);
             throw error;
         }
@@ -757,7 +755,7 @@ export class PurchaseRequestTravelRequestService {
 
             const ApprovalsTranstion = web?.lists?.getByTitle("PRTRPurchaseRequestApprovals");
             await PRList.items.getById(PRId).delete();
-           
+
             // Delete existing approvals
             const existingApprovals = await ApprovalsTranstion.items.filter(`PurchaseRequestId/Id eq '${PRId}'`)();
             for (const approval of existingApprovals) {
@@ -768,7 +766,7 @@ export class PurchaseRequestTravelRequestService {
             for (const document of existingDocuments) {
                 await PRDocument.items.getById(document.ID).delete();
             }
-           
+
         } catch (error) {
             console.error(`Error deleting Purchase Request with ID ${PRId}:`, error);
             throw error;
@@ -780,7 +778,7 @@ export class PurchaseRequestTravelRequestService {
         const web = sp?.web;
         const ApprovalsTranstion = web?.lists?.getByTitle("PRTRPurchaseRequestApprovals");
         const PurchaseRequestList = web?.lists?.getByTitle("PRTRPurchaseRequestDetails");
-     
+
         try {
 
             const existingPRApproval = await ApprovalsTranstion.items.select("ID",
@@ -791,16 +789,16 @@ export class PurchaseRequestTravelRequestService {
                 "Comments",
                 "Status",
                 "ApprovedDate").expand('PurchaseRequestId', 'Approver').filter(`PurchaseRequestId/Id eq ${approver.PRId} and Approver/Id eq ${approver.ApproverId} and ID eq ${approver.Id}`)();
-           
+
             if (existingPRApproval.length > 0) {
                 if (approver.Status === "Rejected") {
-                  await PurchaseRequestList.items.getById(approver.PRId).update({ Status: "Rejected" }); 
+                    await PurchaseRequestList.items.getById(approver.PRId).update({ Status: "Rejected" });
                 }
 
                 if (approver.Status === "Approved" && approver.Hierarchy === approverCount) {
-                  await PurchaseRequestList.items.getById(approver.PRId).update({ Status: "Approved" }); 
-                }  else if(approver.Status === "Approved" && approver.Hierarchy !== approverCount) {
-                    await PurchaseRequestList.items.getById(approver.PRId).update({ Status: "Pending" });  
+                    await PurchaseRequestList.items.getById(approver.PRId).update({ Status: "Approved" });
+                } else if (approver.Status === "Approved" && approver.Hierarchy !== approverCount) {
+                    await PurchaseRequestList.items.getById(approver.PRId).update({ Status: "In Progress" });
                 }
 
                 const updatedPRApproval = await ApprovalsTranstion.items.getById(existingPRApproval[0].ID).update({
@@ -823,7 +821,7 @@ export class PurchaseRequestTravelRequestService {
         const web = sp?.web;
         const ApprovalsTranstion = web?.lists?.getByTitle("PRTRTravelRequestApprovals");
         const TravelRequestList = web?.lists?.getByTitle("PRTRTravelRequestDetails");
-      
+
 
         try {
 
@@ -835,17 +833,17 @@ export class PurchaseRequestTravelRequestService {
                 "Comments",
                 "Status",
                 "ApprovedDate").expand('TravelRequestId', 'Approver').filter(`TravelRequestId/Id eq ${approver.TRId} and Approver/Id eq ${approver.ApproverId} and ID eq ${approver.Id}`)();
-         
+
 
             if (existingPRApproval.length > 0) {
                 if (approver.Status === "Rejected") {
                     await TravelRequestList.items.getById(approver.TRId).update({ Status: "Rejected" });
-               }
+                }
 
                 if (approver.Status === "Approved" && approver.Hierarchy === approverCount) {
-                     await TravelRequestList.items.getById(approver.TRId).update({ Status: "Approved" });  
-                } else if(approver.Status === "Approved" && approver.Hierarchy !== approverCount) {
-                    await TravelRequestList.items.getById(approver.TRId).update({ Status: "Pending" });  
+                    await TravelRequestList.items.getById(approver.TRId).update({ Status: "Approved" });
+                } else if (approver.Status === "Approved" && approver.Hierarchy !== approverCount) {
+                    await TravelRequestList.items.getById(approver.TRId).update({ Status: "In Progress" });
                 }
 
                 const updatedPRApproval = await ApprovalsTranstion.items.getById(existingPRApproval[0].ID).update({
@@ -853,7 +851,7 @@ export class PurchaseRequestTravelRequestService {
                     Status: approver.Status,
                     ApprovedDate: approver.ApprovedDate,
                 });
-               return updatedPRApproval;
+                return updatedPRApproval;
             }
 
         }
@@ -863,4 +861,447 @@ export class PurchaseRequestTravelRequestService {
         }
     }
 
+    public async updatePurchaseRequestApprover(approver: any): Promise<any> {
+        try {
+            const sp = getSP(this.context);
+            if (!sp) throw new Error("Failed to get SP context");
+
+            const web = sp.web;
+            if (!web) throw new Error("Failed to access SharePoint web");
+
+            const approvalsTransition = web.lists.getByTitle("PRTRPurchaseRequestApprovals");
+
+            if (!approvalsTransition) throw new Error("Approvals list not found");
+
+            // Update the approver
+            const updatedApprover = await approvalsTransition.items.getById(approver.Id).update({
+                ApproverId: approver.ApproverId
+            });
+
+            return updatedApprover;
+        } catch (error) {
+            console.error("Error updating purchase request approver:", error);
+            throw new Error(`Failed to update approver: ${error.message}`);
+        }
+    }
+
+    public async updateTravelRequestApprover(approver: any): Promise<any> {
+        try {
+            const sp = getSP(this.context);
+            if (!sp) throw new Error("Failed to get SP context");
+
+            const web = sp.web;
+            if (!web) throw new Error("Failed to access SharePoint web");
+
+            const approvalsTransition = web.lists.getByTitle("PRTRTravelRequestApprovals");
+
+            if (!approvalsTransition) throw new Error("Approvals list not found");
+
+            // Update the approver
+            const updatedApprover = await approvalsTransition.items.getById(approver.Id).update({
+                ApproverId: approver.ApproverId
+            });
+
+            return updatedApprover;
+        } catch (error) {
+            console.error("Error updating travel request approver:", error);
+            throw new Error(`Failed to update approver: ${error.message}`);
+        }
+    }
+
+    public async getPRApprovalsByUser(userId: number): Promise<any> {
+        try {
+            const sp = getSP(this.context);
+            if (!sp) throw new Error("Failed to get SP context");
+
+            const web = sp.web;
+            if (!web) throw new Error("Failed to access SharePoint web");
+
+            const approvalsTransition = web.lists.getByTitle("PRTRPurchaseRequestApprovals");
+            if (!approvalsTransition) throw new Error("Approvals list not found");
+
+            // Fetch all approvals for the given user where status is 'Pending'
+            const prApprovals = await approvalsTransition.items
+                .select("ID", "PurchaseRequestId/Id", "Approver/Id", "Approver/Title", "Approver/EMail", "Comments", "Status", "ApprovedDate")
+                .expand("PurchaseRequestId", "Approver")
+                .filter(`Approver/Id eq ${userId} and Status eq 'Pending'`)
+                .orderBy("ID", true).top(5000)(); // Ensure it's ordered correctly
+
+            const filteredApprovals: any[] = [];
+            const uniquePRIds = new Set<number>(); // To track unique PurchaseRequestIds
+
+            for (const approval of prApprovals) {
+                const purchaseRequestId = approval.PurchaseRequestId.Id;
+
+                // Skip if this purchaseRequestId is already processed
+                if (uniquePRIds.has(purchaseRequestId)) {
+                    continue;
+                }
+
+                // Get all approvals for the same Purchase Request, sorted by ID
+                const allApprovals = await approvalsTransition.items
+                    .select("ID", "Approver/Id", "Status","Hierarchy")
+                    .expand("Approver")
+                    .filter(`PurchaseRequestId/Id eq ${purchaseRequestId}`)
+                    .orderBy("Hierarchy", true).top(5000)(); // Sorting ensures sequential approval order
+
+                // Find the current user's position in the approval sequence
+                const currentIndex = allApprovals.findIndex(a => a.Approver.Id === userId);
+
+                if (currentIndex === 0 || (currentIndex > 0 && allApprovals[currentIndex - 1].Status === "Approved")) {
+                    filteredApprovals.push(approval);
+                    uniquePRIds.add(purchaseRequestId); // Mark this purchaseRequestId as processed
+                }
+            }
+
+            return filteredApprovals;
+        } catch (error) {
+            console.error("Error getting PR approvals by user:", error);
+            throw new Error(`Failed to get PR approvals: ${error.message}`);
+        }
+    }
+
+
+    public async getTRApprovalsByUser(userId: number): Promise<any> {
+        try {
+            const sp = getSP(this.context);
+            if (!sp) throw new Error("Failed to get SP context");
+
+            const web = sp.web;
+            if (!web) throw new Error("Failed to access SharePoint web");
+
+            const approvalsTransition = web.lists.getByTitle("PRTRTravelRequestApprovals");
+            if (!approvalsTransition) throw new Error("Approvals list not found");
+
+            // Fetch all approvals for the given user where status is 'Pending'
+            const trApprovals = await approvalsTransition.items
+                .select("ID", "TravelRequestId/Id", "Approver/Id", "Approver/Title", "Approver/EMail", "Comments", "Status", "ApprovedDate")
+                .expand("TravelRequestId", "Approver")
+                .filter(`Approver/Id eq ${userId} and Status eq 'Pending'`)
+                .orderBy("ID", true).top(5000)(); // Ensure it's ordered correctly
+
+                console.log("Pending Approvals", trApprovals);
+
+            const filteredApprovals: any[] = [];
+            const uniqueTRIds = new Set<number>(); // To track unique TravelRequestIds
+
+            for (const approval of trApprovals) {
+                const travelRequestId = approval.TravelRequestId.Id;
+
+                // Skip if this TravelRequestId is already processed
+                if (uniqueTRIds.has(travelRequestId)) {
+                    continue;
+                }
+
+                // Get all approvals for the same Purchase Request, sorted by ID
+                const allApprovals = await approvalsTransition.items
+                    .select("ID", "Approver/Id", "Status", "Hierarchy")
+                    .expand("Approver")
+                    .filter(`TravelRequestId/Id eq ${travelRequestId}`)
+                    .orderBy("Hierarchy", true).top(5000)(); // Sorting ensures sequential approval order
+
+                    console.log("All Approvals related to the above Travel Request", allApprovals);
+
+                // Find the current user's position in the approval sequence
+                const currentIndex = allApprovals.findIndex(a => a.Approver.Id === userId);
+
+                if (currentIndex === 0 || (currentIndex > 0 && allApprovals[currentIndex - 1].Status === "Approved")) {
+                    filteredApprovals.push(approval);
+                    uniqueTRIds.add(travelRequestId); // Mark this purchaseRequestId as processed
+                }
+            }
+
+            return filteredApprovals;
+        } catch (error) {
+            console.error("Error getting TR approvals by user:", error);
+            throw new Error(`Failed to get TR approvals: ${error.message}`);
+        }
+    }
+
+    public async getPRApprovalsByPR(currentPR: number): Promise<any> {
+        try {
+            const sp = getSP(this.context);
+            if (!sp) throw new Error("Failed to get SP context");
+
+            const web = sp.web;
+            if (!web) throw new Error("Failed to access SharePoint web");
+
+            const prTransition = web.lists.getByTitle("PRTRPurchaseRequestApprovals");
+            if (!prTransition) throw new Error("PRTRPurchaseRequestApprovals list not found");
+
+            // Fetch all approvals for the given Purchase Request where status is 'Pending'
+            const prApprovals = await prTransition.items
+                .select("ID", "PurchaseRequestId/Id", "Approver/Id", "Approver/Title", "Approver/EMail", "Comments", "Status", "ApprovedDate")
+                .expand("PurchaseRequestId", "Approver")
+                .filter(`PurchaseRequestId/Id eq ${currentPR}`)
+                .orderBy("ID", true).top(5000)(); // Ensure it's ordered correctly
+
+            return prApprovals;
+        } catch (error) {
+            console.error("Error getting PR approvals by PR:", error);
+            throw new Error(`Failed to get PR approvals: ${error.message}`);
+
+        }
+    }
+
+    public async addQuestionToPR(question: any): Promise<any> {
+        try {
+            const sp = getSP(this.context);
+            if (!sp) throw new Error("Failed to get SP context");
+
+            const web = sp.web;
+            if (!web) throw new Error("Failed to access SharePoint web");
+
+            const prQuestions = web.lists.getByTitle("PRTRPurchaseRequestDiscussions");
+            if (!prQuestions) throw new Error("PRTRPurchaseRequestDiscussions list not found");
+
+            const response = await prQuestions.items.add(question);
+
+            return response;
+        } catch (err) {
+            console.error("Error adding question to PR:", err);
+            throw new Error(`Failed to add question: ${err.message}`);
+        }
+    }
+
+    public async addAnswerToPR(answer: any): Promise<any> {
+        try {
+            const sp = getSP(this.context);
+            if (!sp) throw new Error("Failed to get SP context");
+
+            const web = sp.web;
+            if (!web) throw new Error("Failed to access SharePoint web");
+
+            const list = web.lists.getByTitle("PRTRPurchaseRequestDiscussions");
+            if (!list) throw new Error("PRTRPurchaseRequestDiscussions list not found");
+
+            const response = await list.items.getById(answer.Id).update({
+                Answer: answer.Answer,
+                AnswerBy: answer.AnswerBy,
+                AnsweredOn: answer.AnsweredOn
+            });
+
+            return response;
+        } catch (err) {
+            console.error("Error adding answer to PR:", err);
+            throw new Error(`Failed to add answer: ${err.message}`);
+        }
+    }
+
+
+    public async getPRQuestionsByUser(userId: number): Promise<any> {
+        try {
+            const sp = getSP(this.context);
+            if (!sp) throw new Error("Failed to get SP context");
+
+            const web = sp.web;
+            if (!web) throw new Error("Failed to access SharePoint web");
+
+            const prQuestions = web.lists.getByTitle("PRTRPurchaseRequestDiscussions");
+            if (!prQuestions) throw new Error("PRTRPurchaseRequestDiscussions list not found");
+
+            // Fetch all questions where AnswerBy/Id matches userId
+            const questions = await prQuestions.items
+                .select(
+                    "ID",
+                    "PRNumber/Id",
+                    "Question",
+                    "RaisedBy/Id",
+                    "RaisedBy/Title",
+                    "RaisedOn",
+                    "Answer",  // Cannot filter directly, but we fetch it
+                    "AnswerBy/Id",
+                    "AnswerBy/Title",
+                    "AnsweredOn"
+                )
+                .expand("PRNumber", "RaisedBy", "AnswerBy")
+                .filter(`AnswerBy/Id eq ${userId} and AnsweredOn eq null`)
+                .orderBy("ID", true).top(5000)(); // Ensure it's ordered correctly
+
+
+            return questions;
+        } catch (error) {
+            console.error("Error getting PR questions by user:", error);
+            throw new Error(`Failed to get PR questions: ${error.message}`);
+        }
+    }
+
+
+    public async getPRDiscussionsByPR(prNumber: number): Promise<any> {
+        try {
+            const sp = getSP(this.context);
+            if (!sp) throw new Error("Failed to get SP context");
+
+            const web = sp.web;
+            if (!web) throw new Error("Failed to access SharePoint web");
+
+            const list = web.lists.getByTitle("PRTRPurchaseRequestDiscussions");
+            if (!list) throw new Error("PRTRPurchaseRequestDiscussions list not found");
+
+            // Fetch all questions where PRNumber/Id matches prNumber
+            const discussions = await list.items
+                .select(
+                    "ID",
+                    "PRNumber/Id",
+                    "Question",
+                    "RaisedBy/Id",
+                    "RaisedBy/Title",
+                    "RaisedOn",
+                    "Answer",  // Cannot filter directly, but we fetch it
+                    "AnswerBy/Id",
+                    "AnswerBy/Title",
+                    "AnsweredOn"
+                )
+                .expand("PRNumber", "RaisedBy", "AnswerBy")
+                .filter(`PRNumber/Id eq ${prNumber}`)
+                .orderBy("ID", true).top(5000)(); // Ensure it's ordered correctly
+            return discussions;
+        } catch (error) {
+            console.error("Error getting PR questions by PR:", error);
+            throw new Error(`Failed to get PR questions: ${error.message}`);
+        }
+    }
+
+    
+    public async addQuestionToTR(question: any): Promise<any> {
+        try {
+            const sp = getSP(this.context);
+            if (!sp) throw new Error("Failed to get SP context");
+
+            const web = sp.web;
+            if (!web) throw new Error("Failed to access SharePoint web");
+
+            const prQuestions = web.lists.getByTitle("PRTRTravelRequestDiscussions");
+            if (!prQuestions) throw new Error("PRTRTravelRequestDiscussions list not found");
+
+            const response = await prQuestions.items.add(question);
+
+            return response;
+        } catch (err) {
+            console.error("Error adding question to TR:", err);
+            throw new Error(`Failed to add question: ${err.message}`);
+        }
+    }
+
+    public async addAnswerToTR(answer: any): Promise<any> {
+        try {
+            const sp = getSP(this.context);
+            if (!sp) throw new Error("Failed to get SP context");
+
+            const web = sp.web;
+            if (!web) throw new Error("Failed to access SharePoint web");
+
+            const list = web.lists.getByTitle("PRTRTravelRequestDiscussions");
+            if (!list) throw new Error("PRTRTravelRequestDiscussions list not found");
+
+            const response = await list.items.getById(answer.Id).update({
+                Answer: answer.Answer,
+                AnswerBy: answer.AnswerBy,
+                AnsweredOn: answer.AnsweredOn
+            });
+
+            return response;
+        } catch (err) {
+            console.error("Error adding answer to TR:", err);
+            throw new Error(`Failed to add answer: ${err.message}`);
+        }
+    }
+
+
+    public async getTRQuestionsByUser(userId: number): Promise<any> {
+        try {
+            const sp = getSP(this.context);
+            if (!sp) throw new Error("Failed to get SP context");
+
+            const web = sp.web;
+            if (!web) throw new Error("Failed to access SharePoint web");
+
+            const prQuestions = web.lists.getByTitle("PRTRTravelRequestDiscussions");
+            if (!prQuestions) throw new Error("PRTRTravelRequestDiscussions list not found");
+
+            // Fetch all questions where AnswerBy/Id matches userId
+            const questions = await prQuestions.items
+                .select(
+                    "ID",
+                    "TRNumber/Id",
+                    "Question",
+                    "RaisedBy/Id",
+                    "RaisedBy/Title",
+                    "RaisedOn",
+                    "Answer",  // Cannot filter directly, but we fetch it
+                    "AnswerBy/Id",
+                    "AnswerBy/Title",
+                    "AnsweredOn"
+                )
+                .expand("TRNumber", "RaisedBy", "AnswerBy")
+                .filter(`AnswerBy/Id eq ${userId} and AnsweredOn eq null`)
+                .orderBy("ID", true).top(5000)(); // Ensure it's ordered correctly
+
+
+            return questions;
+        } catch (error) {
+            console.error("Error getting TR questions by user:", error);
+            throw new Error(`Failed to get TR questions: ${error.message}`);
+        }
+    }
+
+    public async getTRDiscussionsByTR(trNumber: number): Promise<any> {
+        try {
+            const sp = getSP(this.context);
+            if (!sp) throw new Error("Failed to get SP context");
+
+            const web = sp.web;
+            if (!web) throw new Error("Failed to access SharePoint web");
+
+            const list = web.lists.getByTitle("PRTRTravelRequestDiscussions");
+            if (!list) throw new Error("PRTRTravelRequestDiscussions list not found");
+
+            // Fetch all questions where TRNumber/Id matches trNumber
+            const discussions = await list.items
+                .select(
+                    "ID",
+                    "TRNumber/Id",
+                    "Question",
+                    "RaisedBy/Id",
+                    "RaisedBy/Title",
+                    "RaisedOn",
+                    "Answer",  // Cannot filter directly, but we fetch it
+                    "AnswerBy/Id",
+                    "AnswerBy/Title",
+                    "AnsweredOn"
+                )
+                .expand("TRNumber", "RaisedBy", "AnswerBy")
+                .filter(`TRNumber/Id eq ${trNumber}`)
+                .orderBy("ID", true).top(5000)(); // Ensure it's ordered correctly
+            return discussions;
+        } catch (error) {
+            console.error("Error getting TR questions by TR:", error);
+            throw new Error(`Failed to get TR questions: ${error.message}`);
+        }
+    }
+
+    public async getTRApprovalsByTR(currentTR: number): Promise<any> {
+        try {
+            const sp = getSP(this.context);
+            if (!sp) throw new Error("Failed to get SP context");
+
+            const web = sp.web;
+            if (!web) throw new Error("Failed to access SharePoint web");
+
+            const trTransition = web.lists.getByTitle("PRTRTravelRequestApprovals");
+            if (!trTransition) throw new Error("PRTRTravelRequestApprovals list not found");
+
+            // Fetch all approvals for the given Purchase Request where status is 'Pending'
+            const prApprovals = await trTransition.items
+                .select("ID", "TravelRequestId/Id", "Approver/Id", "Approver/Title", "Approver/EMail", "Comments", "Status", "ApprovedDate")
+                .expand("TravelRequestId", "Approver")
+                .filter(`TravelRequestId/Id eq ${currentTR}`)
+                .orderBy("ID", true).top(5000)(); // Ensure it's ordered correctly
+
+            return prApprovals;
+        } catch (error) {
+            console.error("Error getting TR approvals by TR:", error);
+            throw new Error(`Failed to get TR approvals: ${error.message}`);
+        }
+    }
 };

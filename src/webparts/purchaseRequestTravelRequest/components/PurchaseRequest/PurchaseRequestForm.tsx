@@ -125,7 +125,6 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
 
 
     const [approvers, setApprovers] = useState<IApproverProps[]>([]);
-    const [initialApprove, setInitialApprove] = useState<IApproverProps[]>([]);
     const [confirmSubmit, setConfirmSubmit] = useState<boolean>(false);
     const [confirmDraft, setConfirmDraft] = useState<boolean>(false);
     const navigate = useNavigate();
@@ -146,7 +145,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const handleBackClick = (): void => {
-        navigate("/purchaseRequestTable/PR");
+        navigate("/purchaseRequestTable/AllPRs");
     };
 
     const fetchTeams = async (): Promise<void> => {
@@ -190,7 +189,9 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
         try {
 
             const data = await service.getPRTRApprovers(team);
-            const approver = data.map((item) => ({
+            const approver = data
+            .sort((a: any, b: any) => a.Hierarchy - b.Hierarchy) 
+            .map((item) => ({
                 Id: item.ID,
                 Approver: item.Approver?.Title,
                 ApproverId: item.Approver?.Id,
@@ -201,8 +202,8 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                 ApprovedDate: ''
             }));
 
+            console.log(approver);
             setApprovers(approver);
-            setInitialApprove(approver);
         } catch (error) {
             console.error('Error fetching Approvers:', error);
         }
@@ -223,8 +224,6 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
             }
         }
     }, [formData.requesterId, team]);
-
-
 
     const fetchPurchaseRequestDetails = async (purchaseRequestId: number): Promise<void> => {
         const service = new PurchaseRequestTravelRequestService(props.context);
@@ -387,7 +386,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
         const PR = currentPRId;
         const service = new PurchaseRequestTravelRequestService(props.context);
         try {
-            const data = await service.addPurchaseRequestForm(newPRData, initialApprove, PR, attachment);
+            const data = await service.addPurchaseRequestForm(newPRData, approvers, PR, attachment);
       
             if (data) {
                 setIsDialogOpen(true);
@@ -396,7 +395,7 @@ const PRForm: FC<IPurchaseRequestFormProps> = (props) => {
                 setLoading(false);
                 handleFormReset();
                 setTimeout(() => {
-                    navigate("/PurchaseRequestTable/PR")
+                    navigate("/PurchaseRequestTable/AllPRs")
                 }, 3000);
             }
         } catch (error) {

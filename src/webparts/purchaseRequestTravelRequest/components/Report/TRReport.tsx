@@ -345,6 +345,13 @@ const TRReport: FC<ITravelRequestProps> = (props) => {
                             <option value="Status">Status</option>
                             <option value="Requester">Requestor Name</option>
                             <option value="Department">Department</option>
+                            <option value="TravelFrom">Travel From</option>
+                            <option value="TravelTo">Travel To</option>
+                            <option value="StartDate">Start Date</option>
+                            <option value="EndDate">End Date</option>
+                            <option value="TotalCostEstimate">Total Estimate Cost</option>
+                            <option value="StratigicProjectRelated">Strategic Project Related</option>
+                            <option value="EmergencyRelated">Emergency Related</option>
                             {/* <option value="RequestedDate">Requested Date</option> */}
                         </select>
                         <input

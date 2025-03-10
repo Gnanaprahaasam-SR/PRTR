@@ -116,7 +116,7 @@ const Header: FC<IHeaderProps> = (props) => {
             onSelect={handleClose} // Close dropdown when item is selected
           /> */}
 
-          <Link className={`${styles.navbarItem} ${location.pathname.startsWith('/purchaseRequest') ? styles.active : ''}`} to="/purchaseRequestTable/PR">
+          <Link className={`${styles.navbarItem} ${location.pathname.startsWith('/purchaseRequest') ? styles.active : ''}`} to="/purchaseRequestTable/AllPRs">
             <div className={styles.navicon}><BiSolidPurchaseTag size={18} /></div><div className={styles.navtext}> Purchase Request</div>
           </Link>
 

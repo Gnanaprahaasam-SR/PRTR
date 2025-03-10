@@ -4,5 +4,6 @@ export interface IPurchaseRequestFormProps {
     userId: number;
     userName: string;
     context: WebPartContext;
+    isUserInGroup?:boolean;
 }
 

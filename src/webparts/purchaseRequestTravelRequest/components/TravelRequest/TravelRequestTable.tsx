@@ -17,6 +17,8 @@ import { PurchaseRequestTravelRequestService } from '../../Service/PurchaseReque
 import { ITravelRequestProps } from './ITravelRequestProps';
 import { TbCancel } from 'react-icons/tb';
 import TRDocument from './TRpdfView';
+import { AiOutlineExclamationCircle } from 'react-icons/ai';
+import { Dialog, DialogType } from '@fluentui/react';
 
 // const columnsData: { label: string, field: string }[] = [
 //     { label: 'S.No', field: 'serialNumber' },
@@ -42,6 +44,20 @@ export interface ITRTableDataProps {
     EndDate: string;
     TotalCostEstimate: number;
     BusinessJustification: string;
+    AuthorId: number;
+}
+
+export interface TRDiscussionState {
+    Id: number;
+    TRNumberId: number;
+    Question: string;
+    RaisedById: number;
+    RaisedBy: string;
+    RaisedOn: string;
+    Answer: string;
+    AnsweredById: number;
+    AnswerBy: string;
+    AnsweredOn: string;
 }
 
 const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
@@ -56,6 +72,28 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
     const [globalFilter, setGlobalFilter] = useState<string>('');
     const [selectedColumn, setSelectedColumn] = useState('');
     const [currentTR, setCurrentTR] = useState<number | null>(null);
+    const [currentTRNumber, setCurrentTRNumber] = useState<number>();
+
+    const [isQuestionDialogOpen, setIsQuestionDialogOpen] = useState<boolean>(false);
+    const [isAnswerDialogOpen, setIsAnswerDialogOpen] = useState<boolean>(false);
+
+    const [currentTRApprovers, setCurrentTRApprovers] = useState<{ Id: number, Title: string }[]>([]);
+    const [toWhom, setToWhom] = useState<string>();
+    const [question, setQuestion] = useState<string>();
+    const [answer, setAnswer] = useState<string>();
+
+    const [userQuestions, setUserQuestions] = useState<TRDiscussionState[]>([]);
+    const [currentUserQuestions, setCurrentUserQuestions] = useState<TRDiscussionState | null>();
+    const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+    const [dialogMessage, setDialogMessage] = useState<string>('');
+    const [dialogTitle, setDialogTitle] = useState<string>('');
+
+    const closeDialog = (): void => {
+        setIsQuestionDialogOpen(false);
+        setIsDialogOpen(false);
+        setDialogMessage('');
+        setDialogTitle('');
+    };
 
     const handleGlobalFilterChange = (value: string) => {
         setGlobalFilter(value);
@@ -128,20 +166,20 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
         setCurrentPage(1);
     };
 
-        const handleTRDelete = async (TRId: number): Promise<void> => {
-            
-            const service = new PurchaseRequestTravelRequestService(props.context);
-            setLoading(true);
-            try {
-                await service.deleteTravelRequest(TRId);
-                setCurrentTR(null);
-                fetchPurchaseRequestData(table === 'PR'? 'All' : 'Draft', props.userId);
-            } catch (error) {
-                console.error('Error deleting PR:', error);
-            } finally {
-                setLoading(false);
-            }
+    const handleTRDelete = async (TRId: number): Promise<void> => {
+
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        setLoading(true);
+        try {
+            await service.deleteTravelRequest(TRId);
+            setCurrentTR(null);
+            fetchTravelRequestData(table === 'PR' ? 'All' : 'Draft', props.userId);
+        } catch (error) {
+            console.error('Error deleting PR:', error);
+        } finally {
+            setLoading(false);
         }
+    }
 
     const paginatedData = React.useMemo(() => {
         const start = (currentPage - 1) * pageSize;
@@ -168,7 +206,7 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
         XLSX.utils.book_append_sheet(workbook, worksheet, 'TravelRequestDetails');
         const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
         const data = new Blob([excelBuffer], { type: EXCEL_TYPE });
-        saveAs(data, `${table === 'TR' ? `PRTR_TravelRequests_${new Date().getTime()}${EXCEL_EXTENSION}` : `PRTR_Drafts_${new Date().getTime()}${EXCEL_EXTENSION}`}`);
+        saveAs(data, `${(table === 'TR' || table === 'MyPendingApprovals') ? `PRTR_TravelRequests_${new Date().getTime()}${EXCEL_EXTENSION}` : `PRTR_Drafts_${new Date().getTime()}${EXCEL_EXTENSION}`}`);
     };
 
     const formatDate = (dateString: string): string => {
@@ -179,14 +217,56 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
         return `${month}-${day}-${year}`;
     };
 
-    const fetchPurchaseRequestData = async (status: string, userId: number): Promise<void> => {
-       
+    const fetchTRApprovalsByUser = async (userId: number): Promise<any> => {
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        try {
+            const response = await service.getTRApprovalsByUser(userId);
+            // console.log("response", response);
+            return response;
+        } catch (error) {
+            console.error("Error fetching User Approvals", error);
+        }
+    }
+
+    const fetchQuestionsByUser = async (): Promise<void> => {
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        try {
+            const response = await service.getTRQuestionsByUser(props.userId);
+            console.log("Unanswer Questions for the user:", response);
+
+            const formatQuestions = response.map((item: any) => {
+                return {
+                    Id: item?.ID,
+                    TRNumberId: item?.TRNumber?.Id,
+                    Question: item?.Question,
+                    RaisedById: item?.RaisedBy?.Id,
+                    RaisedBy: item?.RaisedBy?.Title,
+                    RaisedOn: item?.RaisedOn,
+                    Answer: item?.Answer,
+                    AnswerById: item?.AnswerBy?.Id,
+                    AnswerBy: item?.AnswerBy?.Title,
+                    AnsweredOn: item?.AnsweredOn
+                }
+            });
+
+            setUserQuestions(formatQuestions);
+            console.log("Formated items", formatQuestions);
+
+            return response;
+        } catch (error) {
+            console.error("Error fetching User Approvals", error);
+        }
+    }
+
+
+    const fetchTravelRequestData = async (status: string, userId: number): Promise<void> => {
+
         setLoading(true);
         const service = new PurchaseRequestTravelRequestService(props.context);
         try {
             const data = await service.getTravelRequestDetails(userId, status, null);
             const TRDetails = data.TRDetails;
-            const TRData: ITRTableDataProps[] = TRDetails.map((item: any) => ({
+            const TRData: ITRTableDataProps[] = TRDetails.reverse().map((item: any) => ({
                 TRNumber: item.Id,
                 Requester: item.Requester?.Title,
                 RequesterId: item.Requester?.Id,
@@ -200,8 +280,24 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                 TotalCostEstimate: item.TotalCostEstimate ?? 0,
                 BusinessJustification: item.BusinessJustification ?? "",
                 Status: item.Status ?? "",
+                AuthorId: item?.Author?.Id,
             }));
-            setDataList(TRData);
+
+            fetchQuestionsByUser();
+
+            if (table === "MyPendingApprovals") {
+                const response = await fetchTRApprovalsByUser(props.userId);
+                // console.log("response", response);
+
+                const newPRData = TRData.filter((TR) =>
+                    response.some((item: any) => item.TravelRequestId.Id === TR.TRNumber && TR.Status === "In Progress")
+                );
+                
+                // console.log("newPRData", newPRData);
+                setDataList(newPRData);
+            } else {
+                setDataList(TRData);
+            }
         } catch (error) {
             console.error('Error fetching PR data:', error);
         } finally {
@@ -209,22 +305,141 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
         }
     };
 
-      useEffect(()=>{
-            if(status && dataList.length > 0){
-                handleGlobalFilterChange(status);
-            }
-        },[dataList])
+
+
+    useEffect(() => {
+        if (status && dataList.length > 0) {
+            handleGlobalFilterChange(status);
+        }
+    }, [dataList])
 
     useEffect(() => {
 
         if (table === 'TR') {
-            fetchPurchaseRequestData("All", props.userId);
+            fetchTravelRequestData("All", props.userId);
             handlePageChange(1);
         } else if (table === 'MyDraft') {
-            fetchPurchaseRequestData("Draft", props.userId);
+            fetchTravelRequestData("Draft", props.userId);
             handlePageChange(1);
         }
+        else if (table === 'MyPendingApprovals') {
+            fetchTravelRequestData("All", props.userId);
+        }
     }, [table]);
+
+
+    const fetchTRApprovalsByTR = async (currentTRNumber: number) => {
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        try {
+            const response = await service.getTRApprovalsByTR(currentTRNumber);
+            console.log("current TR item's approvers:", response);
+            return response;
+
+        } catch (error) {
+            console.error("Error fetching User Approvals", error);
+        }
+    }
+
+    const handleQuestionClick = async (currentTRNumber: number): Promise<void> => {
+        setIsQuestionDialogOpen(true);
+        setLoading(true);
+        setCurrentTRNumber(currentTRNumber);
+        try {
+            const response = await fetchTRApprovalsByTR(currentTRNumber);
+
+            const formatTRApprovers = response.map((item: any) => {
+                return {
+                    Id: item.Approver.Id,
+                    Title: item.Approver.Title
+                };
+            })
+            console.log("format RR Approvers", formatTRApprovers);
+            setCurrentTRApprovers(formatTRApprovers);
+
+            console.log(currentTRApprovers);
+            // setPRApprovals(response);
+            setLoading(false);
+        } catch (error) {
+            console.error("Error fetching User Approvals", error);
+        }
+    }
+
+    const handleAnswerClick = async (currentTRNumber: number) => {
+        setIsAnswerDialogOpen(true);
+        setCurrentUserQuestions(userQuestions.find(question => question.TRNumberId === currentTRNumber));
+    }
+
+    const handleAnswerSubmit = async () => {
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        setLoading(true);
+        setIsAnswerDialogOpen(false);
+        const currentDate = new Date();
+        try {
+            const formatedData = {
+                Id: currentUserQuestions?.Id,
+                TRNumberId: currentUserQuestions?.TRNumberId,
+                Question: currentUserQuestions?.Question,
+                RaisedById: currentUserQuestions?.RaisedById,
+                RaisedOn: currentUserQuestions?.RaisedOn,
+                Answer: answer,
+                AnswerById: currentUserQuestions?.AnsweredById,
+                AnsweredOn: currentDate
+            };
+
+            const response = await service.addAnswerToTR(formatedData);
+
+            if (response) {
+                setIsDialogOpen(true);
+                setDialogMessage('Your answer has been submitted successfully.');
+                setDialogTitle('Answer Submitted');
+                fetchQuestionsByUser();
+            }
+            // console.log("Answered:", response);
+        } catch (err) {
+            console.error("Error formatting data", err);
+        } finally {
+            setLoading(false);
+            setAnswer("");
+            setCurrentUserQuestions(null);
+            setCurrentTRNumber(undefined);
+        }
+    }
+
+    const handleQuestionSubmit = async () => {
+        // handle question submission logic here
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        setLoading(true);
+        setIsQuestionDialogOpen(false);
+
+        const currentDate = new Date();
+        try {
+            const formatedData = {
+                TRNumberId: currentTRNumber,
+                Question: question,
+                RaisedById: props.userId,
+                RaisedOn: currentDate,
+                Answer: undefined,
+                AnswerById: Number(toWhom),
+                AnsweredOn: undefined
+            };
+            const response = await service.addQuestionToTR(formatedData);
+            if (response) {
+                setIsDialogOpen(true);
+                setDialogMessage('Your Question has been submitted successfully.');
+                setDialogTitle('Question Submitted');
+            }
+            console.log("Quesition Asked:", response);
+        } catch (err) {
+            console.error('Error adding question:', err);
+        } finally {
+            setLoading(false);
+            setQuestion("");
+            setCurrentTRApprovers([]);
+            setToWhom("");
+            setCurrentTR(null);
+            setCurrentTRNumber(undefined);
+        }
+    }
 
     const printRef = useRef<HTMLDivElement>(null);
 
@@ -307,9 +522,15 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
     const tabs = [
         {
             key: 'TR',
-            label: "Travel Request",
+            label: "All TR(s)",
             icon: <MdCardTravel size={18} />,
             link: '/travelRequestTable/TR',
+        },
+        {
+            key: 'MyPendingApprovals',
+            label: "My Pending Approval(s)",
+            icon: <AiOutlineExclamationCircle size={18} />,
+            link: '/travelRequestTable/MyPendingApprovals',
         },
         {
             key: 'MyDraft',
@@ -372,7 +593,6 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                             className={`${styles.columnInput}`}
                         />
                     </div>
-
                 </div>
 
                 <div className='d-flex align-items-center gap-2'>
@@ -534,17 +754,19 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                                                         <IconButton iconProps={{ iconName: "View" }} title="View" className={Style.iconButton} />
                                                     </Link>
                                                     <IconButton iconProps={{ iconName: 'PDF' }} title="PDF" className={Style.iconButton} disabled={data.Status !== "Approved"} onClick={() => { handlePrintPreview(Number(data.TRNumber)); }} />
+
+                                                    {(data.Status === "In Progress" && userQuestions.find((question: TRDiscussionState) => question.TRNumberId === Number(data.TRNumber))) ? (
+                                                        <IconButton
+                                                            iconProps={{ iconName: 'Comment' }}
+                                                            title="Question Raised"
+                                                            className={Style.iconButton}
+                                                            onClick={() => handleAnswerClick(Number(data.TRNumber))}
+                                                        />
+                                                    ) : null}
                                                 </>
                                             ) : (
                                                 <>
-                                                    {data.RequesterId !== props.userId && data.Status === "Rejected" ?
-                                                        <>
-                                                            <Link to={`/travelRequestUpdate/${data.TRNumber}`}>
-                                                                <IconButton iconProps={{ iconName: "View" }} title="View" className={Style.iconButton} />
-                                                            </Link>
-                                                            <IconButton iconProps={{ iconName: 'PDF' }} title="PDF" className={Style.iconButton} disabled onClick={() => { handlePrintPreview(Number(data.TRNumber)); }} />
-                                                        </>
-                                                        :
+                                                    {(data.RequesterId === props.userId || data.AuthorId === props.userId) && data.Status === "Rejected" ?
                                                         <>
                                                             <Link to={`/travelRequest/${data.TRNumber}`}>
                                                                 <IconButton iconProps={{ iconName: "Edit" }} title="Edit" className={Style.iconButton} />
@@ -552,18 +774,38 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                                                             <Link to={`/travelRequestUpdate/${data.TRNumber}`}>
                                                                 <IconButton iconProps={{ iconName: "View" }} title="View" className={Style.iconButton} />
                                                             </Link>
+                                                        </> : <>
+                                                            <Link to={`/travelRequestUpdate/${data.TRNumber}`}>
+                                                                <IconButton iconProps={{ iconName: "View" }} title="View" className={Style.iconButton} />
+                                                            </Link>
+                                                            <IconButton iconProps={{ iconName: 'PDF' }} title="PDF" className={Style.iconButton} disabled onClick={() => { handlePrintPreview(Number(data.TRNumber)); }} />
                                                         </>
                                                     }
 
                                                 </>
                                             )
-                                        ) : (
+                                        ) : (table === "MyDraft" ? (
                                             <>
                                                 <Link to={`/travelRequest/${data.TRNumber}`}>
                                                     <IconButton iconProps={{ iconName: "Edit" }} title="Edit" className={Style.iconButton} />
                                                 </Link>
                                                 <IconButton iconProps={{ iconName: 'Delete' }} title="Delete" onClick={() => { handleTRDelete(Number(data.TRNumber)); }} className={Style.iconButton} />
-                                            </>
+                                            </>) : (table === "MyPendingApprovals" &&
+                                                <>
+                                                    <Link to={`/travelRequestUpdate/${data.TRNumber}`}>
+                                                        <IconButton iconProps={{ iconName: "View" }} title="View" className={Style.iconButton} />
+                                                    </Link>
+                                                    <IconButton
+                                                        iconProps={{ iconName: 'SurveyQuestions' }}
+                                                        onClick={() => {
+                                                            setCurrentTRNumber(Number(data.TRNumber));
+                                                            handleQuestionClick(Number(data.TRNumber));
+                                                        }}
+                                                        title="Question"
+                                                        className={Style.iconButton}
+                                                    />
+                                                </>
+                                        )
                                         )}
                                     </td>
 
@@ -616,6 +858,76 @@ const TravelRequestTable: FC<ITravelRequestProps> = (props) => {
                     </div>
                 </div>
             </div>
+
+            <Dialog
+                hidden={!isQuestionDialogOpen}
+                onDismiss={closeDialog}
+                dialogContentProps={{
+                    type: DialogType.normal,
+                    title: "Question",
+                }}
+            >
+                <label htmlFor="toWhom">To Whom:</label>
+                <select id="toWhom" value={toWhom} onChange={(e) => setToWhom(e.target.value)} className={Style.inputStyle}>
+                    <option value="">---- SELECT ----</option>
+                    {currentTRNumber && (
+                        <option
+                            key={dataList.find(data => Number(data.TRNumber) === currentTRNumber)?.RequesterId ?? ''}
+                            value={dataList.find(data => Number(data.TRNumber) === currentTRNumber)?.RequesterId ?? ''}
+                        >
+                            {dataList.find(data => Number(data.TRNumber) === currentTRNumber)?.Requester ?? ''} (Requester)
+                        </option>
+                    )}
+
+                    {currentTRApprovers.map((item) => (
+                        <option key={item.Id} value={item.Id}>{item.Title} (Approver)</option>
+                    ))}
+                </select>
+                <label htmlFor="questionInput">Question:</label>
+                <textarea id="questionInput" value={question} onChange={(e) => setQuestion(e.target.value)} className={`${Style.inputStyle} w-100`} rows={5} placeholder="Enter your question here..." />
+                <div className="float-end my-3">
+                    <div className="d-flex gap-2 flex-nowrap align-items-center justify-content-end">
+                        <button className={`${Style.primaryButton} px-3`} onClick={handleQuestionSubmit}>Submit</button>
+                        <button className={`${Style.grayButton} px-3`} onClick={() => setIsQuestionDialogOpen(false)}>Close</button>
+                    </div>
+                </div>
+            </Dialog>
+
+            <Dialog
+                hidden={!isAnswerDialogOpen}
+                onDismiss={closeDialog}
+                dialogContentProps={{
+                    type: DialogType.normal,
+                    title: "Answer",
+                }}
+            >
+                <label>Raised by <b>{currentUserQuestions?.RaisedBy}</b></label><br />
+                <label htmlFor="question">Question: <b>{currentUserQuestions?.Question}</b></label><br />
+
+                <label htmlFor="answerInput">Answer:</label>
+                <textarea id="answerInput" value={answer} onChange={(e) => setAnswer(e.target.value)} className={`${Style.inputStyle} w-100`} rows={5} placeholder="Enter your question here..." />
+
+                <div className="float-end my-3">
+                    <div className="d-flex gap-2 flex-nowrap align-items-center justify-content-end">
+                        <button className={`${Style.primaryButton} px-3`} onClick={handleAnswerSubmit}>Submit</button>
+                        <button className={`${Style.grayButton} px-3`} onClick={() => setIsAnswerDialogOpen(false)}>Close</button>
+                    </div>
+                </div>
+            </Dialog>
+
+            <Dialog
+                hidden={!isDialogOpen}
+                onDismiss={closeDialog}
+                dialogContentProps={{
+                    type: DialogType.normal,
+                    title: dialogTitle,
+                    subText: dialogMessage,
+                }}
+            >
+                <div className="float-end m-3">
+                    <button className={`${Style.closeButton} px-3`} onClick={closeDialog} > OK </button>
+                </div>
+            </Dialog>
         </section>
     );
 };

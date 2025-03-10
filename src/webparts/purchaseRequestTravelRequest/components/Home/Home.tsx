@@ -89,6 +89,7 @@ const Home: FC<IHomeProps> = (props) => {
         RecurringCost: item.RecurringCost,
         PurchaseType: item.PurchaseType,
         UseCase: item.UseCase,
+        AuthorId: item?.Author?.Id,
       }));
 
       setPurchaseRequestData(PRData);
@@ -129,6 +130,7 @@ const Home: FC<IHomeProps> = (props) => {
         TotalCostEstimate: item.TotalCostEstimate ?? 0,
         BusinessJustification: item.BusinessJustification ?? "",
         Status: item.Status ?? "",
+        AuthorId: item?.Author?.Id,
       }));
       setTravelRequestData(TRData);
       
@@ -332,7 +334,7 @@ const Home: FC<IHomeProps> = (props) => {
             <div className='row'>
               {PRCardData.map((card, index) => (
                 <div className='col-lg-3 col-md-4 col-6' key={index}>
-                  <Link to={`/purchaseRequestTable/PR/${card.status}`} className='w-100 text-decoration-none'>
+                  <Link to={`/purchaseRequestTable/AllPRs/${card.status}`} className='w-100 text-decoration-none'>
                   <div className={styles.card} style={{ backgroundColor: card.color }}>
                     <div className={styles.cardTitle}>{card.title}</div>
                     <div className={styles.cardItemCount}>{card.count}</div>

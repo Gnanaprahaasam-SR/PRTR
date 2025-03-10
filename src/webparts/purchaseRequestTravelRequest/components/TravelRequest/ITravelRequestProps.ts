@@ -4,4 +4,5 @@ export interface ITravelRequestProps {
   userId: number;
   userName: string;
   context: WebPartContext;
+  isUserInGroup?:boolean;
 }

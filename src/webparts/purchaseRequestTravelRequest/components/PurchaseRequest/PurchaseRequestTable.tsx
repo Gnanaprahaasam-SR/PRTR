@@ -16,8 +16,10 @@ import styles from '../PurchaseRequestTravelRequest.module.scss';
 import { IPurchaseRequestFormProps } from './IPurchaseRequestFormProps';
 import { PurchaseRequestTravelRequestService } from '../../Service/PurchaseRequestTravelRequest';
 import { TbCancel } from 'react-icons/tb';
+import { AiOutlineExclamationCircle } from 'react-icons/ai';
 // import jsPDF from 'jspdf';
 import PRDocument from './PRpdfView';
+import { Dialog, DialogType } from '@fluentui/react';
 
 // const columnsData: { label: string, field: string }[] = [
 //     { label: 'S.No', field: 'serialNumber' },
@@ -44,9 +46,21 @@ export interface IPRTableDataProps {
     RecurringCost: number;
     PurchaseType: string;
     UseCase: string;
+    AuthorId: number;
 }
 
-
+export interface PRDiscussionState {
+    Id: number;
+    PRNumberId: number;
+    Question: string;
+    RaisedById: number;
+    RaisedBy: string;
+    RaisedOn: string;
+    Answer: string;
+    AnsweredById: number;
+    AnswerBy: string;
+    AnsweredOn: string;
+}
 
 const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
     const { table, status } = useParams();
@@ -60,8 +74,28 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
     const [globalFilter, setGlobalFilter] = useState<string>('');
     const [selectedColumn, setSelectedColumn] = useState('');
     const [currentPR, setCurrentPR] = useState<number | null>(null);
+    const [currentPRNumber, setCurrentPRNumber] = useState<number>();
 
-   
+    const [isQuestionDialogOpen, setIsQuestionDialogOpen] = useState<boolean>(false);
+    const [isAnswerDialogOpen, setIsAnswerDialogOpen] = useState<boolean>(false);
+
+    const [currentPRApprovers, setCurrentPRApprovers] = useState<{ Id: number, Title: string }[]>([]);
+    const [toWhom, setToWhom] = useState<string>();
+    const [question, setQuestion] = useState<string>();
+    const [answer, setAnswer] = useState<string>();
+
+    const [userQuestions, setUserQuestions] = useState<PRDiscussionState[]>([]);
+    const [currentUserQuestions, setCurrentUserQuestions] = useState<PRDiscussionState | null>();
+    const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+    const [dialogMessage, setDialogMessage] = useState<string>('');
+    const [dialogTitle, setDialogTitle] = useState<string>('');
+
+    const closeDialog = (): void => {
+        setIsQuestionDialogOpen(false);
+        setIsDialogOpen(false);
+        setDialogMessage('');
+        setDialogTitle('');
+    };
 
     const handleGlobalFilterChange = (value: string) => {
         setGlobalFilter(value);
@@ -152,14 +186,13 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
             "Requestor": data.Requester,
             "Department": data.Department,
             "Requested Date": data.RequestedDate,
-
         }));
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'ProductRequestDetails');
         const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
         const data = new Blob([excelBuffer], { type: EXCEL_TYPE });
-        saveAs(data, `${table === 'PR' ? `PRTR_PurchaseRequests_${new Date().getTime()}${EXCEL_EXTENSION}` : `PRTR_Drafts_${new Date().getTime()}${EXCEL_EXTENSION}`}`);
+        saveAs(data, `${(table === 'AllPRs' || table === 'MyPendingApprovals') ? `PRTR_PurchaseRequests_${new Date().getTime()}${EXCEL_EXTENSION}` : `PRTR_Drafts_${new Date().getTime()}${EXCEL_EXTENSION}`}`);
     };
 
     const formatDate = (dateString: string): string => {
@@ -170,14 +203,54 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
         return `${month}-${day}-${year}`;
     };
 
+    const fetchPRApprovalsByUser = async (userId: number): Promise<any> => {
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        try {
+            const response = await service.getPRApprovalsByUser(userId);
+            // console.log("response", response);
+            return response;
+        } catch (error) {
+            console.error("Error fetching User Approvals", error);
+        }
+    }
+
+    const fetchQuestionsByUser = async (): Promise<void> => {
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        try {
+            const response = await service.getPRQuestionsByUser(props.userId);
+            console.log("Unanswer Questions for the user:", response);
+
+            const formatQuestions = response.map((item: any) => {
+                return {
+                    Id: item?.ID,
+                    PRNumberId: item?.PRNumber?.Id,
+                    Question: item?.Question,
+                    RaisedById: item?.RaisedBy?.Id,
+                    RaisedBy: item?.RaisedBy?.Title,
+                    RaisedOn: item?.RaisedOn,
+                    Answer: item?.Answer,
+                    AnswerById: item?.AnswerBy?.Id,
+                    AnswerBy: item?.AnswerBy?.Title,
+                    AnsweredOn: item?.AnsweredOn
+                }
+            });
+
+            setUserQuestions(formatQuestions);
+            console.log("Formated items", formatQuestions);
+
+            return response;
+        } catch (error) {
+            console.error("Error fetching User Approvals", error);
+        }
+    }
+
     const fetchPurchaseRequestData = async (status: string, userId: number): Promise<void> => {
-        
         setLoading(true);
         const service = new PurchaseRequestTravelRequestService(props.context);
         try {
             const data = await service.getPurchaseRequestDetails(userId, status, null);
             const PRDetail = data.PRDetails;
-            const PRData: IPRTableDataProps[] = PRDetail.map((item) => ({
+            const PRData: IPRTableDataProps[] = PRDetail.reverse().map((item) => ({
                 PRNumber: item.Id,
                 Status: item.Status,
                 Requester: item.Requester?.Title,
@@ -192,9 +265,25 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                 RecurringCost: item.RecurringCost,
                 PurchaseType: item.PurchaseType,
                 UseCase: item.UseCase,
+                AuthorId: item?.Author?.Id,
             }));
-            setDataList(PRData);
-            
+
+            fetchQuestionsByUser();
+
+            if (table === "MyPendingApprovals") {
+                const response = await fetchPRApprovalsByUser(props.userId);
+                // console.log("response", response);
+
+                const newPRData = PRData.filter((PR) =>
+                    response.some((item: any) => item.PurchaseRequestId.Id === PR.PRNumber && PR.Status === "In Progress")
+                );
+
+                // console.log("newPRData", newPRData);
+                setDataList(newPRData);
+            } else {
+                setDataList(PRData);
+            }
+
         } catch (error) {
             console.error('Error fetching PR data:', error);
         } finally {
@@ -203,45 +292,165 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
     };
 
     const handlePRDelete = async (PRId: number): Promise<void> => {
-        
         const service = new PurchaseRequestTravelRequestService(props.context);
         setLoading(true);
         try {
             await service.deletePurchaseRequest(PRId);
             setCurrentPR(null);
-            fetchPurchaseRequestData(table === 'PR'? 'All' : 'Draft', props.userId);
+            fetchPurchaseRequestData(table === 'AllPRs' ? 'All' : 'Draft', props.userId);
         } catch (error) {
             console.error('Error deleting PR:', error);
-        } 
+        }
         finally {
             setLoading(false);
         }
     }
 
-    useEffect(()=>{
-        if(status && dataList.length > 0){
+    useEffect(() => {
+        if (status && dataList.length > 0) {
             handleGlobalFilterChange(status);
         }
-    },[dataList])
+    }, [dataList])
 
     useEffect(() => {
-
-        if (table === 'PR') {
+        if (table === 'AllPRs') {
             fetchPurchaseRequestData("All", props.userId);
-            
             handlePageChange(1);
         } else if (table === 'MyDraft') {
             fetchPurchaseRequestData("Draft", props.userId);
             handlePageChange(1);
         }
+        else if (table === 'MyPendingApprovals') {
+            fetchPurchaseRequestData("All", props.userId);
+        }
+
     }, [table]);
+
+    const fetchPRApprovalsByPR = async (currentPRNumber: number) => {
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        try {
+            const response = await service.getPRApprovalsByPR(currentPRNumber);
+            console.log("current PR item's approvers:", response);
+            return response;
+
+        } catch (error) {
+            console.error("Error fetching User Approvals", error);
+        }
+    }
+
+    const handleQuestionClick = async (currentPRNumber: number): Promise<void> => {
+        setIsQuestionDialogOpen(true);
+        setLoading(true);
+        setCurrentPRNumber(currentPRNumber);
+        try {
+            const response = await fetchPRApprovalsByPR(currentPRNumber);
+
+            const formatPRApprovers = response.map((item: any) => {
+                return {
+                    Id: item.Approver.Id,
+                    Title: item.Approver.Title
+                };
+            })
+            console.log("format PR Approvers", formatPRApprovers);
+            setCurrentPRApprovers(formatPRApprovers);
+
+            console.log(currentPRApprovers);
+            // setPRApprovals(response);
+            setLoading(false);
+        } catch (error) {
+            console.error("Error fetching User Approvals", error);
+        }
+    }
+
+    const handleAnswerClick = async (currentPRNumber: number) => {
+        setIsAnswerDialogOpen(true);
+        setCurrentUserQuestions(userQuestions.find(question => question.PRNumberId === currentPRNumber));
+    }
+
+    const handleAnswerSubmit = async () => {
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        setLoading(true);
+        setIsAnswerDialogOpen(false);
+        const currentDate = new Date();
+        try {
+            const formatedData = {
+                Id: currentUserQuestions?.Id,
+                PRNumberId: currentUserQuestions?.PRNumberId,
+                Question: currentUserQuestions?.Question,
+                RaisedById: currentUserQuestions?.RaisedById,
+                RaisedOn: currentUserQuestions?.RaisedOn,
+                Answer: answer,
+                AnswerById: currentUserQuestions?.AnsweredById,
+                AnsweredOn: currentDate
+            };
+
+            const response = await service.addAnswerToPR(formatedData);
+
+            if (response) {
+                setIsDialogOpen(true);
+                setDialogMessage('Your answer has been submitted successfully.');
+                setDialogTitle('Answer Submitted');
+                fetchQuestionsByUser();
+            }
+            // console.log("Answered:", response);
+
+        } catch (err) {
+            console.error("Error formatting data", err);
+        } finally {
+            setLoading(false);
+            setAnswer("");
+            setCurrentUserQuestions(null);
+        }
+    }
+
+    const handleQuestionSubmit = async () => {
+        // handle question submission logic here
+        const service = new PurchaseRequestTravelRequestService(props.context);
+        setLoading(true);
+        setIsQuestionDialogOpen(false);
+
+        const currentDate = new Date();
+        try {
+            const formatedData = {
+                PRNumberId: currentPRNumber,
+                Question: question,
+                RaisedById: props.userId,
+                RaisedOn: currentDate,
+                Answer: undefined,
+                AnswerById: Number(toWhom),
+                AnsweredOn: undefined
+            };
+            const response = await service.addQuestionToPR(formatedData);
+            if (response) {
+                setIsDialogOpen(true);
+                setDialogMessage('Your Question has been submitted successfully.');
+                setDialogTitle('Question Submitted');
+            }
+            // console.log("Quesition Asked:", response);
+        } catch (err) {
+            console.error('Error adding question:', err);
+        } finally {
+            setLoading(false);
+            setQuestion("");
+            setCurrentPRApprovers([]);
+            setToWhom("");
+            setCurrentPR(null);
+            setCurrentPRNumber(undefined);
+        }
+    }
 
     const tabs = [
         {
-            key: 'PR',
-            label: "Purchase Request",
+            key: 'AllPRs',
+            label: "All PR(s)",
             icon: <BiPurchaseTagAlt size={18} />,
-            link: '/purchaseRequestTable/PR',
+            link: '/purchaseRequestTable/AllPRs',
+        },
+        {
+            key: 'MyPendingApprovals',
+            label: "My Pending Approval(s)",
+            icon: <AiOutlineExclamationCircle size={18} />,
+            link: '/purchaseRequestTable/MyPendingApprovals',
         },
         {
             key: 'MyDraft',
@@ -326,12 +535,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                 }
             }
         }, 500);
-
-
     };
-   
-
-
 
     return (
         <section className='bg-white rounded-5'>
@@ -403,6 +607,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                     </button>
                 </div>
             </div>
+
             <div className='p-3'>
                 <div className={`${Style.tableResponsive}`}>
                     <table className={`${Style.customTable}`}>
@@ -552,7 +757,7 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                                 <tr key={index}>
                                     <td className='text-center'>{(currentPage - 1) * pageSize + index + 1}</td>
                                     <td className='text-center'>
-                                        {table === 'PR' ? (
+                                        {table === 'AllPRs' ? (
                                             data.Status === "Approved" || data.Status === "In Progress" ? (
                                                 <>
                                                     <Link to={`/purchaseRequestUpdate/${data.PRNumber}`}>
@@ -560,11 +765,20 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                                                     </Link>
 
                                                     <IconButton iconProps={{ iconName: 'PDF' }} title="PDF" className={Style.iconButton} disabled={data.Status !== "Approved"} onClick={() => { handlePrintPreview(Number(data.PRNumber)); }} />
+
+                                                    {(data.Status === "In Progress"  && userQuestions.find((question: PRDiscussionState) => question.PRNumberId === Number(data.PRNumber))) ? (
+                                                        <IconButton
+                                                            iconProps={{ iconName: 'Comment' }}
+                                                            title="Question Raised"
+                                                            className={Style.iconButton}
+                                                            onClick={() => handleAnswerClick(Number(data.PRNumber))}
+                                                        />
+                                                    ) : null}
+
                                                 </>
                                             ) : (
                                                 <>
-
-                                                    {data.RequesterId === props.userId && data.Status === "Rejected" ?
+                                                    {(data.RequesterId === props.userId || data.AuthorId === props.userId) && data.Status === "Rejected" ?
                                                         <>
                                                             <Link to={`/purchaseRequest/${data.PRNumber}`}>
                                                                 <IconButton iconProps={{ iconName: 'Edit' }} title="Edit" className={Style.iconButton} />
@@ -584,15 +798,31 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
 
                                                 </>
                                             )
-                                        ) : (
+                                        ) : (table === "MyDraft" ? (
                                             <>
                                                 <Link to={`/purchaseRequest/${data.PRNumber}`}>
                                                     <IconButton iconProps={{ iconName: 'Edit' }} title="Edit" className={Style.iconButton} />
                                                 </Link>
                                                 <IconButton iconProps={{ iconName: 'Delete' }} title="Delete" onClick={() => { handlePRDelete(Number(data.PRNumber)); }} className={Style.iconButton} />
                                             </>
+                                        ) : (table === "MyPendingApprovals" &&
+                                            <>
+                                                <Link to={`/purchaseRequestUpdate/${data.PRNumber}`}>
+                                                    <IconButton iconProps={{ iconName: 'View' }} title="View" className={Style.iconButton} />
+                                                </Link>
+                                                <IconButton
+                                                    iconProps={{ iconName: 'SurveyQuestions' }}
+                                                    onClick={() => {
+                                                        setCurrentPRNumber(Number(data.PRNumber));
+                                                        handleQuestionClick(Number(data.PRNumber));
+                                                    }}
+                                                    title="Question"
+                                                    className={Style.iconButton}
+                                                />
+                                            </>
+                                        )
                                         )}
-                                        
+
                                     </td>
                                     <td className={``}>{data.PRNumber}</td>
                                     <td className=''>
@@ -642,6 +872,75 @@ const PurchaseRequestTable: FC<IPurchaseRequestFormProps> = (props) => {
                     </div>
                 </div>
             </div>
+
+            <Dialog
+                hidden={!isQuestionDialogOpen}
+                onDismiss={closeDialog}
+                dialogContentProps={{
+                    type: DialogType.normal,
+                    title: "Question",
+                }}
+            >
+                <label htmlFor="toWhom">To Whom:</label>
+                <select id="toWhom" value={toWhom} onChange={(e) => setToWhom(e.target.value)} className={Style.inputStyle}>
+                    <option value="">---- SELECT ----</option>
+                    {currentPRNumber && (
+                        <option
+                            key={dataList.find(data => Number(data.PRNumber) === currentPRNumber)?.RequesterId ?? ''}
+                            value={dataList.find(data => Number(data.PRNumber) === currentPRNumber)?.RequesterId ?? ''}
+                        >
+                            {dataList.find(data => Number(data.PRNumber) === currentPRNumber)?.Requester ?? ''} (Requester)
+                        </option>
+                    )}
+                    {currentPRApprovers.map((item) => (
+                        <option key={item.Id} value={item.Id}>{item.Title} (Approver)</option>
+                    ))}
+                </select>
+                <label htmlFor="questionInput">Question:</label>
+                <textarea id="questionInput" value={question} onChange={(e) => setQuestion(e.target.value)} className={`${Style.inputStyle} w-100`} rows={5} placeholder="Enter your question here..." />
+                <div className="float-end my-3">
+                    <div className="d-flex gap-2 flex-nowrap align-items-center justify-content-end">
+                        <button className={`${Style.primaryButton} px-3`} onClick={handleQuestionSubmit}>Submit</button>
+                        <button className={`${Style.grayButton} px-3`} onClick={() => setIsQuestionDialogOpen(false)}>Close</button>
+                    </div>
+                </div>
+            </Dialog>
+
+            <Dialog
+                hidden={!isAnswerDialogOpen}
+                onDismiss={closeDialog}
+                dialogContentProps={{
+                    type: DialogType.normal,
+                    title: "Answer",
+                }}
+            >
+                <label>Raised by <b>{currentUserQuestions?.RaisedBy}</b></label><br />
+                <label htmlFor="question">Question: <b>{currentUserQuestions?.Question}</b></label><br />
+
+                <label htmlFor="answerInput">Answer:</label>
+                <textarea id="answerInput" value={answer} onChange={(e) => setAnswer(e.target.value)} className={`${Style.inputStyle} w-100`} rows={5} placeholder="Enter your question here..." />
+
+                <div className="float-end my-3">
+                    <div className="d-flex gap-2 flex-nowrap align-items-center justify-content-end">
+                        <button className={`${Style.primaryButton} px-3`} onClick={handleAnswerSubmit}>Submit</button>
+                        <button className={`${Style.grayButton} px-3`} onClick={() => setIsAnswerDialogOpen(false)}>Close</button>
+                    </div>
+                </div>
+            </Dialog>
+
+            <Dialog
+                hidden={!isDialogOpen}
+                onDismiss={closeDialog}
+                dialogContentProps={{
+                    type: DialogType.normal,
+                    title: dialogTitle,
+                    subText: dialogMessage,
+                }}
+            >
+                <div className="float-end m-3">
+                    <button className={`${Style.closeButton} px-3`} onClick={closeDialog} > OK </button>
+                </div>
+            </Dialog>
         </section>
     );
 };

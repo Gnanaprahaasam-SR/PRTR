@@ -173,6 +173,27 @@
 
 }
 
+.grayButton{
+  background: #787276;
+  color: white;
+  padding: 6px 10px;
+  border: 0px solid #787276;
+  border-radius: 50px;
+  font-size: 14px;
+  // box-shadow: 0 4px 8px rgba(255, 255, 255, 0.8)
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.3s ease-in-out;
+  text-align: center;
+  outline: none;
+  
+
+  .secondaryButtonIcon {
+    color: white;
+  }
+}
+
 .secondaryLiteButton {
   background: var(--primary-color);
   color: white;

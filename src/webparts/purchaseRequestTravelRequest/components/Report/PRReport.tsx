@@ -350,6 +350,11 @@ const PRReport: FC<IPurchaseRequestFormProps> = (props) => {
                             <option value="Status">Status</option>
                             <option value="Requester">Requestor Name</option>
                             <option value="Department">Department</option>
+                            <option value="Category">Category</option>
+                            <option value="TotalCost">Total Cost</option>
+                            <option value="RecurringCost">Recurring Cost</option>
+                            <option value="PurchaseType">Purchase Type</option>
+                            <option value="UseCase">Use Case</option>
                             {/* <option value="RequestedDate">Requested Date</option> */}
                         </select>
                         <input

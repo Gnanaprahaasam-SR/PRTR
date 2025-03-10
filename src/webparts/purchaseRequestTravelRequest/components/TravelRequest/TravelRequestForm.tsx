@@ -69,7 +69,6 @@ interface ITeamsProps {
     team: string;
 }
 
-
 const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
     const dateFormate = (date: string): string => {
 
@@ -102,7 +101,6 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
         Status: "In Progress",
     });
     const [approvers, setApprovers] = useState<IApproversProps[]>([]);
-    const [initialApprove, setInitialApprove] = useState<IApproversProps[]>([]);
     const [confirmSubmit, setConfirmSubmit] = useState<boolean>(false);
     const [confirmDraft, setConfirmDraft] = useState<boolean>(false);
     const [departmentData, setDepartmentData] = useState<IDepartmentProps[]>([]);
@@ -142,7 +140,6 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
         }
     };
 
-
     const fetchDepartment = async (): Promise<void> => {
         const service = new PurchaseRequestTravelRequestService(props.context);
         try {
@@ -163,18 +160,21 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
         setLoading(true);
         try {
             const data = await service.getPRTRApprovers(team);
-            const Approvers = data.map((item: any) => ({
-                Id: item.ID,
-                Approver: item.Approver?.Title,
-                ApproverId: item.Approver?.Id,
-                Role: item.Role,
-                Status: "Pending",
-                Hierarchy: item.Hierarchy,
-                Comments: "",
-                ApprovedDate: "",
-            }));
+            const Approvers = data
+                .sort((a: any, b: any) => a.Hierarchy - b.Hierarchy) // Sorting by Hierarchy in ascending order
+                .map((item: any) => ({
+                    Id: item.ID,
+                    Approver: item.Approver?.Title,
+                    ApproverId: item.Approver?.Id,
+                    Role: item.Role,
+                    Status: "Pending",
+                    Hierarchy: item.Hierarchy,
+                    Comments: "",
+                    ApprovedDate: "",
+                }));
+
+                // console.log(Approvers);
             setApprovers(Approvers);
-            setInitialApprove(Approvers);
 
         } catch (error) {
             console.error('Error fetching departments:', error);
@@ -187,7 +187,6 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
         fetchTeams();
     }, []);
 
-
     useEffect(() => {
         if (!team || team.length === 0) return;
         if (formData.RequesterId) {
@@ -197,7 +196,6 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
             }
         }
     }, [formData.RequesterId, team]);
-
 
     const fetchTravelRequestDetails = async (travelRequestId: number): Promise<void> => {
         const service = new PurchaseRequestTravelRequestService(props.context);
@@ -237,7 +235,6 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
         }
     };
 
-
     const fetchTRDocuments = async (TRNumber: number): Promise<void> => {
         const service = new PurchaseRequestTravelRequestService(props.context);
         try {
@@ -263,7 +260,6 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
         }
     }, [TRId]);
 
-
     const onStartDateDate = (date: Date | null | undefined) => {
         if (date) {
             const localDate = new Date(date);
@@ -279,7 +275,6 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
             setFormData(prev => ({ ...prev, EndDate: localDate.toISOString() }));
         }
     };
-
 
     const handleAttachment = (): void => {
         if (fileInputRef.current) {
@@ -326,8 +321,6 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
         }
     };
 
-
-
     const handleFormDataChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
         let { name, value } = e.target;
 
@@ -337,7 +330,6 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
         }));
 
     };
-
 
     const handleTaxToggle = (key: string, value: boolean) => {
         setFormData((prevData) => ({
@@ -417,7 +409,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
 
         try {
 
-            const data = await service.addTravelRequestDetail(newTR, initialApprove, currentTRId, attachment);
+            const data = await service.addTravelRequestDetail(newTR, approvers, currentTRId, attachment);
 
             if (data) {
                 if (data) {
@@ -431,6 +423,7 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                     }, 3000);
                 }
             }
+
         } catch (error) {
             console.error('Error updating TravelRequest:', error);
             setLoading(false);
@@ -477,7 +470,6 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
             console.error('Error updating TravelRequest:', error);
             setLoading(false);
         }
-
     }
 
     const handleConfirmFormSubmit = (formStatus: string,): void => {
@@ -603,29 +595,8 @@ const TravelRequestForm: FC<ITravelRequestProps> = (props) => {
                                 day: "2-digit"
                             }).replace(/\//g, "-")} // Format as MM/DD/YYYY
                             onSelectDate={onStartDateDate}
-
                             minDate={new Date()} // Prevent selecting past dates
-
-                            styles={{
-                                textField: {
-                                    selectors: {
-                                        color: 'black',
-                                        border: "1px solid #E3E3E3 !important",
-                                        background: "white",
-                                        padding: "3.5px",
-                                        width: "100%",
-                                    }
-                                },
-                                root: {
-                                    selectors: {
-                                        color: 'black',
-                                        border: "1px solid #E3E3E3 !important",
-                                        background: "white",
-                                        padding: "3.5px",
-                                        width: "100%",
-                                    }
-                                }
-                            }}
+                            placeholder='MM-DD-YYYY'
                         />
                     </div>
 
